@@ -61,7 +61,6 @@ void  drawStuff( void *aLayer,
    nvgStrokeColor( vg, [layer color]);
    nvgStrokeWidth( vg, 3.5);
    nvgStroke( vg);
-
 }
 
 // scale stuff for stream
@@ -87,6 +86,7 @@ void   setupScene( UIWindow *window, CGContext *context)
 
    [layer setColor:MulleColorCreate( 0xFF0000FF)];
 
+   // UIView -> CAAnimation
    [UIView beginAnimations:"animation" 
                     context:NULL];
    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
