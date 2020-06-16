@@ -37,7 +37,8 @@
 
 @end
 
-
+// memo: this actually draws outside of the layer somewhat, should fix this
+//       as noticed when reusing the code in the collection view demo
 void  drawStuff( void *aLayer, 
                  NVGcontext *vg, 
                  CGRect frame, 
