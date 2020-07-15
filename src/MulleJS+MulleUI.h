@@ -12,19 +12,10 @@
 #import "import.h"
 
 
-struct MulleJSImage
-{
-   int      handle;
-   float    width;
-   float    height;
-   int      flags;
-};
-
-
 
 
 @interface MulleJS( MulleUI)
 
-- (void) addMulleUI;
-
+- (void) uiPushValue:(id) value
+              forKey:(NSString *) key;
 @end
