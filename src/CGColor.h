@@ -39,19 +39,50 @@ static inline CGColorRef   MulleColorCreateRandom( uint32_t color, uint32_t mask
    return( getNVGColor( color));
 }
 
-static inline CGColorRef   MulleColorCreateRandomOpaque()
+static inline CGColorRef   MulleColorCreateRandomOpaque( void)
 {
    return( MulleColorCreateRandom( 0xFF, 0xFFFFFF00));
 }
 
 
-
-static inline CGColorRef CGColorCreateGenericRGB( CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha)
+// Returns color value specified by hue, saturation and lightness.
+// HSL values are all in range [0..1], alpha will be set to 255.
+static inline CGColorRef   
+   MulleColorCreateHSL( CGFloat h, CGFloat s, CGFloat l)
 {
-   return( nvgRGBA( (uint32_t) round( 0xff * red),
-                    (uint32_t) round( 0xff * green),
-                    (uint32_t) round( 0xff * blue),
-                    (uint32_t) round( 0xff * alpha)));
+   assert( h >= 0.0 && h <= 1.0);
+   assert( s >= 0.0 && s <= 1.0);
+   assert( l >= 0.0 && l <= 1.0);
+
+   return( nvgHSL( h, s, l));
+}
+
+// here alpha is not like nvg 0-255 but 0-1
+static inline CGColorRef   
+   MulleColorCreateHSLA( CGFloat h, CGFloat s, CGFloat l, CGFloat a)
+{
+   assert( h >= 0.0 && h <= 1.0);
+   assert( s >= 0.0 && s <= 1.0);
+   assert( l >= 0.0 && l <= 1.0);
+   assert( a >= 0.0 && a <= 1.0);
+
+   return( nvgHSLA( h, s, l, a * 255.0));
+}
+
+
+
+static inline CGColorRef 
+   CGColorCreateGenericRGB( CGFloat r, CGFloat g, CGFloat b, CGFloat a)
+{
+   assert( r >= 0.0 && r <= 1.0);
+   assert( g >= 0.0 && g <= 1.0);
+   assert( b >= 0.0 && g <= 1.0);
+   assert( a >= 0.0 && a <= 1.0);
+
+   return( nvgRGBA( (uint32_t) round( 0xff * r),
+                    (uint32_t) round( 0xff * g),
+                    (uint32_t) round( 0xff * b),
+                    (uint32_t) round( 0xff * a)));
 }
 
 

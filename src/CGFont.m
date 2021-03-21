@@ -41,7 +41,7 @@
 
 - (void) dealloc
 {
-   MulleObjCObjectDeallocateMemory( self, _nameCString);
+   MulleObjCInstanceDeallocateMemory( self, _nameCString);
    [super dealloc];
 }
 

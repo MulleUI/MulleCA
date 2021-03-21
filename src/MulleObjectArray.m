@@ -173,7 +173,7 @@ struct _MulleObjectArrayFastEnumerationState
 {
    id <NSObject>   obj;
 
-   obj = _mulle_pointerarray_remove_last( self->_pointerarray);
+   obj = _mulle_pointerarray_pop( self->_pointerarray);
    [obj autorelease];
 }
 

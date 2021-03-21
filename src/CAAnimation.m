@@ -371,7 +371,7 @@ normalizedRelativeTime:(double) x
 
 - (void) dealloc
 {
-   MulleObjCObjectDeallocateMemory( self, &_identifier);
+   MulleObjCInstanceDeallocateMemory( self, &_identifier);
    [super dealloc];
 }
 

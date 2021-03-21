@@ -19,7 +19,8 @@
    fprintf( stderr, "%s\n", __PRETTY_FUNCTION__);
 
    menu = [self menu];
-   [self positionMenu:menu];
+
+   [self positionAndSizeMenu:menu];
    [menu setHidden:NO];
    return( nil);
 }
@@ -61,6 +62,5 @@
 
    [[self menu] setHidden:YES];
 }
-
 
 @end

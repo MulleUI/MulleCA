@@ -8,6 +8,7 @@
 #import "UIEvent.h"
 #import "UIView+UIEvent.h"
 
+#define EVENT_DEBUG
 
 @implementation MulleMenu ( UIEvent)
 
@@ -58,6 +59,9 @@
    return( event);
 }
 
+- (void) breakpoint
+{
+}
 
 - (UIEvent *) _handleEvent:(UIEvent *) event
 {
@@ -87,12 +91,13 @@
       break;
 
    case UIEventTypeScroll :
+      [self breakpoint];
       break;
    }
 
 #ifdef EVENT_DEBUG
    if( event)
-      fprintf( stderr, "Discarding unhandled event %s\n", [self cStringDescription]);
+      fprintf( stderr, "Discarded unhandled event %s\n", [self cStringDescription]);
 #endif    
    return( nil);
 }

@@ -190,7 +190,7 @@
 #define HZ60         (1.0/60.0)
 #define DRAGFACTOR   0.95
 
-- (void) applyMomentumToContentWithAbsoluteTime:(CAAbsoluteTime) now
+- (BOOL) applyMomentumToContentWithAbsoluteTime:(CAAbsoluteTime) now
 {
 	CGPoint          offset;
 	CGPoint          newOffset;
@@ -235,11 +235,12 @@
    newOffset.x = offset.x + _momentum.x;
    newOffset.y = offset.y + _momentum.y;
 
-   if( ! CGPointEqualToPoint( offset, newOffset))
-   {
-	   offset = [self clampedContentOffset:newOffset];
-	   [self setContentOffset:offset];
-   }
+   if( CGPointEqualToPoint( offset, newOffset))
+      return( NO);
+
+   offset = [self clampedContentOffset:newOffset];
+   [self setContentOffset:offset];
+   return( YES);
 }
 
 
@@ -289,8 +290,8 @@
 
 - (void) willAnimateWithAbsoluteTime:(CAAbsoluteTime) now
 {
-   [self applyMomentumToContentWithAbsoluteTime:now];
-   [self setupIndicatorViews];
+   if( [self applyMomentumToContentWithAbsoluteTime:now])
+      [self setupIndicatorViews];
 }
 
 

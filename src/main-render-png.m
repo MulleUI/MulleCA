@@ -76,9 +76,8 @@ UIView   *setupScene( UIWindow *window, CGContext *context, int argc, char *argv
    frame        = [window frame];
    frame.origin = CGPointZero;
    insets       = UIEdgeInsetsMake( 40, 40, 40, 40);
-   usable       = UIEdgeInsetsInsetRect( frame, insets);
 
-   _MulleLayoutInitWithRect( &scene, usable);
+   _MulleLayoutInitWithRect( &scene, frame, insets);
 
    // ICON
    image = [[[MulleBitmapImage alloc] initWithContentsOfFileWithFileRepresentationString:"mulle-tiny-logo-255x256.png"] autorelease];
@@ -235,12 +234,12 @@ static void   printImage( UIWindow *window, CGContext *context)
 
 int   main( int argc, char *argv[])
 {
-   CGContext                     *context;
-   UIWindow                      *window;
-   UIView                        *view;
-   MulleTextureImage             *image;
-   MulleBitmapImage              *bitmapImage;
-   CGSize                        windowSize;
+   CGContext           *context;
+   UIWindow            *window;
+   UIView              *view;
+   MulleTextureImage   *image;
+   MulleBitmapImage    *bitmapImage;
+   CGSize              windowSize;
 
    if( argc < 3)
    {
@@ -254,7 +253,7 @@ int   main( int argc, char *argv[])
    // produces shader vert error, which is boring
    // this is just an assert to verify that a CGContext can't live w/o a
    // window
-   context = [[CGContext new] autorelease];
+   context = [window createContext];
    assert( ! context);  // can't work without a window
 #endif
 
@@ -273,7 +272,7 @@ int   main( int argc, char *argv[])
    //
    @autoreleasepool
    {
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
       [context addFontWithContentsOfFileWithFileRepresentationString:"Roboto-Regular-Hacked.ttf"
                                                      fontNameCString:"hacked"];

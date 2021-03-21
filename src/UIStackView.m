@@ -419,7 +419,8 @@ struct UIStackViewLayoutContext
 }
 
 
-- (CGSize) sizeThatFits:(CGSize)size
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(CGContext *) context
 {
    UIView       *first;
    UIView       *last;

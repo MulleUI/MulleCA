@@ -46,4 +46,7 @@ MulleControlBackgroundImageProperties;
 
 - (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame;
 
+// need context to measure string sizes
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(CGContext *) context; 
 @end

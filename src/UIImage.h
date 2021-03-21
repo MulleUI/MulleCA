@@ -33,10 +33,10 @@ enum UIImageDataEncoding
 // otherwise allocator will be used to free. Use &mulle_allocator_stdlib
 // for malloced data
 - (instancetype) initWithFileCData:(struct mulle_data) data
-                             allocator:(struct mulle_allocator *) allocator;
+                         allocator:(struct mulle_allocator *) allocator;
 // data belongs to sharingObject, which will be retained
 - (instancetype) initWithFileCData:(struct mulle_data) data
-                         sharingObject:(id) sharingObject;
+                     sharingObject:(id) sharingObject;
 
 - (instancetype) initWithContentsOfFileWithFileRepresentationString:(char *) filename;
 
@@ -65,6 +65,11 @@ enum UIImageDataEncoding
 - (enum UIImageDataEncoding) fileEncoding;
 // TODO: rename to fileData or cFileData or so
 - (struct mulle_data) cData;
+
+// bytes won't be copied and freed, will call initWithFileCData:allocator!
+- (instancetype) initWithConstantBytes:(const void *) bytes
+                                length:(NSUInteger) length;
+
 
 @end
 

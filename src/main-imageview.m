@@ -18,7 +18,7 @@
 // scale stuff for stream
 #define SCALE     2.0
 
-void   setupScene( UIWindow *window, CGContext *context)
+void   setupScene( MulleWindowPlane *plane, CGContext *context)
 {
    UIView             *view;
    CGRect             frame;
@@ -26,7 +26,7 @@ void   setupScene( UIWindow *window, CGContext *context)
    MulleBitmapImage   *image;
    UIStackView        *stackView;
 
-   frame            = [window frame];
+   frame            = [plane frame];
    insets           = UIEdgeInsetsMake( 80, 80, 280, 80);
    frame            = UIEdgeInsetsInsetRect( frame, insets);
    frame.size.width = 102 + 100 + 20.0f + 4;
@@ -39,7 +39,7 @@ void   setupScene( UIWindow *window, CGContext *context)
    // [stackView setMinimumInteritemSpacing:20.0];
    [stackView setBorderWidth:1.0];
    [stackView setBorderColor:[UIColor blackColor]];
-   [window addSubview:stackView];
+   [plane addSubview:stackView];
 
    {
       image = [[[MulleBitmapImage alloc] initWithConstRGBA:sealie_bitmap
@@ -85,10 +85,10 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
-      setupScene( window, context);
+      setupScene( [window contentPlane], context);
 
       [window dump];
 
