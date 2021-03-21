@@ -18,10 +18,10 @@
 #define W  200
 #define H  100
 
-#include "Ghostscript_Tiger-svg.inc"
-#include "sealie-bitmap.inc"
-#include "turtle-bitmap.inc"
-#include "viech-bitmap.inc"
+// #include "Ghostscript_Tiger-svg.inc"
+// #include "sealie-bitmap.inc"
+// #include "turtle-bitmap.inc"
+// #include "viech-bitmap.inc"
 
 #if 0
 static char   svginput[] = \
@@ -67,22 +67,12 @@ static UIEvent   *dump_window( UIButton *button, UIEvent *event)
    return( nil);
 }
 
-
 // scale stuff for stream
-#define SCALE     2.0
 
-int   main()
+static UIWindow  *create_window( MulleBitmapImage   *tigerBitmap,
+                                 MulleBitmapImage   *sealieBitmap)
 {
-   MulleSVGLayer      *tigerLayer;
-   MulleSVGLayer      *shiftedTigerLayer;
-   MulleImageLayer    *viechLayer;
-   MulleImageLayer    *sealieLayer;
-   MulleImageLayer    *turtleLayer;
    MulleImageLayer    *buttonLayer;
-   MulleSVGImage      *tigerSVGImage;
-   MulleBitmapImage   *viechBitmap;
-   MulleBitmapImage   *sealieBitmap;
-   MulleBitmapImage   *turtleBitmap;
    CGRect             frame;
    CGRect             windowFrame;
    CGRect             bounds;
@@ -95,47 +85,47 @@ int   main()
    UIButton           *nestedButton;
    UIButton           *inScrollerButton;
    UIScrollView       *scroller;
-   UIApplication      *application;
 
+#if 0
    sealieBitmap = [[[MulleBitmapImage alloc] initWithConstRGBA:sealie_bitmap
                                                      bitmapSize:sealie_bitmap_size]
                                                   autorelease];
-
-   turtleBitmap = [[[MulleBitmapImage alloc] initWithContentsOfFileWithFileRepresentationString:"/home/src/srcO/MulleUI/bengal.jpg"] autorelease];
-   assert( turtleBitmap);
+#endif
+   // 1280x878
+   tigerBitmap = [[[MulleBitmapImage alloc] initWithContentsOfFileWithFileRepresentationString:"/home/src/srcO/MulleUI/bengal.jpg"] autorelease];
+   assert( tigerBitmap);
 
    // WINDOW
-   windowFrame = CGRectMake( 0.0, 200.0, 340.0 * SCALE, 220.0 * SCALE);
+   windowFrame = CGRectMake( 0.0, 200.0, 640, 400.0);
    window      = [[[UIWindow alloc] initWithFrame:windowFrame] autorelease];
    assert( window);
 
-   windowFrame = CGRectMake( 1.0 * SCALE, .0 * SCALE, (340.0 - 2) * SCALE, (220.0 - 2) * SCALE);
-   contentView = [[[UIView alloc] initWithFrame:windowFrame] autorelease];
+   contentView = [window contentPlane];
    [contentView setBackgroundColor:[UIColor yellowColor]];
-   [window addSubview:contentView];
 
-   [[UIApplication sharedInstance] addWindow:window];
 
    // BUTTON IN SCROLLVIEW
-   buttonLayer = [[[MulleImageLayer alloc] initWithImage:turtleBitmap] autorelease];
+   buttonLayer = [[[MulleImageLayer alloc] initWithImage:tigerBitmap] autorelease];
    // [buttonLayer setDebugNameCString:"button"];
-   frame.origin       = CGPointMake( 0.0 * SCALE, 0.0 * SCALE);
-   frame.size.width   = 320 * SCALE * 10;
-   frame.size.height  = 200 * SCALE * 10;
+   frame.origin       = CGPointMake( 0.0, 0.0);
+   frame.size.width   = 640 * 10;
+   frame.size.height  = 400 * 10;
    [buttonLayer setFrame:frame];
    fprintf( stderr, "layer: %p\n", buttonLayer);
 
    inScrollerButton = [[[UIButton alloc] initWithLayer:buttonLayer] autorelease];
-   [inScrollerButton setBackgroundImage:turtleBitmap
-                               forState:UIControlStateNormal];
+//   [inScrollerButton setBackgroundImage:tigerBitmap
+//                               forState:UIControlStateNormal];
+#if 0                               
    [inScrollerButton setBackgroundImage:sealieBitmap
                                forState:UIControlStateSelected];
    [inScrollerButton setClick:dump_window];
+#endif   
 //   [contentView addSubview:inScrollerButton];
 
    // SCROLLVIEW
    bounds   = frame;
-   frame    = CGRectMake( 10.0 * SCALE, 10.0 * SCALE, 320.0 * SCALE, 200.0 * SCALE);
+   frame    = CGRectMake( 20.0, 20.0, 640 - 40.0, 400.0 - 40.0);
    scroller = [[[UIScrollView alloc] initWithFrame:frame] autorelease];
    [scroller setZoomEnabled:YES];
    [scroller setContentSize:bounds.size];
@@ -143,10 +133,45 @@ int   main()
    [contentView addSubview:scroller];
 
    [window dump];
+   return( window);
+}
 
-   context = [CGContext object];
-   [window renderLoopWithContext:context];
 
-   [[UIApplication sharedInstance] terminate];
+
+int   main( int argc, char *argv[])
+{
+   MulleBitmapImage   *sealieBitmap;
+   MulleBitmapImage   *tigerBitmap;
+   CGContext          *context;
+   UIWindow           *window;
+   UIApplication      *application;
+
+   sealieBitmap = NULL;
+#if 0
+   sealieBitmap = [[[MulleBitmapImage alloc] initWithConstRGBA:sealie_bitmap
+                                                     bitmapSize:sealie_bitmap_size]
+                                                  autorelease];
+#endif
+   tigerBitmap = [[[MulleBitmapImage alloc] initWithContentsOfFileWithFileRepresentationString:"/home/src/srcO/MulleUI/bengal.jpg"] autorelease];
+   assert( tigerBitmap);
+
+   // WINDOW
+   window = create_window( tigerBitmap, sealieBitmap);
+   assert( window);
+
+   application = [UIApplication sharedInstance];
+   [application addWindow:window];
+   [NSThread detachNewThreadSelector:@selector( runInApplication:)
+                            toTarget:window
+                          withObject:application];
+
+   window = create_window( tigerBitmap, sealieBitmap);
+   assert( window);
+   [application addWindow:window];
+   [NSThread detachNewThreadSelector:@selector( runInApplication:)
+                            toTarget:window
+                          withObject:application];
+
+   [application run];
 }
 

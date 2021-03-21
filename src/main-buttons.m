@@ -79,7 +79,7 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       frame = CGRectMake( 240.0, 340.0, 200.0 * SCALE, 44);

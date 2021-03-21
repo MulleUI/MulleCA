@@ -5,6 +5,8 @@
 
 #import "import-private.h"
 
+#import "MulleTextLayer.h"   
+
 
 @implementation UIButton ( UIResponder)
 

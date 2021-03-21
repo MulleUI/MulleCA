@@ -14,6 +14,6 @@
 
 @interface MullePopUpButton( MulleMenu)
 
-- (void) positionMenu:(MulleMenu *) menu;
+- (void) positionAndSizeMenu:(MulleMenu *) menu;
 
 @end

@@ -43,7 +43,7 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       /* simple Button */
@@ -58,7 +58,7 @@ int   main()
          // TODO: this is apparently ignored!!! why ?? (because the prototype
          //       was missing!)
          [textView setFontPixelSize:80.0];
-         [textView setCursorPosition:2];
+         [textView setCursorPosition:MulleIntegerPointMake( 2, 0)];
          [textView setAlignmentMode:CAAlignmentRight];
          [textView setEditable:YES];
 #if 0      

@@ -49,6 +49,7 @@ typedef enum
 
 
 // UIStackView must have been layouted before. Size parameter is ignored.
-- (CGSize) sizeThatFits:(CGSize)size;
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(CGContext *) context;
 
 @end

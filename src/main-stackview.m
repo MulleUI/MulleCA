@@ -124,7 +124,7 @@ int  main()
 
       [window dump];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [window renderLoopWithContext:context];
 
       [application terminate];

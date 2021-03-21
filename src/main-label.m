@@ -165,7 +165,7 @@ int   main()
 
    contentView = [window contentPlane];
 
-   context = [[CGContext new] autorelease];
+   context = [window createContext];
    [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
    /* singleline Label */

@@ -102,9 +102,9 @@
    nvgluBindFramebuffer( NULL);
 
    bitmapImage = [[MulleBitmapImage alloc] initWithRGBACData:data
-                                                     bitmapSize:bitmapSize
-                                                      allocator:&mulle_stdlib_allocator
-                                                  nvgImageFlags:_nvgImageFlags];
+                                                  bitmapSize:bitmapSize
+                                                   allocator:&mulle_stdlib_allocator
+                                               nvgImageFlags:_nvgImageFlags];
    return( [bitmapImage autorelease]);
 }
 

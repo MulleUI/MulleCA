@@ -10,7 +10,6 @@
 
 @implementation MulleMenuButton
 
-
 + (CALayer *) mulleTitleBackgroundLayerWithFrame:(CGRect) frame
 {
    CALayer   *layer;
@@ -24,6 +23,7 @@
    [layer setBorderColor:getNVGColor( 0x7F7FFFFF)];
    [layer setCornerRadius:0.0];
    [layer setDebugNameCString:"UIButton titleBackgroundLayer"];
+
    return( layer);
 }
 

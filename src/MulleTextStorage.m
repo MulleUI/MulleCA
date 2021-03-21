@@ -343,6 +343,12 @@ static NSData   *dataByUnescapingFirstCharacterOfData( NSData *obj)
                      withObject:obj];
 }
 
+// wird geforwardet s.u.
+//- (void) removeObjectAtIndex:(NSUInteger) index
+//{
+//   [_lines removeObjectAtIndex:index];
+//}
+
 
 - (UIImage *) imageForNumber:(NSNumber *) nr
 {

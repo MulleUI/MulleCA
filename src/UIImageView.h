@@ -9,6 +9,7 @@
 
 #import "import.h"
 
+#import "MulleLayout.h"
 
 @class UIImage;
 
@@ -18,3 +19,13 @@
 - (instancetype) initWithImage:(UIImage *) image;
 
 @end
+
+
+@interface UIImageView ( Forward)
+
+
+@property( assign, getter=isSelected) BOOL   selected;
+@property( assign, observable) CGColorRef    selectionColor;
+@property( assign) UIViewContentMode         contentMode;
+
+@end 

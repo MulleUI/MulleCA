@@ -186,13 +186,13 @@
 - (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame
 {
    UIEdgeInsets   insets;
-   double         borderWidth;
+   CGFloat        borderWidth;
 
    borderWidth = [_titleBackgroundLayer borderWidth];
-   insets = UIEdgeInsetsMake( borderWidth / 2 + TEXT_MARGIN,
-                              borderWidth / 2 + TEXT_MARGIN,
-                              borderWidth / 2 + TEXT_MARGIN,
-                              borderWidth / 2 + TEXT_MARGIN);
+   insets      = UIEdgeInsetsMake( borderWidth / 2.0f + TEXT_MARGIN,
+                                   borderWidth / 2.0f + TEXT_MARGIN,
+                                   borderWidth / 2.0f + TEXT_MARGIN,
+                                   borderWidth / 2.0f + TEXT_MARGIN);
 
    return( UIEdgeInsetsInsetRect( frame, insets));
 }
@@ -213,6 +213,35 @@
    [super setFrame:frame];
    assert( CGRectEqualToRect( [[self layer] frame], frame));
    [self layoutLayersWithFrame:frame];
+}
+
+
+
+- (CGSize) sizeThatFits:(CGSize) size
+                context:(CGContext *) context 
+{
+   UIEdgeInsets       insets;
+   CGRect             rect;
+   CGFloat            borderWidth;
+   CGFloat            bounds[ 4];
+
+   borderWidth = [_titleBackgroundLayer borderWidth];
+
+   insets = UIEdgeInsetsMake( borderWidth / 2.0f + TEXT_MARGIN,
+                              borderWidth / 2.0f + TEXT_MARGIN,
+                              borderWidth / 2.0f + TEXT_MARGIN,
+                              borderWidth / 2.0f + TEXT_MARGIN);
+
+   [_titleLayer getFontTextBounds:bounds
+                           context:context];
+
+   rect.origin.x    = bounds[ 0];
+   rect.origin.y    = bounds[ 1];
+   rect.size.width  = bounds[ 2] - bounds[ 0];
+   rect.size.height = bounds[ 3] - bounds[ 1];
+ 
+   rect = UIEdgeInsetsExtrudeRect( rect, insets);
+   return( rect.size);
 }
 
 @end

@@ -10,16 +10,16 @@
 #import "MulleMenuButton.h"
 #import "CGGeometry+CString.h"
 
-// TODO:
-// put into menuplane
-// menuplane should intercept other events
-// tooltips of menus go where ?
-// Menu needs an anchor point/anchor view
-// Need to really hide scrollview indicator views, so they don't grab events
-// if invisble.
-// Possibly allow tweaking of scrollindicator offsets.
-// Scrollweel support for scrolling up/down (currently only zoom). Possibly
-// use zoom with SHIFT by default ?
+// Layouting of MulleMenu
+//
+// The Menu has a ScrollView and a StackView. The Menuentries are placed
+// into the StackView, which grows. If the StackView is complete, we can
+// get its size by asking it to "sizeThatFits:" infinity basically, which
+// will return a "mininmal" rect.
+//
+// The Menu will have to be positioned on the screen somewhere though.
+// For example on top of another view.
+//
 
 @implementation MulleMenu
 
@@ -53,8 +53,16 @@
 - (void) addMenuButton:(MulleMenuButton *) button;
 {
    [_stackView addSubview:button];
+   [self setNeedsLayout];
 }
 
+
+#ifdef DEBUG
+- (void) setHidden:(BOOL) flag 
+{
+   [super setHidden:flag];
+}
+#endif
 
 // Our layouting scheme is strictly top/down. So the parentview allots space
 // for the stackview to size itself. (In our case this is infinite along the
@@ -86,6 +94,21 @@
 }
 
 
+- (CGSize) sizeThatFits:(CGSize) size 
+                context:(CGContext *) context
+{
+   CGSize   bestSize;
+
+   bestSize = [_stackView sizeThatFits:size
+                               context:context];
+   if( bestSize.width < size.width)
+      size.width = bestSize.width;
+   if( bestSize.height < size.height)
+      size.height = bestSize.height;
+   return( size);
+}
+
+
 - (void) layout
 {
    CGSize   size;
@@ -97,22 +120,29 @@
 
    assert( _stackView);
 
-   // shrink stackView to fit
+   //
+   // shrink stackView to fit our bounds, which are what exactly ?
+   // and why do they matter ?
    frame.origin = CGPointZero;
-   frame.size   = [_stackView sizeThatFits:[self bounds].size];
+   size         = CGSizeMake( 10000000.0, 10000000.0);
+   frame.size   = [_stackView sizeThatFits:size];
    [_stackView setFrame:frame];
 
    assert( _scrollView);
 
+   // reflect size in scrollView contentSize
    [_scrollView setContentSize:frame.size];
 
+   // Now make the menu as large as possible. This will resize the scroll
+   // View as well.
+   //
    // this should be done by the scrollview. Is it necessary to use
    // a separate property for contentSize, if we could use the bounds
    // of the contentView as storage ?
-
-   contentView  = [_scrollView contentView];
-   frame.origin = [contentView frame].origin;
-   [contentView setFrame:frame];
+   // 
+   //   contentView  = [_scrollView contentView];
+   //   frame.origin = [contentView frame].origin;
+   //   [contentView setFrame:frame];
 
    // so scrollview can set indicator views
    [_scrollView layoutSubviews];
@@ -137,7 +167,7 @@
 
    for( i = 0; i < n; i++)
    {
-      menuButton = [MulleMenuButton mulleViewWithFrame:CGRectMake( 0, 0, 0, 20)];
+      menuButton = [MulleMenuButton mulleViewWithFrame:CGRectMake( 0, 0, 200, 20)];
       [menuButton setTitleCString:titles[ i]];
       [menuButton setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
       [menuButton setTarget:target];

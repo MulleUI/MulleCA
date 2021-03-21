@@ -41,16 +41,34 @@ void setup_window( UIWindow *window)
    [contentView addSubview:textField];
 }
 
+#define N_WINDOWS 20     
+
+
+static void  handle_events( int i, UIWindow *windows[], CGContext *contexts[])
+{
+   int   j;
+
+   for( j = i; j >= 0; --j)
+   {
+      if( [windows[ j] needsDisplay])
+      {
+         fprintf( stderr, "Refresh Window #%d %p\n", j + 1, windows[ j]);
+         [windows[ j] renderFrameWaitForNeedsDisplayWithContext:contexts[ j]];
+      }
+   }      
+}
+
 
 int   main()
 {
-   CGContext       *context;
-   CGContext       *context2;
-   UIWindow        *window;
-   UIWindow        *window2;
    UIApplication   *application;
    char            buf[ 64];
    int             i;
+   int             j;
+   UIWindow        *windows[ N_WINDOWS];
+   CGContext       *contexts[ N_WINDOWS];
+   CAAbsoluteTime  end;
+   CGFloat         blue;
 
    /*
     * window and app 
@@ -60,31 +78,46 @@ int   main()
 
    @autoreleasepool
    {
-      for( i = 1; i <= 100; i++)
+      for( i = 0; i < N_WINDOWS; i++)
       {
           /*
           * window and app 
           */
-         sprintf( buf, "Demo %d", i);
-         fprintf( stderr, "Window #%d\n", i);
-         window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0, 300.0)
+         sprintf( buf, "Demo %d", i + 1);
+         windows[ i] = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0, 300.0)
                                         titleCString:buf
                                            styleMask:0] autorelease];
-         assert( window);
-         setup_window( window);
+         assert( windows[ i]);
+         fprintf( stderr, "Created Window #%d %p\n", i + 1, windows[ i]);
 
-         [[UIApplication sharedInstance] addWindow:window];
+        // setup_window( windows[ i]);
 
-         context = [window createContext];
-         assert( context);
+         [[UIApplication sharedInstance] addWindow:windows[ i]];
 
-         [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
-         [window renderLoopWithContext:context
-                     maxFramesToRender:3];
-         // sleep( 1);
-      }
+         contexts[ i] = [windows[ i] createContext];
+         assert( contexts[ i]);
+
+         blue = ((N_WINDOWS - (i + 1)) * 1.0 / N_WINDOWS) * 0.75 + 0.25;
+         [contexts[ i] setBackgroundColor:CGColorCreateGenericRGB( 0.0, 
+                                                                   0.0, 
+                                                                   blue, 
+                                                                   1.0)];
+
+         [UIEvent os_pollEvents];
+         handle_events( i, windows, contexts);
       // [[UIApplication sharedInstance] terminate];
+      }
+   
+      end = CAAbsoluteTimeNow() + 2.0;
+      for(;;)
+      {
+         [UIEvent os_waitEventsTimeout:2.0];
+         handle_events( N_WINDOWS - 1, windows, contexts);
+         if( CAAbsoluteTimeNow() >= end)
+            break;
+      }
    }
+
    //   mulle_testallocator_reset();   
 }
 

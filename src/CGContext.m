@@ -18,6 +18,23 @@
 
 @implementation CGContext
 
+static struct
+{
+   mulle_thread_mutex_t   _freeTypeLock;
+} Self;
+
++ (void) initialize 
+{
+   mulle_thread_mutex_init( &Self._freeTypeLock);
+}
+
+
++ (void) deinitialize 
+{
+   mulle_thread_mutex_done( &Self._freeTypeLock);
+}
+
+
 - (void) _initPerformanceCounters
 {
 	initGraph( &_perf.fps,      GRAPH_RENDER_FPS, "Frame Time");
@@ -89,21 +106,29 @@ static char  geometryShaderSource[] =
 ;
 */
 
+// due to freetype being singlethreaded (mostly ?) the nvgCreate routines
+// need to run locked so only one thread can create a NVG context at the
+// same time. The same probably has to be done for every font load  ?
+//
 - (id) init
 {
+   mulle_thread_mutex_lock( &Self._freeTypeLock);
+   {
 #ifdef NANOVG_GL3_IMPLEMENTATION
-	_vg  = nvgCreateGL3( NVG_ANTIALIAS | NVG_STENCIL_STROKES
+	   _vg  = nvgCreateGL3( NVG_ANTIALIAS | NVG_STENCIL_STROKES
 #endif
 #ifdef NANOVG_GLES2_IMPLEMENTATION
-	_vg  = nvgCreateGLES2( NVG_ANTIALIAS | NVG_STENCIL_STROKES
+   	_vg  = nvgCreateGLES2( NVG_ANTIALIAS | NVG_STENCIL_STROKES
 #endif
 #ifdef NANOVG_GLES3_IMPLEMENTATION
-	_vg  = nvgCreateGLES3( NVG_ANTIALIAS | NVG_STENCIL_STROKES
+	   _vg  = nvgCreateGLES3( NVG_ANTIALIAS | NVG_STENCIL_STROKES
 #endif
 #if DEBUG
-   | NVG_DEBUG
+      | NVG_DEBUG
 #endif
-   );
+      );
+   }
+   mulle_thread_mutex_unlock( &Self._freeTypeLock);
 
    if( ! _vg)
    {
@@ -155,16 +180,36 @@ static char  geometryShaderSource[] =
 }
 
 
+- (void) finalize
+{
+   assert( ! _isRendering);
+
+   [self _resetFontCache];
+
+   [self _unmapImages];
+   [self _finalizeFramebufferImages];
+
+   mulle_thread_mutex_lock( &Self._freeTypeLock);
+   {
+#ifdef NANOVG_GL3_IMPLEMENTATION
+   	nvgDeleteGL3( _vg);
+#endif
+#ifdef NANOVG_GLES2_IMPLEMENTATION
+	   nvgDeleteGLES2(_vg);
+#endif
+#ifdef NANOVG_GLES3_IMPLEMENTATION
+	   nvgDeleteGLES3(_vg);
+#endif  
+   }
+   mulle_thread_mutex_unlock( &Self._freeTypeLock);
+   _vg = NULL;
+   [super finalize];
+}
+
+
 - (void) dealloc
 {
    [self _doneFontCache];
-
-#ifdef NANOVG_GL3_IMPLEMENTATION
-	nvgDeleteGL3( _vg);
-#endif
-#ifdef NANOVG_GLES2_IMPLEMENTATION
-	nvgDeleteGLES2(_vg);
-#endif
 
    [super dealloc];
 }
@@ -480,16 +525,5 @@ static char  geometryShaderSource[] =
    _framebufferImages = NULL;
 }
 
-
-- (void) finalize
-{
-   assert( ! _isRendering);
-
-   [self _resetFontCache];
-   [self _unmapImages];
-   [self _finalizeFramebufferImages];
-
-   [super finalize];
-}
 
 @end

@@ -175,7 +175,8 @@ int   main()
 
       [window dump];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
+      assert( context);
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       [window renderLoopWithContext:context];

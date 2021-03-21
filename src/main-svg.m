@@ -33,8 +33,8 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    UIView         *view;
    YGLayout       *yoga;
 
-   tigerSVGImage = [[[MulleSVGImage alloc] initWithBytes:svginput
-                                                  length:strlen( svginput) + 1] autorelease];
+   tigerSVGImage = [[[MulleSVGImage alloc] initWithConstantBytes:svginput
+                                                          length:strlen( svginput) + 1] autorelease];
    fprintf( stderr, "tigerSVGImage: %p\n", tigerSVGImage);
 
    tigerLayer = [[[MulleSVGLayer alloc] initWithSVGImage:tigerSVGImage] autorelease];
@@ -90,7 +90,7 @@ int  main()
 
       [window dump];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       [window renderLoopWithContext:context];
 
       [[UIApplication sharedInstance] terminate];

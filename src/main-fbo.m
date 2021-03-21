@@ -140,7 +140,7 @@ int   main( int argc, char *argv[])
    {
       windowSize = CGSizeMake( 1280, 640);
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
       assert( ! context);  // can't work without a window
 
       window = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 
@@ -151,7 +151,7 @@ int   main( int argc, char *argv[])
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [[CGContext new] autorelease];
+      context = [window createContext];
 
       // view is already nicely layouted
       printImage( window, context);
