@@ -3,6 +3,7 @@
 #import "MulleSegmentedControlLayer.h"
 #import "UIEvent.h"
 #import "UIView+CGGeometry.h"
+#import "UIView+CALayer.h"
 #import "CGGeometry+CString.h"
 #import "CGColor.h"
 
@@ -11,11 +12,15 @@
 - (id) initWithFrame:(CGRect) frame
 {
    MulleSegmentedControlLayer  *segmentedControlLayer;
+   CGRect                      rect;
 
-   segmentedControlLayer = [[[MulleSegmentedControlLayer alloc] initWithFrame:frame] autorelease];
+   rect.origin = CGPointZero;
+   rect.size   = frame.size;
+   segmentedControlLayer = [[[MulleSegmentedControlLayer alloc] initWithFrame:rect] autorelease];
    [segmentedControlLayer setBorderWidth:1.5];
-   [segmentedControlLayer setBorderColor:MulleColorCreate( 0x7F7FFFFF)];
-   return( [self initWithLayer:segmentedControlLayer]);
+   [segmentedControlLayer setBorderColor:MulleColorMake( 0x7F7FFFFF)];
+   return( [self initWithLayer:segmentedControlLayer
+                         frame:frame]);
 }
 
 // move this to + UIEvent ?
@@ -24,30 +29,32 @@
    // figure our which segment the click, was in
    // and select this
    CGPoint       mouseLocation;
-   CGPoint       contentMousePosition;
+   CGPoint       canvasLocation;
    NSUInteger    index;
    char          *s;
 
    assert( [self allowsEmptySelection]|| [self numberOfSelectedSegments] > 0);
 
-   mouseLocation        = [event locationInWindow];
- //  contentMousePosition = [self convertPoint:mouseLocation 
+   mouseLocation        = [event mouseLocationInView:self];
+ //  contentMousePosition = [self convertPoint:mouseLocation
  //                                   fromView:nil];
 //
-   contentMousePosition = mouseLocation;
    s = CGPointCStringDescription( mouseLocation);
    fprintf( stderr, "mouse event: %s\n", s);
-   s = CGPointCStringDescription( contentMousePosition);
-   fprintf( stderr, "mouse view : %s\n", s);
 
-   index = [self segmentIndexAtPoint:contentMousePosition];
+   canvasLocation = [self convertPoint:mouseLocation
+                               toLayer:nil];
+   s = CGPointCStringDescription( canvasLocation);
+   fprintf( stderr, "canvas view : %s\n", s);
+
+   index = [self segmentIndexAtPoint:canvasLocation];
    if( index == NSNotFound)
       return( nil);
 
    if( ! [self isFirstResponder])
       [self becomeFirstResponder];
 
-   [self memorizeSelectedSegments];   
+   [self memorizeSelectedSegments];
    if( [self allowsMultipleSelection])
    {
       if( [self isSelectedSegmentAtIndex:index])
@@ -61,7 +68,7 @@
    else
    {
       if( [self selectedSegmentIndex] == index && [self allowsEmptySelection])
-         index = -1;  
+         index = -1;
       [self setSelectedSegmentIndex:index];
    }
 
@@ -77,7 +84,7 @@
    NSUInteger    index;
 
    mouseLocation        = [event locationInWindow];
-//  contentMousePosition = [self convertPoint:mouseLocation 
+//  contentMousePosition = [self convertPoint:mouseLocation
 //                                   fromView:nil];
 //
    contentMousePosition = mouseLocation;
@@ -85,7 +92,7 @@
    index = [self segmentIndexAtPoint:contentMousePosition];
    if( index == NSNotFound)
    {
-      [self recallSelectedSegments];      
+      [self recallSelectedSegments];
       return( nil);
    }
 

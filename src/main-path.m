@@ -12,10 +12,7 @@
 #import <string.h>
 #import "UIEdgeInsets.h"
 
-BOOL  drawStuff( CALayer *layer, 
-                 CGContext *context, 
-                 CGRect frame, 
-                 struct MulleFrameInfo *info)
+static void   drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rect;
    struct NVGcontext   *vg;
@@ -31,7 +28,7 @@ BOOL  drawStuff( CALayer *layer,
    nvgLineTo( vg, 600, 400);
    nvgClosePath( vg);
 
-   nvgFillColor(vg, MulleColorCreate( 0xFF0000FF));
+   nvgFillColor(vg, MulleColorMake( 0xFF0000FF));
    nvgFill( vg);
 
 #if 1
@@ -43,7 +40,7 @@ BOOL  drawStuff( CALayer *layer,
 
    nvgBeginPath( vg);
    nvgAddCGPath( vg, path);
-   nvgFillColor(vg, MulleColorCreate( 0x00FF00FF));
+   nvgFillColor(vg, MulleColorMake( 0x00FF00FF));
    nvgFill( vg);
    CGPathDestroy( path);
 #endif
@@ -54,10 +51,8 @@ BOOL  drawStuff( CALayer *layer,
    nvgLineTo( vg, 300, 200);
    nvgClosePath( vg);
 
-   nvgFillColor(vg, MulleColorCreate( 0x0000FFFF));
+   nvgFillColor(vg, MulleColorMake( 0x0000FFFF));
    nvgFill( vg);
-
-   return( NO);
 }
 
 // scale stuff for stream
@@ -69,7 +64,7 @@ void   setupScene( UIWindow *window, CGContext *context)
    CGRect         frame;
    UIEdgeInsets   insets;
    CALayer        *layer;
-  
+
    frame        = [window frame];
    frame.origin = CGPointZero;
 
@@ -78,7 +73,7 @@ void   setupScene( UIWindow *window, CGContext *context)
 
    view  = [[[UIView alloc] initWithFrame:frame] autorelease];
    layer = [view layer];
-   [layer setDrawContentsCallback:drawStuff];
+   [layer setDrawCallback:drawStuff];
    [window addSubview:view];
 }
 
@@ -102,7 +97,7 @@ void   setupScene( UIWindow *window, CGContext *context)
    frame  = UIEdgeInsetsInsetRect( frame, insets);
 
    layer = [CAShapeLayer layerWithFrame:frame];
-   
+
    path  = CGPathCreate( MulleObjCInstanceGetAllocator( window));
 
    CGPathMoveToPoint( path, NULL,    0, 0);
@@ -128,7 +123,7 @@ int   main()
    UIWindow    *window;
 
    /*
-    * window and app 
+    * window and app
     */
    mulle_testallocator_initialize();
    mulle_default_allocator = mulle_testallocator;
@@ -140,14 +135,14 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
+      context = [window context];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       setupScene( window, context);
 
       [window dump];
 
-      [window renderLoopWithContext:context];
+      [window renderLoop];
       [[UIApplication sharedInstance] terminate];
    }
    mulle_testallocator_reset();

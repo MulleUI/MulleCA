@@ -6,6 +6,7 @@
 #import "import-private.h"
 
 #import "MulleTextLayer.h"
+#import "UIView+Layout.h"
 #import "UIWindow+UIPasteboard.h"
 
 
@@ -68,37 +69,37 @@
 }
 
 
-- (void) setupLayersWithFrame:(CGRect) frame
+- (void) setupLayersInRect:(CGRect) bounds
 {
    Class   cls;
 
    cls = [self class];
 
-   _titleBackgroundLayer = [cls mulleTitleBackgroundLayerWithFrame:frame];
+   _titleBackgroundLayer = [cls mulleTitleBackgroundLayerWithFrame:bounds];
    [_titleBackgroundLayer setDebugNameCString:"UIButton titleBackgroundLayer"];
    [self addLayer:_titleBackgroundLayer];
 
-   _titleLayer = [cls titleLayerWithFrame:frame];
+   _titleLayer = [cls titleLayerWithFrame:bounds];
    [_titleLayer setDebugNameCString:"UIButton titleLayer"];
    [self addLayer:_titleLayer];
 }
 
 
 - (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
 {
-   CGRect         frame;
-   CGRect         textLayerFrame;
-   UIEdgeInsets   insets;
+   CGRect   rect;
 
-   self = [super initWithLayer:layer];
+   self = [super initWithLayer:layer
+                         frame:frame];
    if( ! self)
       return( self);
 
    // layout later
-   frame = [layer frame];
+   rect.origin = CGPointZero;
+   rect.size  = frame.size;
 
-   [self setupLayersWithFrame:frame];
-   [self layoutLayersWithFrame:frame];
+   [self setupLayersInRect:rect];
 
    return( self);
 }
@@ -120,7 +121,7 @@
 // immediately. Note that Yoga is the layouting step and doing another
 // layouting is kinda weird.
 //
-- (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame
+- (CGRect) mulleInsetTextLayerFrameInRect:(CGRect) frame
 {
    UIEdgeInsets   insets;
    double         borderWidth;
@@ -135,21 +136,18 @@
 }
 
 
-- (void) layoutLayersWithFrame:(CGRect) frame
+- (void) layoutSubviews
 {
    CGRect   textLayerFrame;
+   CGRect   bounds;
 
-   textLayerFrame = [self mulleInsetTextLayerFrameWithFrame:frame];
+   [super layoutSubviews];
+
+   bounds = [self bounds];
+   [_titleBackgroundLayer setFrame:bounds];
+
+   textLayerFrame = [self mulleInsetTextLayerFrameInRect:bounds];
    [_titleLayer setFrame:textLayerFrame];
-   [_titleBackgroundLayer setFrame:frame];
-}
-
-
-- (void) setFrame:(CGRect) frame
-{
-   [super setFrame:frame];
-   assert( CGRectEqualToRect( [[self layer] frame], frame));
-   [self layoutLayersWithFrame:frame];
 }
 
 

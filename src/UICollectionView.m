@@ -14,8 +14,7 @@
 
 @implementation UICollectionView
 
-// UICollectionView wants to use a different view here
-+ (UIView *) mulleScrollContentsViewWithFrame:(CGRect) frame
++ (UIStackView *) stackViewWithFrame:(CGRect) frame
 {
    UIStackView   *view;
    CGFloat       minimumInteritemSpacing;
@@ -25,26 +24,37 @@
    [view setDebugNameCString:"ScrollViewContentStackView"];
    [view setDistribution:MulleStackViewDistributionFillRowColumn];
    [view setAxis:UILayoutConstraintAxisHorizontal];
-
+   //
+   // the stack view fills the contentSize of the enclosing scrollcontentview ?
+   // actually the scollcontentview should grow with stuff added to the stack
+   // view
+   //   [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
    minimumLineSpacing      = [view minimumLineSpacing];
    minimumInteritemSpacing = [view minimumInteritemSpacing];
 
    // T  L  B  R  : how is with insets
    // L  T  R  B  : how i think it is, because of CGRect
    // T  R  B  L  : clockwise would be cool
-   [view setContentInsets:UIEdgeInsetsMake( minimumLineSpacing,
-                                            minimumInteritemSpacing,
-                                            minimumLineSpacing,
-                                            minimumInteritemSpacing)];
+   [view setPadding:UIEdgeInsetsMake( minimumLineSpacing,
+                                      minimumInteritemSpacing,
+                                      minimumLineSpacing,
+                                      minimumInteritemSpacing)];
    return( view);
 }
 
 
+
 - (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
 {
-   self = [super initWithLayer:layer];
+   self = [super initWithLayer:layer
+                         frame:frame];
    if( self)
-      _itemSize = CGSizeMake( 50, 50);
+   {
+      _itemSize  = CGSizeMake( 50, 50);
+      _stackView = [[self class] stackViewWithFrame:CGRectMake( 0.0, 0.0, frame.size.width, frame.size.height)];
+      [_contentView addSubview:_stackView];
+   }
    return( self);
 }
 
@@ -58,6 +68,7 @@
 
    [super finalize];
 }
+
 
 - (void) dealloc
 {
@@ -163,13 +174,13 @@ forCellWithReuseIdentifier:(NSString *)identifier
 }
 
 
-
 - (void) _setSelectedIndexPath:(NSIndexPath *) indexPath
 {
    if( ! _selectedIndexes)
       _selectedIndexes = [NSMutableSet new];
    [_selectedIndexes addObject:indexPath];
 }
+
 
 - (void) _removeSelectedIndexPath:(NSIndexPath *) indexPath
 {
@@ -326,6 +337,5 @@ forCellWithReuseIdentifier:(NSString *)identifier
    else
       [self _removeSelectedIndexPath:indexPath];
 }
-
 
 @end

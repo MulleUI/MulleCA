@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #import "import-private.h"
 
 #import "CGContext.h"
@@ -9,7 +11,27 @@
 #import <string.h>
 #import "UIEdgeInsets.h"
 #import "MulleLayout.h"
+#include <time.h>
 
+#define DRAW_ALPHA
+#define DRAW_RECT
+#define DRAW_LINES
+//#define ARTIFICIAL_LAG
+
+
+
+#define LAG_FRAMES    2
+
+static void   lag( long refreshRate)
+{
+   struct timespec   sleep;
+   long              nsperframe;
+
+   nsperframe    = (1000000000L + (refreshRate - 1)) / refreshRate;
+   sleep.tv_sec  = 0.0;
+   sleep.tv_nsec = (long) round( nsperframe * LAG_FRAMES);
+   nanosleep( &sleep, NULL);
+}
 
 // Topics:
 //  * create a window
@@ -18,9 +40,9 @@
 //  * run renderloop (with event handling)
 //  * shows differences for pixel alignment and antialiasing
 //
-void   _drawAlpha( NVGcontext *vg,
-                   CGRect rect,
-                   int antialias)
+static void   _drawAlpha( NVGcontext *vg,
+                          CGRect rect,
+                          int antialias)
 {
    rect.size.width  -= 50;
    rect.size.height -= 50;
@@ -34,7 +56,7 @@ void   _drawAlpha( NVGcontext *vg,
                        rect.size.width,
                        rect.size.height,
                        20);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 
    nvgBeginPath( vg);
@@ -43,7 +65,7 @@ void   _drawAlpha( NVGcontext *vg,
                        rect.size.width,
                        rect.size.height,
                        20);
-   nvgStrokeColor(vg, MulleColorCreate( 0x0080807F));
+   nvgStrokeColor(vg, MulleColorMake( 0x0080807F));
    nvgStroke( vg);
 
    nvgBeginPath( vg);
@@ -52,7 +74,7 @@ void   _drawAlpha( NVGcontext *vg,
                        rect.size.width,
                        rect.size.height,
                        20);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8000807F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8000807F));
    nvgStroke( vg);
 
    nvgBeginPath( vg);
@@ -61,7 +83,7 @@ void   _drawAlpha( NVGcontext *vg,
                        rect.size.width,
                        rect.size.height,
                        20);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080807F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080807F));
    nvgStroke( vg);
 
    nvgShapeAntiAlias( vg, 1);
@@ -69,11 +91,11 @@ void   _drawAlpha( NVGcontext *vg,
 
 
 
-void   _drawRects( NVGcontext *vg,
-                   CGRect rect,
-                   CGColorRef color,
-                   int antialias,
-                   CGFloat thickness)
+static void   _drawRects( NVGcontext *vg,
+                          CGRect rect,
+                          CGColorRef color,
+                          int antialias,
+                          CGFloat thickness)
 {
    nvgShapeAntiAlias( vg, antialias);
    nvgStrokeWidth( vg, thickness);
@@ -90,14 +112,12 @@ void   _drawRects( NVGcontext *vg,
    nvgShapeAntiAlias( vg, 1);
 }
 
+static NSInteger   lines;
 
-
-
-
-void   _drawColoredLinesH( NVGcontext *vg,
-                          CGRect rect,
-                          int antialias,
-                          CGFloat thickness)
+static void   _drawColoredLinesH( NVGcontext *vg,
+                                  CGRect rect,
+                                  int antialias,
+                                  CGFloat thickness)
 {
    CGPoint      point;
    NSUInteger   i;
@@ -120,16 +140,18 @@ void   _drawColoredLinesH( NVGcontext *vg,
          nvgLineTo(vg, point.x, point.y);
          switch( i)
          {
-         case 0 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
-         case 1 : nvgStrokeColor( vg, MulleColorCreate( 0xFF0000FF)); break;
-         case 2 : nvgStrokeColor( vg, MulleColorCreate( 0x00FF00FF)); break;
-         case 3 : nvgStrokeColor( vg, MulleColorCreate( 0x0000FFFF)); break;
-         case 4 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFF00FF)); break;
-         case 5 : nvgStrokeColor( vg, MulleColorCreate( 0xFF00FFFF)); break;
-         case 6 : nvgStrokeColor( vg, MulleColorCreate( 0x00FFFFFF)); break;
-         case 7 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
+         case 0 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
+         case 1 : nvgStrokeColor( vg, MulleColorMake( 0xFF0000FF)); break;
+         case 2 : nvgStrokeColor( vg, MulleColorMake( 0x00FF00FF)); break;
+         case 3 : nvgStrokeColor( vg, MulleColorMake( 0x0000FFFF)); break;
+         case 4 : nvgStrokeColor( vg, MulleColorMake( 0xFFFF00FF)); break;
+         case 5 : nvgStrokeColor( vg, MulleColorMake( 0xFF00FFFF)); break;
+         case 6 : nvgStrokeColor( vg, MulleColorMake( 0x00FFFFFF)); break;
+         case 7 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
          }
          nvgStroke( vg);
+         if( lines >= 0)
+            ++lines;
       }
    }
 
@@ -137,10 +159,10 @@ void   _drawColoredLinesH( NVGcontext *vg,
 }
 
 
-void   _drawColoredLinesV( NVGcontext *vg,
-                           CGRect rect,
-                           int antialias,
-                           CGFloat thickness)
+static void   _drawColoredLinesV( NVGcontext *vg,
+                                  CGRect rect,
+                                  int antialias,
+                                  CGFloat thickness)
 {
    CGPoint      point;
    NSUInteger   i;
@@ -163,16 +185,18 @@ void   _drawColoredLinesV( NVGcontext *vg,
          nvgLineTo(vg, point.x, point.y);
          switch( i)
          {
-         case 0 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
-         case 1 : nvgStrokeColor( vg, MulleColorCreate( 0xFF0000FF)); break;
-         case 2 : nvgStrokeColor( vg, MulleColorCreate( 0x00FF00FF)); break;
-         case 3 : nvgStrokeColor( vg, MulleColorCreate( 0x0000FFFF)); break;
-         case 4 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFF00FF)); break;
-         case 5 : nvgStrokeColor( vg, MulleColorCreate( 0xFF00FFFF)); break;
-         case 6 : nvgStrokeColor( vg, MulleColorCreate( 0x00FFFFFF)); break;
-         case 7 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
+         case 0 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
+         case 1 : nvgStrokeColor( vg, MulleColorMake( 0xFF0000FF)); break;
+         case 2 : nvgStrokeColor( vg, MulleColorMake( 0x00FF00FF)); break;
+         case 3 : nvgStrokeColor( vg, MulleColorMake( 0x0000FFFF)); break;
+         case 4 : nvgStrokeColor( vg, MulleColorMake( 0xFFFF00FF)); break;
+         case 5 : nvgStrokeColor( vg, MulleColorMake( 0xFF00FFFF)); break;
+         case 6 : nvgStrokeColor( vg, MulleColorMake( 0x00FFFFFF)); break;
+         case 7 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
          }
          nvgStroke( vg);
+         if( lines >= 0)
+            ++lines;
       }
    }
 
@@ -180,10 +204,10 @@ void   _drawColoredLinesV( NVGcontext *vg,
 }
 
 
-void   _drawColoredLinesHV( NVGcontext *vg,
-                           CGRect rect,
-                           int antialias,
-                           CGFloat thickness)
+static void   _drawColoredLinesHV( NVGcontext *vg,
+                                   CGRect rect,
+                                   int antialias,
+                                   CGFloat thickness)
 {
    CGPoint      point;
    NSUInteger   i;
@@ -211,16 +235,18 @@ void   _drawColoredLinesHV( NVGcontext *vg,
          nvgLineTo(vg, point.x, point.y);
          switch( i)
          {
-         case 0 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
-         case 1 : nvgStrokeColor( vg, MulleColorCreate( 0xFF0000FF)); break;
-         case 2 : nvgStrokeColor( vg, MulleColorCreate( 0x00FF00FF)); break;
-         case 3 : nvgStrokeColor( vg, MulleColorCreate( 0x0000FFFF)); break;
-         case 4 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFF00FF)); break;
-         case 5 : nvgStrokeColor( vg, MulleColorCreate( 0xFF00FFFF)); break;
-         case 6 : nvgStrokeColor( vg, MulleColorCreate( 0x00FFFFFF)); break;
-         case 7 : nvgStrokeColor( vg, MulleColorCreate( 0xFFFFFFFF)); break;
+         case 0 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
+         case 1 : nvgStrokeColor( vg, MulleColorMake( 0xFF0000FF)); break;
+         case 2 : nvgStrokeColor( vg, MulleColorMake( 0x00FF00FF)); break;
+         case 3 : nvgStrokeColor( vg, MulleColorMake( 0x0000FFFF)); break;
+         case 4 : nvgStrokeColor( vg, MulleColorMake( 0xFFFF00FF)); break;
+         case 5 : nvgStrokeColor( vg, MulleColorMake( 0xFF00FFFF)); break;
+         case 6 : nvgStrokeColor( vg, MulleColorMake( 0x00FFFFFF)); break;
+         case 7 : nvgStrokeColor( vg, MulleColorMake( 0xFFFFFFFF)); break;
          }
          nvgStroke( vg);
+         if( lines >= 0)
+            ++lines;
       }
    }
    nvgRestore( vg);
@@ -229,33 +255,28 @@ void   _drawColoredLinesHV( NVGcontext *vg,
 }
 
 
-
-
-void   _drawColoredLines( NVGcontext *vg,
-                           CGRect rect,
-                           int antialias,
-                           CGFloat thickness)
+static void   _drawColoredLines( NVGcontext *vg,
+                                 CGRect rect,
+                                 int antialias,
+                                 CGFloat thickness)
 {
    CGRect   rows[ 2];
    CGRect   columns[ 2];
 
-   MulleRectPartititonVertically( rect, 2, rows, 2);
+   MulleRectPartitionVertically( rect, 2, rows, 2);
 
-   MulleRectPartititonHorizontally( rows[ 0], 2, columns, 2);
+   MulleRectPartitionHorizontally( rows[ 0], 2, columns, 2);
 
    _drawColoredLinesH( vg, columns[ 0], antialias, thickness);
    _drawColoredLinesV( vg, columns[ 1], antialias, thickness);
 
-   MulleRectPartititonHorizontally( rows[ 1], 2, columns, 2);
+   MulleRectPartitionHorizontally( rows[ 1], 2, columns, 2);
 
    _drawColoredLinesHV( vg, columns[ 0], antialias, thickness);
 }
 
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void   drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rows[ 3];
    CGRect              columns[ 8];
@@ -267,19 +288,21 @@ BOOL  drawStuff( CALayer *layer,
    struct NVGcontext   *vg;
    CGColorRef          fore;
    CGColorRef          back;
+   CGRect              canvas;
 
    vg = MulleContextGetNVGContext( context);
 
-   MulleRectPartititonVertically( frame, 3, rows, 8);
+   canvas = [layer canvas];
+   MulleRectPartitionVertically( canvas, 3, rows, 8);
 
    // draw antialias demo shape on white
-   MulleRectPartititonHorizontally( rows[ 0], 4, columns, 8);
+   MulleRectPartitionHorizontally( rows[ 0], 4, columns, 8);
 
    for( i = 0; i < 4; i++)
    {
       nvgStrokeWidth( vg, 1.0);
       nvgBeginPath( vg);
-      nvgStrokeColor( vg, MulleColorCreate( 0x808080FF));
+      nvgStrokeColor( vg, MulleColorMake( 0x808080FF));
       nvgRoundedRect( vg, columns[ i].origin.x,
                           columns[ i].origin.y,
                           columns[ i].size.width,
@@ -296,27 +319,28 @@ BOOL  drawStuff( CALayer *layer,
          rect.origin.x += 0.5;
          rect.origin.y += 0.5;
       }
-
+#ifdef DRAW_ALPHA
       _drawAlpha( vg, rect, i >= 2);
+#endif
    }
 
    // draw single lines of width 1 on black
-   MulleRectPartititonHorizontally( rows[ 1], 8, columns, 8);
+   MulleRectPartitionHorizontally( rows[ 1], 8, columns, 8);
    for( i = 0; i < 8; i++)
    {
-      MulleRectPartititonVertically( columns[ i], 2, subrows, 8);
+      MulleRectPartitionVertically( columns[ i], 2, subrows, 8);
 
       for( j = 0; j < 2; j++)
       {
          if( j == 0)
          {
-            fore = MulleColorCreate( 0xFFFFFFFF);
-            back = MulleColorCreate( 0x000000FF);
+            fore = MulleColorMake( 0xFFFFFFFF);
+            back = MulleColorMake( 0x000000FF);
          }
          else
          {
-            back = MulleColorCreate( 0xFFFFFFFF);
-            fore = MulleColorCreate( 0x000000FF);
+            back = MulleColorMake( 0xFFFFFFFF);
+            fore = MulleColorMake( 0x000000FF);
          }
 
          nvgStrokeWidth( vg, 1.0);
@@ -340,30 +364,31 @@ BOOL  drawStuff( CALayer *layer,
             rect.origin.x += 0.5;
             rect.origin.y += 0.5;
          }
-
+#ifdef DRAW_RECT
          _drawRects( vg, rect, fore, i >= 2, i >= 4 ? 0.5 : 1.0);
+#endif
       }
    }
 
    // draw colored lines
 
    // draw single lines of width 1 on black
-   MulleRectPartititonHorizontally( rows[ 2], 8, columns, 8);
+   MulleRectPartitionHorizontally( rows[ 2], 8, columns, 8);
    for( i = 0; i < 8; i++)
    {
-      MulleRectPartititonVertically( columns[ i], 2, subrows, 8);
+      MulleRectPartitionVertically( columns[ i], 2, subrows, 8);
 
       for( j = 0; j < 2; j++)
       {
          if( j == 0)
          {
-            fore = MulleColorCreate( 0xFFFFFFFF);
-            back = MulleColorCreate( 0x000000FF);
+            fore = MulleColorMake( 0xFFFFFFFF);
+            back = MulleColorMake( 0x000000FF);
          }
          else
          {
-            back = MulleColorCreate( 0xFFFFFFFF);
-            fore = MulleColorCreate( 0x000000FF);
+            back = MulleColorMake( 0xFFFFFFFF);
+            fore = MulleColorMake( 0x000000FF);
          }
 
          nvgStrokeWidth( vg, 1.0);
@@ -387,36 +412,37 @@ BOOL  drawStuff( CALayer *layer,
             rect.origin.x += 0.5;
             rect.origin.y += 0.5;
          }
-
+#ifdef DRAW_LINES
          _drawColoredLines( vg, rect, i >= 2, i >= 4 ? 0.5 : 1.0);
+#endif
+      }
+      if( lines > 0)
+      {
+         fprintf( stderr, "lines drawn: %ld\n", lines);
+         lines = -1;
       }
    }
-
-
-   return( NO);
+#ifdef ARTIFICIAL_LAG
+   lag( info->refreshRate);
+#endif
 }
 
 
-// scale stuff for stream
-#define SCALE     2.0
-
-void   setupScene( UIWindow *window, CGContext *context)
+void   setupScene( MulleWindowPlane *contentPlane)
 {
    UIView        *view;
    CGRect         frame;
    UIEdgeInsets   insets;
-   CALayer        *layer;
 
-   frame        = [window frame];
+   frame        = [contentPlane bounds];
    frame.origin = CGPointZero;
 
    insets = UIEdgeInsetsMake( 20, 20, 20, 20);
    frame  = UIEdgeInsetsInsetRect( frame, insets);
 
    view  = [[[UIView alloc] initWithFrame:frame] autorelease];
-   layer = [view layer];
-   [layer setDrawContentsCallback:drawStuff];
-   [window addSubview:view];
+   [view setDrawCallback:drawStuff];
+   [contentPlane addSubview:view];
 }
 
 
@@ -433,19 +459,15 @@ int   main()
 
    @autoreleasepool
    {
-      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
+      window = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 800, 600)] autorelease];
       assert( window);
+      [window setEventFrequency:0.0];
+      [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+
+      setupScene( [window contentPlane]);
 
       [[UIApplication sharedInstance] addWindow:window];
-
-      context = [window createContext];
-      [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
-
-      setupScene( window, context);
-
-      [window dump];
-
-      [window renderLoopWithContext:context];
+      [window renderLoop];
       [[UIApplication sharedInstance] terminate];
    }
    mulle_testallocator_reset();

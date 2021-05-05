@@ -44,14 +44,14 @@ int   main()
 
    [[UIApplication sharedInstance] addWindow:window];
 
-   context = [window createContext];
+   context = [window context];
    [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
    frame = CGRectMake( 240.0, 340.0, 200.0 * SCALE, 44);
 
    slider = [[[UISlider alloc] initWithFrame:frame] autorelease];
 
-   // [insideButton setClipsSubviews:YES];
+   // [insideButton setClipsToBounds:YES];
    [slider setBackgroundColor:getNVGColor( 0xCC8800FF)];
    [slider setControlInsets:UIEdgeInsetsMake( 0, 20, 0, 20)];
    [contentView addSubview:slider];
@@ -60,7 +60,7 @@ int   main()
 
    slider = [[[UISlider alloc] initWithFrame:frame] autorelease];
 
-   // [insideButton setClipsSubviews:YES];
+   // [insideButton setClipsToBounds:YES];
    [slider setBackgroundColor:getNVGColor( 0xCC8800FF)];
    [slider setControlInsets:UIEdgeInsetsMake( 20, 0, 20, 0)];
    [contentView addSubview:slider];
@@ -78,7 +78,7 @@ int   main()
    [UIView commitAnimations];
 
    [window dump];
-   [window renderLoopWithContext:context];
+   [window renderLoop];
 
    [[UIApplication sharedInstance] terminate];
 }

@@ -93,16 +93,17 @@
    self->_segments[ segment].backgroundColor = color;
 }
 
+// don't draw default background
 - (BOOL) drawBackgroundInContext:(CGContext *) context
 {
    return( NO);
 }
 
+// don't draw default border
 - (BOOL) drawBorderInContext:(CGContext *) context
 {
    return( NO);
 }
-
 
 - (NSUInteger) selectedSegmentIndex
 {
@@ -189,9 +190,9 @@
 
    for( i = 0; i < _n; i++)
    {
-      fprintf( stderr, "segment #%ld: %s\n", (long) i, CGRectCStringDescription( _segments[ i].frame));
+      fprintf( stderr, "segment #%ld: %s\n", (long) i, CGRectCStringDescription( _segments[ i].rect));
 
-      if( CGRectContainsPoint( _segments[ i].frame, point))
+      if( CGRectContainsPoint( _segments[ i].rect, point))
          return( i);
    }
    return( NSNotFound);
@@ -220,7 +221,7 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
 }
 
 
-- (BOOL) drawContentsInContext:(CGContext *) context
+- (void) drawInContext:(CGContext *) context
 {
    CGFloat             fontPixelSize;
    CGFloat             midX;
@@ -230,9 +231,9 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
    CGFloat             bottomRightRadius;
    CGFloat             bottomLeftRadius;
    CGFont              *font;
-   CGRect              frame;
-   CGRect              segmentFrame;
-   CGRect              innerFrame;
+   CGRect              canvas;
+   CGRect              segmentRect;
+   CGRect              innerRect;
    CGRect              frame2;
    char                *name;
    struct NVGcontext   *vg;
@@ -241,23 +242,23 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
    MulleEdgeInsets     insets;
 
    if( ! _n)
-      return( NO);
+      return;
 
-   vg    = [context nvgContext];
-   frame = [self frame];
+   vg     = [context nvgContext];
+   canvas = [self canvas];
 
-   strokeWidth              = [self borderWidth];
+   strokeWidth             = [self borderWidth];
 
-   segmentFrame             = frame;
-   segmentFrame.origin.x    = frame.origin.x + strokeWidth / 2.0;
-   segmentFrame.origin.y    = frame.origin.y + strokeWidth / 2.0;
-   segmentFrame.size.width  = frame.size.width / _n - strokeWidth;
-   segmentFrame.size.height = frame.size.height - strokeWidth;
+   segmentRect             = canvas;
+   segmentRect.origin.x    = canvas.origin.x + strokeWidth / 2.0;
+   segmentRect.origin.y    = canvas.origin.y + strokeWidth / 2.0;
+   segmentRect.size.width  = canvas.size.width / _n - strokeWidth;
+   segmentRect.size.height = canvas.size.height - strokeWidth;
 
    for( i = 0; i < _n; i++)
    {
-      _segments[ i].frame    = segmentFrame;
-      segmentFrame.origin.x += segmentFrame.size.width + strokeWidth;
+      _segments[ i].rect    = segmentRect;
+      segmentRect.origin.x += segmentRect.size.width + strokeWidth;
    }
 
    //
@@ -285,10 +286,10 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
                topRightRadius = bottomRightRadius = _cornerRadius;
 
          nvgBeginPath( vg);
-         nvgRoundedRectVarying( vg, _segments[ i].frame.origin.x,
-                      _segments[ i].frame.origin.y,
-                      _segments[ i].frame.size.width,
-                      _segments[ i].frame.size.height,
+         nvgRoundedRectVarying( vg, _segments[ i].rect.origin.x,
+                      _segments[ i].rect.origin.y,
+                      _segments[ i].rect.size.width,
+                      _segments[ i].rect.size.height,
                       topLeftRadius,
                       topRightRadius,
                       bottomRightRadius,
@@ -302,10 +303,10 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
    //
    {
       nvgBeginPath( vg);
-      nvgRoundedRect( vg, frame.origin.x,
-                          frame.origin.y,
-                          frame.size.width,
-                          frame.size.height,
+      nvgRoundedRect( vg, canvas.origin.x,
+                          canvas.origin.y,
+                          canvas.size.width,
+                          canvas.size.height,
                            _cornerRadius);
    }
 
@@ -318,11 +319,11 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
 
       for( i = 1; i < _n; i++)
       {
-         midX  = CGRectGetMaxX( _segments[ i - 1].frame);
+         midX  = CGRectGetMaxX( _segments[ i - 1].rect);
          midX += strokeWidth / 2.0;
 
-         nvgMoveTo( vg, midX, _segments[i].frame.origin.y);
-         nvgLineTo( vg, midX, CGRectGetMaxY( _segments[i].frame));
+         nvgMoveTo( vg, midX, _segments[i].rect.origin.y);
+         nvgLineTo( vg, midX, CGRectGetMaxY( _segments[i].rect));
       }
       nvgStroke( vg);
    }
@@ -336,7 +337,7 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
 
       fontPixelSize = [self fontPixelSize];
       if( fontPixelSize == 0.0)
-         fontPixelSize = frame.size.height - strokeWidth;
+         fontPixelSize = canvas.size.height - strokeWidth;
 
    	nvgFontSize( vg, fontPixelSize);
    	nvgFontFace( vg, name);
@@ -355,12 +356,11 @@ static inline int   is_only_segment( NSUInteger i, NSUInteger n)
          nvgTextColor( vg, [self textColor], color); // TODO: use textColor
 
          // center screen in the middle, for that we specify the center point
-      	nvgText( vg, _segments[i].frame.origin.x + (_segments[ i].offset.width * 2)  + _segments[i].frame.size.width / 2.0,
-                      _segments[i].frame.origin.y + (_segments[ i].offset.height * 2) + _segments[i].frame.size.height / 2.0,
+      	nvgText( vg, _segments[i].rect.origin.x + (_segments[ i].offset.width * 2)  + _segments[i].rect.size.width / 2.0,
+                      _segments[i].rect.origin.y + (_segments[ i].offset.height * 2) + _segments[i].rect.size.height / 2.0,
                       _segments[ i].title, NULL);
       }
    }
-   return( NO);
 }
 
 @end

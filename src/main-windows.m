@@ -34,17 +34,17 @@ void setup_window( UIWindow *window)
    [textField setAlignmentMode:CAAlignmentRight];
    [textField mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentBottom];
    [textField setEditable:YES];
-#if 0      
+#if 0
    [textField setTextOffset:CGPointMake( 80.0, 0.0)];
 #endif
-   // [insideButton setClipsSubviews:YES];
+   // [insideButton setClipsToBounds:YES];
    [contentView addSubview:textField];
 }
 
-#define N_WINDOWS 20     
+#define N_WINDOWS 20
 
 
-static void  handle_events( int i, UIWindow *windows[], CGContext *contexts[])
+static void  handle_events( int i, UIWindow *windows[])
 {
    int   j;
 
@@ -53,9 +53,9 @@ static void  handle_events( int i, UIWindow *windows[], CGContext *contexts[])
       if( [windows[ j] needsDisplay])
       {
          fprintf( stderr, "Refresh Window #%d %p\n", j + 1, windows[ j]);
-         [windows[ j] renderFrameWaitForNeedsDisplayWithContext:contexts[ j]];
+         [windows[ j] renderFrameWaitForNeedsDisplay];
       }
-   }      
+   }
 }
 
 
@@ -66,12 +66,11 @@ int   main()
    int             i;
    int             j;
    UIWindow        *windows[ N_WINDOWS];
-   CGContext       *contexts[ N_WINDOWS];
    CAAbsoluteTime  end;
    CGFloat         blue;
 
    /*
-    * window and app 
+    * window and app
     */
    // mulle_testallocator_initialize();
    // mulle_default_allocator = mulle_testallocator;
@@ -81,7 +80,7 @@ int   main()
       for( i = 0; i < N_WINDOWS; i++)
       {
           /*
-          * window and app 
+          * window and app
           */
          sprintf( buf, "Demo %d", i + 1);
          windows[ i] = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0, 300.0)
@@ -94,30 +93,27 @@ int   main()
 
          [[UIApplication sharedInstance] addWindow:windows[ i]];
 
-         contexts[ i] = [windows[ i] createContext];
-         assert( contexts[ i]);
-
          blue = ((N_WINDOWS - (i + 1)) * 1.0 / N_WINDOWS) * 0.75 + 0.25;
-         [contexts[ i] setBackgroundColor:CGColorCreateGenericRGB( 0.0, 
-                                                                   0.0, 
-                                                                   blue, 
-                                                                   1.0)];
+         [windows[ i] setBackgroundColor:CGColorCreateGenericRGB( 0.0,
+                                                                  0.0,
+                                                                  blue,
+                                                                  1.0)];
 
          [UIEvent os_pollEvents];
-         handle_events( i, windows, contexts);
+         handle_events( i, windows);
       // [[UIApplication sharedInstance] terminate];
       }
-   
+
       end = CAAbsoluteTimeNow() + 2.0;
       for(;;)
       {
          [UIEvent os_waitEventsTimeout:2.0];
-         handle_events( N_WINDOWS - 1, windows, contexts);
+         handle_events( N_WINDOWS - 1, windows);
          if( CAAbsoluteTimeNow() >= end)
             break;
       }
    }
 
-   //   mulle_testallocator_reset();   
+   //   mulle_testallocator_reset();
 }
 

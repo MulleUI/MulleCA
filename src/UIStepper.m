@@ -8,12 +8,16 @@
 
 - (id) initWithFrame:(CGRect) frame
 {
-   MulleStepperLayer  *stepperLayer;
+   MulleStepperLayer   *stepperLayer;
+   CGRect               rect;
 
-   stepperLayer = [[[MulleStepperLayer alloc] initWithFrame:frame] autorelease];
+   rect.origin  = CGPointZero;
+   rect.size    = frame.size;
+   stepperLayer = [[[MulleStepperLayer alloc] initWithFrame:rect] autorelease];
    if( self)
       self->_maximumValue = 1.0;
-   return( [self initWithLayer:stepperLayer]);
+   return( [self initWithLayer:stepperLayer
+                         frame:frame]);
 }
 
 
@@ -23,7 +27,7 @@
       value = _maximumValue;
    if( value < _minimumValue)
       value = _minimumValue;
- 
+
    _value = value; // use property setter to get future goodness ??
 }
 

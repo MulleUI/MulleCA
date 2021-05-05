@@ -30,7 +30,7 @@
 - (instancetype) initWithFrame:(CGRect) frame
 {
    _scale = 1;
-   _color = MulleColorCreate( 0x000000FF);
+   _color = MulleColorMake( 0x000000FF);
    _box   = frame;
    return( [super initWithFrame:frame]);
 }
@@ -38,29 +38,29 @@
 @end
 
 
-BOOL  drawStuff( CALayer *aLayer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *aLayer, CGContext *context)
 {
-   CircleLayer   *layer = (CircleLayer *) aLayer;
-   CGFloat        radius;
-   CGRect         box;
+   CircleLayer         *layer = (CircleLayer *) aLayer;
+   CGFloat             radius;
+   CGRect              box;
+   CGRect              canvas;
    struct NVGcontext   *vg;
 
    vg = MulleContextGetNVGContext( context);
    nvgBezierTessellation( vg, NVG_TESS_AFD);
 
    nvgBeginPath( vg);
-   radius = MulleCGFloatMinimum( CGRectGetWidth( frame), CGRectGetHeight( frame)) / 2 - 10;
+
+   canvas = [layer canvas];
+   radius = MulleCGFloatMinimum( CGRectGetWidth( canvas), CGRectGetHeight( canvas)) / 2 - 10;
    radius *= [layer scale];
 
-   nvgRect( vg, CGRectGetMidX( frame) - radius,
-                CGRectGetMidY( frame) - radius,
+   nvgRect( vg, CGRectGetMidX( canvas) - radius,
+                CGRectGetMidY( canvas) - radius,
                 radius * 2,
                 radius * 2);
 
-//   nvgCircle( vg, CGRectGetMidX( frame), CGRectGetMidY( frame), radius);
+//   nvgCircle( vg, CGRectGetMidX( canvas), CGRectGetMidY( canvas), radius);
    nvgFillColor( vg, [layer color]);
    nvgStrokeWidth( vg, 3.5);
    nvgFill( vg);
@@ -72,57 +72,57 @@ BOOL  drawStuff( CALayer *aLayer,
    nvgStrokeWidth( vg, 3.5);
    nvgFill( vg);
 */
-   return( NO);
 }
 
 // scale stuff for stream
 #define SCALE     2.0
 
-void   setupScene( UIWindow *window, CGContext *context)
+static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
 {
-   UIView        *view;
-   CGRect         frame;
-   CGRect         rect;
-   UIEdgeInsets   insets;
-   CircleLayer    *layer;
-   CGFloat        scale;
-   CGFloat        translate;
-   NSInteger      i;
-   struct mulle_pointerarrayenumerator   rover;
+   CGFloat                               scale;
+   CGFloat                               translate;
+   CGRect                                frame;
+   CGRect                                rect;
+   CircleLayer                           *layer;
+   NSInteger                             i;
    struct mulle_pointerarray             array;
+   struct mulle_pointerarrayenumerator   rover;
+   UIEdgeInsets                          insets;
+   UIView                               *view;
 
-   frame = [window frame];
+   frame = [contentPlane bounds];
 
    for( i = 0; i < 1000; i++)
    {
       rect.origin.x = rand() % ((int) frame.size.width - 16);
       rect.origin.y = rand() % ((int) frame.size.height - 16);
       rect.size     = CGSizeMake( 32 ,32);
+
       layer = [[[CircleLayer alloc] initWithFrame:rect] autorelease];
       view  = [[[UIView alloc] initWithLayer:layer] autorelease];
-      [layer setDrawContentsCallback:drawStuff];
-      [layer setColor:MulleColorCreateRandom( 0x00FF00FF, 0xFF00FF00)];
-      [window addSubview:view];
+      [layer setDrawCallback:drawStuff];
+      [layer setColor:MulleColorMakeRandom( 0x00FF00FF, 0xFF00FF00)];
+      [contentPlane addSubview:view];
    }
 
    _mulle_pointerarray_init( &array, 0, NULL);
-   [window addSubviewsIntersectingRect:CGRectMake( frame.size.width / 4,
-                                                   frame.size.height / 4,
-                                                   frame.size.width / 2,
-                                                   frame.size.height / 2)
+   [contentPlane addSubviewsIntersectingRect:CGRectMake( frame.size.width / 4,
+                                                         frame.size.height / 4,
+                                                         frame.size.width / 2,
+                                                         frame.size.height / 2)
                       toPointerArray:&array
               invertIntersectionTest:YES];
 
    rover = mulle_pointerarray_enumerate( &array);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
-      [view setColor:MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00)];
+      [view setBackgroundColor:MulleColorMakeRandom( 0xFF0000FF, 0x00FFFF00)];
    mulle_pointerarrayenumerator_done( &rover);
 
    mulle_pointerarray_done( &array);
 }
 
 
-int   main()
+int   main( int argc, char *argv[])
 {
    CGContext   *context;
    UIWindow    *window;
@@ -130,19 +130,20 @@ int   main()
    /*
     * window and app
     */
-   window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
+   window  = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
    assert( window);
 
    [[UIApplication sharedInstance] addWindow:window];
 
-   context = [window createContext];
-   [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+   [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
-   setupScene( window, context);
+   setupSceneInContentPlane( [window contentPlane]);
 
    [window dump];
-   [window renderLoopWithContext:context];
+   [window renderLoop];
 
    [[UIApplication sharedInstance] terminate];
+
+   return( 0);
 }
 

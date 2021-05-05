@@ -41,14 +41,13 @@ UIControlProperties;
 // Highlighting will use the inverse of the current selection state
 //
 
-- (void) setupLayersWithFrame:(CGRect) frame;
-- (void) layoutLayersWithFrame:(CGRect) frame;
+- (void) setupLayersInRect:(CGRect) frame;
 
 // subclasses can style by overriding these
 + (MulleTextLayer *) titleLayerWithFrame:(CGRect) rect;
 + (CALayer *) mulleTitleBackgroundLayerWithFrame:(CGRect) rect;
 
-- (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame;
+- (CGRect) mulleInsetTextLayerFrameInRect:(CGRect) frame;
 
 - (void) insertCharacter:(unichar) c;
 - (void) backspaceCharacter;

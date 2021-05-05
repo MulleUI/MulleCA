@@ -23,13 +23,13 @@ static struct
    mulle_thread_mutex_t   _freeTypeLock;
 } Self;
 
-+ (void) initialize 
++ (void) initialize
 {
    mulle_thread_mutex_init( &Self._freeTypeLock);
 }
 
 
-+ (void) deinitialize 
++ (void) deinitialize
 {
    mulle_thread_mutex_done( &Self._freeTypeLock);
 }
@@ -199,7 +199,7 @@ static char  geometryShaderSource[] =
 #endif
 #ifdef NANOVG_GLES3_IMPLEMENTATION
 	   nvgDeleteGLES3(_vg);
-#endif  
+#endif
    }
    mulle_thread_mutex_unlock( &Self._freeTypeLock);
    _vg = NULL;
@@ -272,6 +272,7 @@ static char  geometryShaderSource[] =
       startGPUTimer( &_perf.gpuTimer);
    }
    // < performance measurement
+
    glViewport( 0, 0, info->frame.size.width, info->frame.size.height);
    nvgBeginFrame( _vg, info->frame.size.width,
                        info->frame.size.height,
@@ -381,7 +382,7 @@ static char  geometryShaderSource[] =
       for (i = 0; i < n; i++)
    	   updateGraph(&_perf.gpuGraph, gpuTimes[i]);
 
-      // < get performance values for prcurrentevious frame
+      // < get performance values for current frame
    }
 }
 

@@ -14,7 +14,7 @@
 
 // the visible rect for control value, the knob
 // overshoots this by its radius though (minus some border pixels)
-- (CGRect) controlRectWithFrame:(CGRect) frame;
-- (CGFloat) knobRadiusWithFrame:(CGRect) frame;
+- (CGRect) controlRectForRect:(CGRect) rect;
+- (CGFloat) knobRadiusForRect:(CGRect) rect;
 
 @end

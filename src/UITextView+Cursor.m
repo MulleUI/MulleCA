@@ -118,7 +118,7 @@
 
 - (struct MulleIntegerPoint) maxCursorPosition
 {
-   CALayer <MulleCursor>     *layer;
+   CALayer <MulleCursor>      *layer;
    CGFloat                    offset;
    struct MulleIntegerPoint   cursor;
    struct MulleIntegerPoint   max;
@@ -247,8 +247,8 @@
 {
    struct MulleIntegerPoint   pos;
    struct MulleIntegerPoint   max;
-   CALayer <MulleCursor>      *layer;
-   CALayer <MulleCursor>      *other;
+   CALayer                    *layer;
+   CALayer                    *other;
    NSUInteger                 row;
    CGPoint                    point;
 

@@ -8,9 +8,13 @@
 - (id) initWithFrame:(CGRect) frame
 {
    MulleCheckboxLayer  *checkboxLayer;
+   CGRect               rect;
 
-   checkboxLayer = [[[MulleCheckboxLayer alloc] initWithFrame:frame] autorelease];
-   return( [self initWithLayer:checkboxLayer]);
+   rect.origin   = CGPointZero;
+   rect.size     = frame.size;
+   checkboxLayer = [[[MulleCheckboxLayer alloc] initWithFrame:rect] autorelease];
+   return( [self initWithLayer:checkboxLayer
+                         frame:frame]);
 }
 
 

@@ -11,7 +11,7 @@
 // #define LAYOUT_DEBUG
 
 
-@implementation MulleScrollIndicatorView 
+@implementation MulleScrollIndicatorView
 
 + (Class) layerClass
 {
@@ -19,8 +19,10 @@
 }
 
 - (id) initWithLayer:(CALayer *) layer
+               frame:(CGRect) frame
 {
-   self = [super initWithLayer:layer];
+   self = [super initWithLayer:layer
+                         frame:frame];
 
    //
    if( self)
@@ -205,16 +207,16 @@
             CGPointCStringDescription( point),
             CGRectCStringDescription( bubbleFrame),
             CGRectCStringDescription( bounds));
-      offset->y = 0.0; 
-      offset->x = point.x - CGRectGetMinX( bubbleFrame); 
-      return( point.x >= CGRectGetMinX( bubbleFrame) && 
+      offset->y = 0.0;
+      offset->x = point.x - CGRectGetMinX( bubbleFrame);
+      return( point.x >= CGRectGetMinX( bubbleFrame) &&
               point.x <= CGRectGetMaxX( bubbleFrame));
    }
 
-   offset->x = 0.0; 
-   offset->y = point.y - CGRectGetMinY( bubbleFrame); 
+   offset->x = 0.0;
+   offset->y = point.y - CGRectGetMinY( bubbleFrame);
 
-   return( point.y >= CGRectGetMinY( bubbleFrame) && 
+   return( point.y >= CGRectGetMinY( bubbleFrame) &&
            point.y <= CGRectGetMaxY( bubbleFrame));
 }
 
@@ -246,7 +248,7 @@
             CGRectCStringDescription( bubbleFrame),
             CGRectCStringDescription( bounds));
 
-      *isInsideBubble = point.x >= CGRectGetMinX( bubbleFrame) && 
+      *isInsideBubble = point.x >= CGRectGetMinX( bubbleFrame) &&
                         point.x <= CGRectGetMaxX( bubbleFrame);
       if( *isInsideBubble)
       {
@@ -255,7 +257,7 @@
       }
 
       // center bubble around click
-      point.x -= bubbleFrame.size.width / 2.0; 
+      point.x -= bubbleFrame.size.width / 2.0;
 
       if( point.x < CGRectGetMinX( bounds))
       {
@@ -272,12 +274,12 @@
       return( point.x);
    }
 
-   *isInsideBubble = point.y >= CGRectGetMinY( bubbleFrame) && 
+   *isInsideBubble = point.y >= CGRectGetMinY( bubbleFrame) &&
                      point.y <= CGRectGetMaxY( bubbleFrame);
       if( *isInsideBubble)
-         return( bubbleFrame.origin.x);   
+         return( bubbleFrame.origin.x);
 
-   point.y -= bubbleFrame.size.height / 2.0; 
+   point.y -= bubbleFrame.size.height / 2.0;
 
    if( point.y < CGRectGetMinY( bounds))
       return( CGRectGetMinY( bounds));
@@ -287,77 +289,78 @@
 }
 
 
-- (BOOL) drawInContext:(CGContext *) context 
+- (void) drawInContext:(CGContext *) context
 {
    NVGcontext    *vg;
 	NVGpaint      shadowPaint;
 	CGRect        bounds;
 	CGRect        bubbleFrame;
 
-   if( ! [super drawInContext:context])
-      return( NO);
+   [super drawInContext:context];
 
    vg     = [context nvgContext];
    bounds = [self bounds];
 #ifdef LAYOUT_DEBUG
-   fprintf( stderr, "bounds bubble: %s\n", CGRectCStringDescription( bounds));      
+   fprintf( stderr, "bounds bubble: %s\n", CGRectCStringDescription( bounds));
 #endif
 
    // code stolen from nanovg: demo.c
    // Scroll bar
 	shadowPaint = nvgBoxGradient( vg, bounds.origin.x + 1,
-											    bounds.origin.y + 1, 
-											 	 bounds.size.width, 
-											 	 bounds.size.height, 
+											    bounds.origin.y + 1,
+											 	 bounds.size.width,
+											 	 bounds.size.height,
 											 	 3, // radius
 											 	 4, // feather
-											 	 nvgRGBA(0,0,0,32), 
+											 	 nvgRGBA(0,0,0,32),
 											 	 nvgRGBA(0,0,0,92));
 
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, 3);
 
-	nvgGlobalCompositeOperation( vg, NVG_LIGHTER);
-	nvgFillColor( vg, nvgRGBA( 255,255,255,128));
-	nvgFill( vg);
+   nvgSave( vg);
+   {
+   	nvgGlobalCompositeOperation( vg, NVG_LIGHTER);
+   	nvgFillColor( vg, nvgRGBA( 255,255,255,128));
+   	nvgFill( vg);
 
 
-	nvgGlobalCompositeOperation( vg, NVG_SOURCE_OVER);
-	nvgFillPaint(vg, shadowPaint);
-	nvgFill( vg);
+   	nvgGlobalCompositeOperation( vg, NVG_SOURCE_OVER);
+   	nvgFillPaint(vg, shadowPaint);
+   	nvgFill( vg);
 
-	// Scroll bubble
-	// bubble has offset and size, first scale to complete
+   	// Scroll bubble
+   	// bubble has offset and size, first scale to complete
 
 
-   bubbleFrame = [self bubbleFrameWithBounds:bounds];
-   
+      bubbleFrame = [self bubbleFrameWithBounds:bounds];
+
 #ifdef LAYOUT_DEBUG
-   fprintf( stderr, "bubbleFrame bubble: %s\n", CGRectCStringDescription( bubbleFrame));  		
+      fprintf( stderr, "bubbleFrame bubble: %s\n", CGRectCStringDescription( bubbleFrame));
 #endif
 
-	shadowPaint = nvgBoxGradient( vg, bubbleFrame.origin.x,
-											    bubbleFrame.origin.y, 
-											 	 bubbleFrame.size.width, 
-											 	 bubbleFrame.size.height, 
-											 	 3, // radius
-											 	 4, // feather
-											 	 //nvgRGBA(220,120,120,255), 
-											 	 //nvgRGBA(128,28,28,255));
-											 	 nvgRGBA(128,128,128,160), 
-											 	 nvgRGBA(64,64,64,160));
+   	shadowPaint = nvgBoxGradient( vg, bubbleFrame.origin.x,
+   											    bubbleFrame.origin.y,
+   											 	 bubbleFrame.size.width,
+   											 	 bubbleFrame.size.height,
+   											 	 3, // radius
+   											 	 4, // feather
+   											 	 //nvgRGBA(220,120,120,255),
+   											 	 //nvgRGBA(128,28,28,255));
+   											 	 nvgRGBA(128,128,128,160),
+   											 	 nvgRGBA(64,64,64,160));
 
-	nvgBeginPath(vg);
-	nvgRoundedRect(vg, bubbleFrame.origin.x,
-							 bubbleFrame.origin.y, 
-							 bubbleFrame.size.width,
-							 bubbleFrame.size.height, 
-							 2);
-	nvgFillPaint(vg, shadowPaint);
-//	nvgFillColor(vg, nvgRGBA(0,0,0,128));
-	nvgFill(vg);
-
-   return( YES);
+   	nvgBeginPath(vg);
+   	nvgRoundedRect(vg, bubbleFrame.origin.x,
+   							 bubbleFrame.origin.y,
+   							 bubbleFrame.size.width,
+   							 bubbleFrame.size.height,
+   							 2);
+   	nvgFillPaint(vg, shadowPaint);
+   //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
+   	nvgFill(vg);
+   }
+   nvgRestore( vg);
 }
 
 @end

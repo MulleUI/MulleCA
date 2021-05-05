@@ -20,22 +20,22 @@ static UIEvent   *button_callback( UIButton *button, UIEvent *event)
 }
 
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect               rect;
    MulleJS             *js;
    struct NVGcontext   *vg;
+   CGRect              canvas;
+
+   canvas = [layer canvas];
 
    vg = MulleContextGetNVGContext( context);
    js = [MulleJS object];
    [js setObject:[NSValue valueWithPointer:vg]
           forKey:@"nvgContext"];
-   [js setObject:@(frame.size.width)
+   [js setObject:@(canvas.size.width)
           forKey:@"width"];
-   [js setObject:@(frame.size.height)
+   [js setObject:@(canvas.size.height)
           forKey:@"height"];
 
    nvgTranslate( vg, 0, 10);
@@ -53,7 +53,6 @@ BOOL  drawStuff( CALayer *layer,
 "x.write( '1849', 1); \n"
 ];
 */
-   return( YES);
 }
 
 
@@ -93,8 +92,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    [displayView setMargins:UIEdgeInsetsMake( 10, 10, 0, 10)];
    [displayView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
 
-   layer = [displayView layer];
-   [displayView setDrawContentsCallback:drawStuff];
+   [displayView setDrawCallback:drawStuff];
    [rootView addSubview:displayView];
 
    // Keyboard container
@@ -114,7 +112,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    // leaving space at the bottom, so that the last rowView with a "wrong"
    // bottom margin can expand there
    //
-   [keyboardView setContentInsets:UIEdgeInsetsMake( 10, 10, 0, 10)];
+   [keyboardView setPadding:UIEdgeInsetsMake( 10, 10, 0, 10)];
    [keyboardView setDebugNameCString:"KeyboardView"];
 
    [rootView addSubview:keyboardView];
@@ -127,7 +125,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
       rowView  = [[[UIStackView alloc] initWithFrame:frame] autorelease];
       sprintf( name, "rowView %ld", i);
       [rootView setDebugNameCString:name];
-      [rowView setBackgroundColor:MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00)];
+      [rowView setBackgroundColor:MulleColorMakeRandom( 0xFF0000FF, 0x00FFFF00)];
       [rowView setDistribution:UIStackViewDistributionFillEqually];
 
       // determine own geometry, take up all space that is given
@@ -141,7 +139,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
       // specify settings for kids, have 20 margin on the left an right
       // and a pixel on top (gratuitously for testing)
       //
-      [rowView setContentInsets:UIEdgeInsetsMake( 1, 20, 1, 0)];
+      [rowView setPadding:UIEdgeInsetsMake( 1, 20, 1, 0)];
       [rowView setAxis:UILayoutConstraintAxisHorizontal];
 
       [keyboardView addSubview:rowView];
@@ -193,8 +191,8 @@ int  main()
 
       [window dump];
 
-      context = [window createContext];
-      [window renderLoopWithContext:context];
+      context = [window context];
+      [window renderLoop];
 
       [application terminate];
    }

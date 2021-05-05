@@ -30,7 +30,7 @@
 - (instancetype) initWithFrame:(CGRect) frame
 {
    _scale = 1;
-   _color = MulleColorCreate( 0x000000FF);
+   _color = MulleColorMake( 0x000000FF);
    _box   = frame;
    return( [super initWithFrame:frame]);
 }
@@ -39,29 +39,29 @@
 
 // memo: this actually draws outside of the layer somewhat, should fix this
 //       as noticed when reusing the code in the collection view demo
-BOOL  drawStuff( CALayer *aLayer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void   drawStuff( CALayer *aLayer, CGContext *context)
 {
-   CircleLayer   *layer = (CircleLayer *) aLayer;
-   CGFloat        radius;
-   CGRect         box;
+   CircleLayer        *layer = (CircleLayer *) aLayer;
+   CGFloat             radius;
+   CGRect              box;
+   CGRect              canvas;
    struct NVGcontext   *vg;
+
+   canvas = [aLayer canvas];
 
    vg = MulleContextGetNVGContext( context);
    nvgBezierTessellation( vg, NVG_TESS_AFD);
 
    nvgBeginPath( vg);
-   radius = MulleCGFloatMinimum( CGRectGetWidth( frame), CGRectGetHeight( frame)) / 2 - 10;
+   radius = MulleCGFloatMinimum( CGRectGetWidth( canvas), CGRectGetHeight( canvas)) / 2 - 10;
    radius *= [layer scale];
 
-   nvgRect( vg, CGRectGetMidX( frame) - radius,
-                CGRectGetMidY( frame) - radius,
+   nvgRect( vg, CGRectGetMidX( canvas) - radius,
+                CGRectGetMidY( canvas) - radius,
                 radius * 2,
                 radius * 2);
 
-//   nvgCircle( vg, CGRectGetMidX( frame), CGRectGetMidY( frame), radius);
+//   nvgCircle( vg, CGRectGetMidX( canvas), CGRectGetMidY( canvas), radius);
    nvgFillColor( vg, [layer color]);
    nvgStrokeWidth( vg, 3.5);
    nvgFill( vg);
@@ -73,7 +73,6 @@ BOOL  drawStuff( CALayer *aLayer,
    nvgStrokeWidth( vg, 3.5);
    nvgFill( vg);
 */
-   return( NO);
 }
 
 // scale stuff for stream
@@ -99,10 +98,10 @@ void   setupScene( UIWindow *window, CGContext *context)
 
    layer = [[[CircleLayer alloc] initWithFrame:frame] autorelease];
    view  = [[[UIView alloc] initWithLayer:layer] autorelease];
-   [layer setDrawContentsCallback:drawStuff];
+   [layer setDrawCallback:drawStuff];
    [window addSubview:view];
 
-   [layer setColor:MulleColorCreate( 0xFF0000FF)];
+   [layer setColor:MulleColorMake( 0xFF0000FF)];
 
    for( i = 0; i < 1000; i++)
    {
@@ -121,8 +120,8 @@ void   setupScene( UIWindow *window, CGContext *context)
 
       // fprintf( stderr, "%s", CGRectCStringDescription( rect));
       layer = [[[CircleLayer alloc] initWithFrame:rect] autorelease];
-      [layer setDrawContentsCallback:drawStuff];
-      [layer setColor:MulleColorCreate( 0x00FF00FF)];
+      [layer setDrawCallback:drawStuff];
+      [layer setColor:MulleColorMake( 0x00FF00FF)];
       [view addLayer:layer];
    }
 
@@ -138,7 +137,7 @@ void   setupScene( UIWindow *window, CGContext *context)
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
    {
       [layer setScale:-1.0];
-      [layer setColor:MulleColorCreateRandom( 0x000000FF, 0x00FF0000)];
+      [layer setColor:MulleColorMakeRandom( 0x000000FF, 0x00FF0000)];
    }
    mulle_pointerarrayenumerator_done( &rover);
 
@@ -160,13 +159,13 @@ int   main()
 
    [[UIApplication sharedInstance] addWindow:window];
 
-   context = [window createContext];
+   context = [window context];
    [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
    setupScene( window, context);
 
    [window dump];
-   [window renderLoopWithContext:context];
+   [window renderLoop];
 
    [[UIApplication sharedInstance] terminate];
 }

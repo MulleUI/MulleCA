@@ -8,7 +8,7 @@
 #import "UIEvent.h"
 #import "UIView+UIEvent.h"
 
-#define EVENT_DEBUG
+//#define EVENT_DEBUG
 
 @implementation MulleMenu ( UIEvent)
 
@@ -63,6 +63,10 @@
 {
 }
 
+
+//
+// ??? probably just used for debugging ???
+//
 - (UIEvent *) _handleEvent:(UIEvent *) event
 {
    if( [self isUserInteractionEnabled] == NO)

@@ -7,6 +7,15 @@
 
 @implementation CAAnimation
 
+static const struct CAAnimationOptions   CAAnimationDefaultOptions =
+{
+   { 0, 1 },      // 1 second starting immediately
+   1.0,
+   { 0.0, 0.333, 0.666, 1.0 },  // linear as default
+   0
+};
+
+
 - (id) initWithPropertySetter:(SEL) propertySetter
                     valueType:(enum CAAnimationValueType) type
                    valueRange:(struct CAAnimationValueRange *) range
@@ -14,21 +23,31 @@
                       options:(struct CAAnimationOptions *) options
 {
    // no need for super coz NSObject based
+   if( ! options)
+      options = (struct CAAnimationOptions *) &CAAnimationDefaultOptions;
 
    // reverses is only used if repeats is set
    assert( ! (options->bits & 0xFFFF));
+
+   if( options->timeRange.duration <= 0.0)
+   {
+      [self release];
+      return( nil);
+   }
 
    self->_relative       = options->timeRange;
    self->_bits           = options->bits & ~0xFFFF;  // mask off our internal state bits
    self->_propertySetter = propertySetter;
 
-   self->_quadratic   = options->curve;
+   self->_quadratic      = options->curve;
 
-   self->_valueType   = type;
-   self->_start       = range->start;
-   self->_end         = range->end;
-   self->_repeatStart = repeatStart;
-   self->_repeatCount = options->repeatCount;
+   self->_valueType           = type;
+   self->_start               = range->start;
+   self->_end                 = range->end;
+   self->_repeatStart         = repeatStart;
+   self->_repeatCount         = options->repeatCount;
+   // only used for reset
+   self->_originalRepeatCount = self->_repeatCount;
 
    return( self);
 }
@@ -185,13 +204,22 @@
    }
 }
 
+- (void) reset
+{
+   self->_bits       &= ~0xFFFF;
+   self->_frames      = 0;
+   self->_repeatCount = self->_originalRepeatCount;
+}
 
-- (void) animateLayer:(CALayer *) layer
+
+- (void) animateObject:(id) object
 normalizedRelativeTime:(double) x
 {
    union CAAnimationValue   value;
 
-   assert( x >= 0.0 && x <= 1.0);
+   assert( x >= 0.0);
+   assert( x <= 1.0);
+   assert( object);
 
    switch( self->_valueType)
    {
@@ -200,12 +228,12 @@ normalizedRelativeTime:(double) x
 
    case CAAnimationValueBOOL :
       value.boolValue = round( (self->_end.boolValue - self->_start.boolValue) * x + self->_start.boolValue);
-      mulle_objc_object_call( layer, self->_propertySetter, (void *) (intptr_t) value.boolValue);
+      mulle_objc_object_call( object, self->_propertySetter, (void *) (intptr_t) value.boolValue);
       break;
 
    case CAAnimationValueNSInteger :
       value.integerValue = round( (self->_end.integerValue - self->_start.integerValue) * x + self->_start.integerValue);
-      mulle_objc_object_call( layer, self->_propertySetter, (void *) value.integerValue);
+      mulle_objc_object_call( object, self->_propertySetter, (void *) value.integerValue);
       break;
 
    case CAAnimationValueCGFloat :
@@ -214,7 +242,7 @@ normalizedRelativeTime:(double) x
          mulle_metaabi_struct_void_return( float)   param;
 
          param.p = value.floatValue;
-         mulle_objc_object_call( layer, self->_propertySetter, &param);
+         mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -228,7 +256,7 @@ normalizedRelativeTime:(double) x
          mulle_metaabi_struct_void_return( CGColorRef)   param;
 
          param.p = value.color;
-         mulle_objc_object_call( layer, self->_propertySetter, &param);
+         mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -239,7 +267,7 @@ normalizedRelativeTime:(double) x
          mulle_metaabi_struct_void_return( CGPoint)   param;
 
          param.p = value.point;
-         mulle_objc_object_call( layer, self->_propertySetter, &param);
+         mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -250,7 +278,7 @@ normalizedRelativeTime:(double) x
          mulle_metaabi_struct_void_return( CGSize)   param;
 
          param.p = value.size;
-         mulle_objc_object_call( layer, self->_propertySetter, &param);
+         mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -263,7 +291,7 @@ normalizedRelativeTime:(double) x
         mulle_metaabi_struct_void_return( CGRect)   param;
 
         param.p = value.rect;
-        mulle_objc_object_call( layer, self->_propertySetter, &param);
+        mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -276,7 +304,7 @@ normalizedRelativeTime:(double) x
         mulle_metaabi_struct_void_return( MulleEdgeInsets)   param;
 
         param.p = value.insets;
-        mulle_objc_object_call( layer, self->_propertySetter, &param);
+        mulle_objc_object_call( object, self->_propertySetter, &param);
       }
       break;
 
@@ -285,14 +313,14 @@ normalizedRelativeTime:(double) x
    }
 }
 
-- (void) animateLayer:(CALayer *) layer
-         absoluteTime:(CAAbsoluteTime) now
+- (void) animateObject:(id) object
+          absoluteTime:(CAAbsoluteTime) now
 {
-   CGFloat                  x;
-   CGFloat                  t;
-   CAAbsoluteTime           delay;
+   CGFloat          x;
+   CGFloat          t;
+   CAAbsoluteTime   delay;
 
-   if( ! self || self->_relative.duration == 0.0)
+   if( self->_bits & CAAnimationEnded)
       return;
 
    // turn animation time into absolute
@@ -303,39 +331,45 @@ normalizedRelativeTime:(double) x
       self->_bits          |= CAAnimationStarted;
    }
 
-   if( now <= self->_absolute.end)
+   if( now < self->_absolute.start)
+      return;
+
+   if( _frames++ == 0)
    {
-      if( now < self->_absolute.start)
-         return;
-
-      if( _frames++ == 0)
-      {
-         [_animationDelegate willStart];
-      }
-
-      delay = CATimeSubtract( now, self->_absolute.start);
-      t     = delay / self->_relative.duration;
-      x     = MulleQuadraticGetValueForNormalizedDistance( &self->_quadratic, t);
-      if( self->_repeatCount > 0.0)
-      {
-         if( x > self->_repeatCount)  // exhausted ? Done!
-         {
-            self->_repeatCount = 0.0;
-            return;
-         }
-      }
-      assert( layer);
-
-      [self animateLayer:layer
-  normalizedRelativeTime:x];
-
-      if( now < self->_absolute.end)
-         return;
+      [_animationDelegate willStart];
    }
+
+   //
+   // if time has passed, we don't want to overshoot but we really
+   // want to place the final values into the object and not leave
+   // some ugly interpolation
+   //
+   if( now >= self->_absolute.end)
+      now = self->_absolute.end;
+
+   delay = CATimeSubtract( now, self->_absolute.start);
+   t     = delay / self->_relative.duration;
+   x     = MulleQuadraticGetValueForNormalizedDistance( &self->_quadratic, t);
+
+   if( self->_repeatCount > 0.0)
+   {
+      if( x > self->_repeatCount)  // exhausted ? Done!
+      {
+         self->_repeatCount = 0.0;
+         return;
+      }
+   }
+
+   [self animateObject:object
+normalizedRelativeTime:x];
+
+   if( now != self->_absolute.end)
+      return;
 
    // not repeating ? done
    if( self->_repeatCount == 0.0)
    {
+      self->_bits |= CAAnimationEnded;
       [_animationDelegate didEnd];
       return;
    }
@@ -346,6 +380,7 @@ normalizedRelativeTime:(double) x
       self->_repeatCount -= 1.0;
       if( self->_repeatCount <= 0.0)
       {
+         self->_bits |= CAAnimationEnded;
          [_animationDelegate didEnd];
          return;
       }
@@ -355,6 +390,31 @@ normalizedRelativeTime:(double) x
    self->_bits &= ~CAAnimationStarted;
    if( self->_bits & CAAnimationReverses)
       [self reverse];
+}
+
+
+static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
+                                        SEL sel,
+                                        CAAbsoluteTime renderTime)
+{
+   struct mulle_pointerarrayenumerator   rover;
+   id                                    object;
+
+#ifdef RENDER_DEBUG_VERBOSE
+   fprintf( stderr, "%s %s\n", __PRETTY_FUNCTION__, [self cStringDescription]);
+#endif
+
+   rover = mulle_pointerarray_enumerate( objects);
+   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &object))
+      MulleObjCObjectPerformSelectorDoubleArgument( object, sel, renderTime);
+   mulle_pointerarrayenumerator_done( &rover);
+}
+
+
++ (void) animateObjects:(struct mulle_pointerarray *) objects
+           absoluteTime:(CAAbsoluteTime) renderTime
+{
+   performSelectorOnObjects( objects, @selector( animateWithAbsoluteTime:), renderTime);
 }
 
 @end
@@ -389,6 +449,7 @@ normalizedRelativeTime:(double) x
                    withObject:(id) _identifier
                    withObject:_context];
 }
+
 
 - (void) didEnd
 {

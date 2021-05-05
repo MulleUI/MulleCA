@@ -20,8 +20,29 @@ static UIEvent   *button_callback( UIButton *button, UIEvent *event)
    return( nil);
 }
 
-#define N_ROWS 5
+#define N_ROWS 7
 #define N_COLS 5 //
+
+static uint32_t  v_colors[ N_ROWS] =
+{
+   0x2020D0FF,
+   0x2020E0FF,
+   0x3030E0FF,
+   0x3030F0FF,
+   0x4040F0FF,
+   0x5050F0FF,
+   0x6060E0FF,
+};
+
+static uint32_t  h_colors[ N_COLS] =
+{
+   0xD04020FF,
+   0xE02040FF,
+   0xE05030FF,
+   0xF03050FF,
+   0xF06040FF
+};
+
 
 static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
 {
@@ -48,16 +69,17 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    // because the root view is still zero sized, the -10.2 as size is really
    // the margin. The 100 is the height of the display
 
-   for( j = 0; j <= UIStackViewDistributionEqualCentering; j++)
+   assert( N_ROWS == MulleStackViewDistributionUnbounded + 1);
+   for( j = 0; j < N_ROWS; j++)
    {
       frame = CGRectMake( 0, 0, 0, 0);
       stackView = [[[UIStackView alloc] initWithFrame:CGRectZero] autorelease];
-      [stackView setBackgroundColor:MulleColorCreateRandom( 0x0000FFFF, 0xFFFF0000)]; // blue
+      [stackView setBackgroundColor:getNVGColor( v_colors[ j])]; // blue
 
       // determine own geometry, take up all space that is given
       [stackView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
       // center in  window  with some margin
-      [stackView setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
+      [stackView setMargins:UIEdgeInsetsMake( 4, 4, 4, 4)];
       [rootView addSubview:stackView];
 
       //
@@ -66,25 +88,24 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
       // bottom margin can expand there
       //
       [stackView setDistribution:j];
-      [stackView setContentInsets:UIEdgeInsetsMake( 10, 10, 10, 10)];
+      [stackView setPadding:UIEdgeInsetsMake( 4, 4, 4, 4)];
       [stackView setDebugNameCString:"stackView"];
       [stackView setAlignment:UIStackViewAlignmentCenter];
       [stackView setAxis:UILayoutConstraintAxisHorizontal];
 
-      MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00);
       /* CHILD 1 */
       for( i = 0; i < N_COLS; i++)
       {
          // create a row view (transparent though)
          frame = CGRectMake( 0, 0, 48 + i * 16, 48);
          view  = [[[UIView alloc] initWithFrame:frame] autorelease];
-         [view setBackgroundColor:MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00)];
+         [view setBackgroundColor:getNVGColor( h_colors[ i])];
    //      if( i == 2)
    //         [view setAutoresizingMask:MulleUIViewAutoresizingStickToBottom|MulleUIViewAutoresizingStickToRight];
    //      if( i == 3)
    //         [view setAutoresizingMask:MulleUIViewAutoresizingStickToTop|MulleUIViewAutoresizingStickToRight];
    //      if( i == 1)
-   //         [view setAutoresizingMask:MulleUIViewAutoresizingStickToCenter|UIViewAutoresizingFlexibleWidth];
+   //         [view setAutoresizingMask:MulleUIViewAutoresizingStickToMiddle|MulleUIViewAutoresizingStickToCenter|UIViewAutoresizingFlexibleWidth];
 
          [stackView addSubview:view];
       }
@@ -124,8 +145,8 @@ int  main()
 
       [window dump];
 
-      context = [window createContext];
-      [window renderLoopWithContext:context];
+      context = [window context];
+      [window renderLoop];
 
       [application terminate];
    }

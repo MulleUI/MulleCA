@@ -1,13 +1,13 @@
 #import "UIView.h"
 #import "MulleControlBackgroundImage.h"
-
+#import "MulleTextLayer.h"
 
 @class UIImage;
 @class MulleTextLayer;
 
 //
 // here the compiler can't figure out that the informal protocol on
-// UIControl is part of the Protocolclass. 
+// UIControl is part of the Protocolclass.
 // a) why isn't it an optional part of the protocol then ?
 //
 
@@ -27,6 +27,9 @@ MulleControlBackgroundImageProperties;
 - (void) setTitleCString:(char *) s;
 - (char *) titleCString;
 
+- (void) setContentHorizontalAlignment:(enum CATextLayerAlignmentMode) value;
+- (enum CATextLayerAlignmentMode) contentHorizontalAlignment;
+
 // UIControlState can be:
 //
 //    UIControlStateNormal
@@ -36,17 +39,12 @@ MulleControlBackgroundImageProperties;
 //
 // Highlighting will use the inverse of the current selection state
 //
-
-- (void) setupLayersWithFrame:(CGRect) frame;
-- (void) layoutLayersWithFrame:(CGRect) frame;
+- (void) setupLayersInRect:(CGRect) rect;
 
 // subclasses can style by overriding these
 + (MulleTextLayer *) titleLayerWithFrame:(CGRect) rect;
 + (CALayer *) mulleTitleBackgroundLayerWithFrame:(CGRect) rect;
 
-- (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame;
+- (CGRect) mulleInsetTextLayerFrameInRect:(CGRect) frame;
 
-// need context to measure string sizes
-- (CGSize) sizeThatFits:(CGSize) size
-                context:(CGContext *) context; 
 @end

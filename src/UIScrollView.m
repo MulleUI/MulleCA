@@ -9,12 +9,13 @@
 #import "UIView+Yoga.h"
 #import "UIEvent.h"
 #import "UIEdgeInsets.h"
+#import "UIWindow.h"
 #import "MulleScrollIndicatorView.h"
 
 
 // #define LAYOUT_DEBUG
 // #define EVENT_DEBUG
-// #define MOMENTUM_DEBUG
+//#define MOMENTUM_DEBUG
 
 #define SCROLLER_WIDTH			      8
 #define SCROLLER_OFFSET_START    	8
@@ -25,25 +26,27 @@
 @implementation UIScrollView
 
 // UICollectionView wants to use a different view here
-+ (UIView *) mulleScrollContentsViewWithFrame:(CGRect) frame
++ (UIScrollContentView *) mulleScrollContentsViewWithFrame:(CGRect) frame
 {
    UIScrollContentView   *view;
 
-   view = [[[UIScrollContentView alloc] initWithFrame:frame] autorelease];
+   view = [UIScrollContentView  viewWithFrame:frame];
    [view setDebugNameCString:"ScrollViewContentView"];
    return( view);
 }
 
 
 - (id) initWithLayer:(CALayer *) layer
+               frame:(CGRect) frame
 {
    CGRect   frame;
+   CGRect   rect;
    Class    cls;
 
    assert( ! layer || [layer isKindOfClass:[CALayer class]]);
 
-   self = [super initWithLayer:layer];
-   frame = CGRectZero;
+   self = [super initWithLayer:layer
+                         frame:frame];
 
    // default values
    _showsHorizontalScrollIndicator = YES;
@@ -53,56 +56,92 @@
    the code depends on the layout being called before the render at least
    once
  */
-   frame.origin = CGPointZero;
-   frame.size   = [layer frame].size;
+   rect.origin = CGPointZero;
+   rect.size   = frame.size;
 
    cls          = [self class];
-   _contentView = [[cls mulleScrollContentsViewWithFrame:frame] retain];
-	[self mulleAddRetainedSubview:_contentView];
+   _contentView = [cls mulleScrollContentsViewWithFrame:rect];
+   [_contentView setClipsToBounds:YES];
+	[self addSubview:_contentView];
 
    // hide, and show after relayout
-   frame = CGRectZero;
-   _horIndicatorView = [[MulleScrollIndicatorView alloc] initWithFrame:frame];
+   _horIndicatorView = [[MulleScrollIndicatorView alloc] initWithFrame:CGRectZero];
 //   [_horIndicatorView setUserInteractionEnabled:YES];
 	[self mulleAddRetainedSubview:_horIndicatorView];
 
-   _verIndicatorView = [[MulleScrollIndicatorView alloc] initWithFrame:frame];
+   _verIndicatorView = [[MulleScrollIndicatorView alloc] initWithFrame:CGRectZero];
 //   [_verIndicatorView setUserInteractionEnabled:YES];
 	[self mulleAddRetainedSubview:_verIndicatorView];
 
 	[self setNeedsLayout];
-
    // for right drags it doesn't feel right
    // _clickOrDrag._mouseMotionSuppressionDelay = [[self class] mouseMotionSuppressionDelay];
 
    return( self);
 }
 
-
-- (void) setContentOffset:(CGPoint) offset
+// remove as window delegate via setMomentum...
+- (void) finalize
 {
-	CGRect   bounds;
-
-	bounds = [_contentView bounds];
-#ifdef LAYOUT_DEBUG
-	fprintf( stderr, "bounds %s -> ", CGRectCStringDescription( bounds));
-#endif
-	bounds.origin.x = -offset.x;
-	bounds.origin.y = -offset.y;
-#ifdef LAYOUT_DEBUG
-	fprintf( stderr, "%s\n", CGRectCStringDescription( bounds));
-#endif
-	[_contentView setBounds:bounds];
+   [self setMomentum:CGPointZero
+           timestamp:0];
+   [super finalize];
 }
 
 
+- (CGPoint) zoomFactor
+{
+   CGRect   contentBounds;
+   CGSize   contentSize;
+   CGPoint  zoomFactor;
+
+   if( ! _zoomEnabled)
+      return( CGPointMake( 1.0, 1.0));
+
+   contentBounds = [_contentView bounds];
+
+   if( contentBounds.size.width <= 0.1 || contentBounds.size.height <= 0.1)
+      return( CGPointMake( 0.0, 0.0));
+
+   // the current scroll factor
+   contentSize  = [_contentView contentSize];
+
+   zoomFactor.x = contentSize.width / contentBounds.size.width;
+   zoomFactor.y = contentSize.height / contentBounds.size.height;
+
+   return( zoomFactor);
+}
+
+
+//
+// implicitly resets the zoom back to 1.0 and sets the bounds
+// if this is not desired, get old zoomFactor and reset afterwards
+//
+- (void) setContentSize:(CGSize) size
+{
+   [_contentView setContentSize:size];
+}
+
+// passed to contentView
+- (void) setContentOffset:(CGPoint) offset
+{
+   [_contentView setContentOffset:offset];
+}
+
+- (void) scrollContentOffsetBy:(CGPoint) diff
+{
+   [_contentView scrollContentOffsetBy:diff];
+}
+
 - (CGPoint) contentOffset
 {
-	CGRect   bounds;
+   return( [_contentView contentOffset]);
+}
 
-   assert( _contentView);
-	bounds = [_contentView bounds];
-	return( CGPointMake( -bounds.origin.x, -bounds.origin.y));
+
+- (CGSize) contentSize
+{
+   return( [_contentView contentSize]);
 }
 
 
@@ -123,84 +162,54 @@
 	return( _verIndicatorView);
 }
 
-- (CGRect) clampedContentViewBounds:(CGRect) bounds
-{
-   CGRect   frame;
-   CGRect   oldBounds;
-   CGPoint  zoomFactor;
-   CGPoint  minZoom;
-   CGSize   contentSize;
-
-   oldBounds = [_contentView bounds];
-   if( bounds.size.width <= 1.0 || bounds.size.height <= 1.0)
-      return( oldBounds);
-
-   frame        = [_contentView frame];
-   zoomFactor.x = frame.size.width / bounds.size.width;
-   zoomFactor.y = frame.size.height / bounds.size.height;
-
-   contentSize = [self contentSize];
-
-   minZoom.x    = frame.size.width / contentSize.width;
-   minZoom.y    = frame.size.height / contentSize.height;
-
-   fprintf( stderr, "zoomFactor: %s\n", CGPointCStringDescription( zoomFactor));
-   fprintf( stderr, "minZoom: %s\n", CGPointCStringDescription( minZoom));
-
-   if( zoomFactor.x <= minZoom.x || zoomFactor.y <= minZoom.y)
-      return( oldBounds);
-
-   if( zoomFactor.x >= 16.0 || zoomFactor.y >= 16.0)
-      return( oldBounds);
-
-   return( bounds);
-}
-
-
-- (CGPoint) clampedContentOffset:(CGPoint) offset
-{
-	CGPoint   newOffset;
-   CGSize    contentSize;
-   CGSize    size;
-   CGRect    frame;
-   CGRect    bounds;
-
-   contentSize = [self contentSize];
-   bounds      = [_contentView bounds];
-   size        = CGSizeMake( contentSize.width - bounds.size.width,
-                             contentSize.height - bounds.size.height);
-   newOffset = MulleCGPointClampToSize( offset, size);
-   return( newOffset);
-}
-
-
-- (void) scrollContentOffsetBy:(CGPoint) diff
-{
-	CGPoint   offset;
-	CGPoint   newOffset;
-
-   offset      = [self contentOffset];
-	newOffset.x = offset.x + diff.x;
-	newOffset.y = offset.y + diff.y;
-	offset      = [self clampedContentOffset:newOffset];
-   [self setContentOffset:offset];
-}
-
 
 #define HZ60         (1.0/60.0)
 #define DRAGFACTOR   0.95
+
+- (BOOL) setMomentum:(CGPoint) momentum
+           timestamp:(CAAbsoluteTime) timestamp
+{
+   BOOL   hadMomentum;
+   BOOL   haveMomentum;
+   
+   hadMomentum  = _momentum.x != 0.0 || _momentum.y != 0.0;
+   haveMomentum = momentum.x != 0.0 || momentum.y != 0.0;
+
+#ifdef MOMENTUM_DEBUG
+   fprintf( stderr, "momentum (%s) %s -> (%s) %s\n",
+                        CGPointCStringDescription( _momentum),
+                        hadMomentum ? "YES" : "NO",
+                        CGPointCStringDescription( momentum),
+                        haveMomentum ? "YES" : "NO");
+#endif
+
+   _momentum          = momentum;
+   _momentumTimestamp = timestamp;
+   if( ! haveMomentum)
+   {
+      if( hadMomentum)
+         [[self window] removeFromDelegateViews:self];
+      [self setupIndicatorViews]; // one more time
+   }
+   else
+      if( ! hadMomentum)
+         [[self window] addToDelegateViews:self];
+
+   return( haveMomentum);
+}
+
 
 - (BOOL) applyMomentumToContentWithAbsoluteTime:(CAAbsoluteTime) now
 {
 	CGPoint          offset;
 	CGPoint          newOffset;
-   CAAbsoluteTime   previous;
-   CARelativeTime   diff;
-   CGFloat          friction;
    CAAbsoluteTime   now;
+   CGPoint          momentum;
+   CGFloat          diff;
+   CGFloat          friction;
+   BOOL             haveMomentum;
 
-   previous = _momentumTimestamp;
-   diff     = CATimeSubtract( now, previous);
+   diff = CATimeSubtract( now, _momentumTimestamp);
 
    // 1/60 = 0.166  so if our last render was 0.0s before, we use 1.0
    //                  if the last render was 0.166s before,we use 0.95
@@ -214,41 +223,40 @@
    diff     = diff / HZ60;
    friction = 1 - (1 - DRAGFACTOR) * diff;
 
-   _momentum.x *= friction;
-   _momentum.y *= friction;
-   if( fabs( _momentum.x) < 0.01)
-      _momentum.x = 0.0;
-   if( fabs( _momentum.y) < 0.01)
-      _momentum.y = 0.0;
+   momentum.x = _momentum.x * friction;
+   momentum.y = _momentum.y * friction;
+   if( fabs( momentum.x) < 0.01)
+      momentum.x = 0.0;
+   if( fabs( momentum.y) < 0.01)
+      momentum.y = 0.0;
 
 #ifdef MOMENTUM_DEBUG
-   if( _momentum.x != 0.0 || _momentum.y != 0.0)
+   if( momentum.x != 0.0 || momentum.y != 0.0)
       fprintf( stderr, "momentum: %.2f,%.2f [d:%.4f f:%.4f] @%.4f\n",
-                                    _momentum.x, _momentum.y,
+                                    momentum.x, momentum.y,
                                     diff, friction,
                                     CAAbsoluteTimeNow());
 #endif
-   _momentumTimestamp = now;
 
-	offset      = [self contentOffset];
+   haveMomentum = [self setMomentum:momentum
+                          timestamp:now];
+   if( haveMomentum)
+   {
+   	offset      = [_contentView contentOffset];
+      newOffset.x = offset.x + momentum.x;
+      newOffset.y = offset.y + momentum.y;
 
-   newOffset.x = offset.x + _momentum.x;
-   newOffset.y = offset.y + _momentum.y;
-
-   if( CGPointEqualToPoint( offset, newOffset))
-      return( NO);
-
-   offset = [self clampedContentOffset:newOffset];
-   [self setContentOffset:offset];
-   return( YES);
+      offset = [_contentView clampedContentOffset:newOffset];
+      [_contentView setContentOffset:offset];
+   }
+   return( haveMomentum);
 }
 
 
-- (void) setupIndicatorViews
+- (BOOL) setupIndicatorViews
 {
-	CGPoint   offset;
-	CGSize    size;
-   CGRect    frame;
+	CGPoint   contentOffset;
+	CGSize    contentSize;
    CGRect    bounds;
    BOOL      wasHiddenH;
    BOOL      wasHiddenV;
@@ -256,42 +264,49 @@
    BOOL      isHiddenV;
 
    // TODO: this should be the frameInfo now!
-   offset = [self contentOffset];
-	size   = [self contentSize];
-	bounds = [_contentView bounds]; // or should this be bounds ?
-   frame  = [self frame];
+   contentSize   = [_contentView contentSize];
+   contentOffset = [_contentView contentOffset];
+	bounds        = [_contentView bounds]; 
 
-	[_horIndicatorView setBubbleOffset:offset.x];
+	[_horIndicatorView setBubbleOffset:contentOffset.x];
 	[_horIndicatorView setBubbleLength:bounds.size.width];
-	[_horIndicatorView setContentLength:size.width];
+	[_horIndicatorView setContentLength:contentSize.width];
    //
    // don't paint scrollbar if content fits inside scrollView
    //
    wasHiddenH = [_horIndicatorView isHidden];
    isHiddenH = ! _showsHorizontalScrollIndicator;
-   if( bounds.size.width >= size.width)
+   if( bounds.size.width >= contentSize.width)
       isHiddenH = YES;
    [_horIndicatorView setHidden:isHiddenH];
 
-	[_verIndicatorView setBubbleOffset:offset.y];
+	[_verIndicatorView setBubbleOffset:contentOffset.y];
 	[_verIndicatorView setBubbleLength:bounds.size.height];
-	[_verIndicatorView setContentLength:size.height];
+	[_verIndicatorView setContentLength:contentSize.height];
 
    wasHiddenV = [_verIndicatorView isHidden];
    isHiddenV = ! _showsVerticalScrollIndicator;
-   if( bounds.size.height >= size.height)
+   if( bounds.size.height >= contentSize.height)
       isHiddenV = YES;
    [_verIndicatorView setHidden:isHiddenV];
 
    if( isHiddenH ^ wasHiddenH || isHiddenV ^ wasHiddenV)
-      [self setNeedsLayout];
+      return(YES);
+   return( NO);
 }
 
 
-- (void) willAnimateWithAbsoluteTime:(CAAbsoluteTime) now
+- (void) willRenderWithAbsoluteTime:(CAAbsoluteTime) now
 {
-   if( [self applyMomentumToContentWithAbsoluteTime:now])
-      [self setupIndicatorViews];
+   fprintf( stderr, "%s %.5f\n", __PRETTY_FUNCTION__, now);
+   
+   // MEMO: setupIndicatorViews needs to run also, when ContentOffset has
+   //       changed or ContentSize has changes, but
+   //       applyMomentumToContentWithAbsoluteTime doesn't really know about
+   //       this.
+   [self applyMomentumToContentWithAbsoluteTime:now];
+   [self setupIndicatorViews];
+   [self setNeedsLayout];
 }
 
 
@@ -307,9 +322,7 @@
 	UIEdgeInsets   insets;
    CGFloat        end;
 
-	[super layoutSubviews];
-
-	bounds = [self bounds];
+	bounds = [self layoutRect];
 
 #ifdef LAYOUT_DEBUG
    fprintf( stderr, "%s %s bounds: %s\n",
@@ -322,9 +335,7 @@
 // determined solely by contentSize/offset and own bounds
 // putting margins on the contentView is not a good thing though
 //
-	insets           = [_contentView margins];
-	contentViewFrame = UIEdgeInsetsInsetRect( bounds, insets);
-	[_contentView setFrame:contentViewFrame];
+	[_contentView setFrame:bounds];
 
    end = SCROLLER_OFFSET_END;
    if( [_horIndicatorView isHidden] || [_verIndicatorView isHidden])
@@ -359,6 +370,16 @@
                   CGRectCStringDescription( verFrame));
 #endif
 	[_verIndicatorView setFrame:verFrame];
+
+   [_contentView layoutSubviews];
+   [_horIndicatorView layoutSubviews];
+   [_verIndicatorView layoutSubviews];
+}
+
+- (void) layout 
+{
+   [self setupIndicatorViews];
+   [super layout];
 }
 
 
@@ -371,4 +392,137 @@
 
 
 @implementation UIScrollContentView : UIView
+
+
+- (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
+{
+   [super initWithLayer:layer
+                frame:frame];
+
+   _contentSize = frame.size;
+   return( self);
+}
+
+
+- (void) layoutLayer:(CALayer *) layer
+              inRect:(CGRect) rect
+{
+   fprintf( stderr, "layout...\n");
+   if( layer == _mainLayer)
+   {
+      [layer setFrame:rect];
+      [layer setBounds:[self bounds]];
+   }
+}
+
+
+- (CGRect) contentRect
+{
+   return( CGRectMake( 0.0f, 0.0f, _contentSize.width, _contentSize.height));
+}
+
+
+- (CGPoint) contentOffset
+{
+//   CGPoint   offset;
+//
+//   offset    = _bounds.origin;
+//   offset.x *= -1.0;
+//   offset.y *= -1.0;
+   return( _bounds.origin);
+}
+
+
+- (void) setContentOffset:(CGPoint) offset
+{
+   _bounds.origin = offset;
+   [[self layer] setBounds:[self bounds]];
+
+//   _bounds.origin.x = offset.x * -1.0;
+//   _bounds.origin.y = offset.y * -1.0;
+//   [[self superview] setNeedsLayout];
+}
+
+
+- (CGPoint) clampedContentOffset:(CGPoint) offset
+{
+	CGPoint   newOffset;
+   CGSize    size;
+   CGRect    bounds;
+
+   bounds  = [self bounds];
+   size    = CGSizeMake( _contentSize.width - bounds.size.width,
+                         _contentSize.height - bounds.size.height);
+   newOffset = MulleCGPointClampToSize( offset, size);
+   return( newOffset);
+}
+
+
+- (void) scrollContentOffsetBy:(CGPoint) diff
+{
+	CGPoint   offset;
+	CGPoint   newOffset;
+
+   offset      = [self contentOffset];
+	newOffset.x = offset.x + diff.x;
+	newOffset.y = offset.y + diff.y;
+	offset      = [self clampedContentOffset:newOffset];
+   [self setContentOffset:offset];
+}
+
+
+- (CGRect) clampedBounds:(CGRect) bounds
+{
+   CGRect   frame;
+   CGRect   oldBounds;
+   CGPoint  zoomFactor;
+   CGPoint  minZoom;
+   CGSize   contentSize;
+
+   oldBounds = [self bounds];
+   if( bounds.size.width <= 1.0 || bounds.size.height <= 1.0)
+      return( oldBounds);
+
+   contentSize = [self contentSize];
+   if( contentSize.width <= 1.0 || contentSize.height <= 1.0)
+      return( oldBounds);
+
+   frame        = [self frame];
+   zoomFactor.x = frame.size.width / bounds.size.width;
+   zoomFactor.y = frame.size.height / bounds.size.height;
+
+   minZoom.x = frame.size.width / contentSize.width;
+   minZoom.y = frame.size.height / contentSize.height;
+
+#ifdef DEBUG
+   fprintf( stderr, "zoomFactor: %s\n", CGPointCStringDescription( zoomFactor));
+   fprintf( stderr, "minZoom: %s\n", CGPointCStringDescription( minZoom));
+#endif
+
+   if( zoomFactor.x <= minZoom.x || zoomFactor.y <= minZoom.y)
+      return( oldBounds);
+
+   return( bounds);
+}
+
+
+//
+// point is within { { 0, 0}, contentSize }
+//
+- (void) centerOnPoint:(CGPoint) point
+{
+   CGPoint   contentOffset;
+   CGRect    bounds;
+
+   bounds          = [self bounds];
+
+   // center mouse in the middle of the screen
+   contentOffset.x = point.x - bounds.size.width / 2.0;
+   contentOffset.y = point.y - bounds.size.height / 2.0;
+
+   contentOffset = [self clampedContentOffset:contentOffset];
+   [self setContentOffset:contentOffset];
+}
+
 @end

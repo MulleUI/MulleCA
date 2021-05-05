@@ -1395,7 +1395,7 @@ static void  MulleColor_function_createFromCString(js_State *J)
    struct NVGcolor    color;
 
    s     = (char *) js_tostring( J, 1);
-   color = MulleColorCreateFromCString( s);
+   color = MulleColorMakeFromCString( s);
 
    MulleColor_function_createGeneric( J, color);
 }
@@ -1588,7 +1588,7 @@ static void   NVGcontext_setter_FillStyle( struct NVGcontext *nvg, js_State *J)
    }
 
    style = (char *) js_tostring( J, -1);
-   color = MulleColorCreateFromCString( style);
+   color = MulleColorMakeFromCString( style);
 
    backgroundColor = getBackgroundColor( J);
 
@@ -1636,7 +1636,7 @@ static void   NVGcontext_setter_StrokeStyle( struct NVGcontext *nvg, js_State *J
    if( js_isstring( J, -1))
    {
       style = (char *) js_tostring( J, -1);
-      color = MulleColorCreateFromCString( style);
+      color = MulleColorMakeFromCString( style);
       nvgStrokeColor(nvg, color);
       return;
    }
@@ -1902,7 +1902,7 @@ static void   NVGpaint_prototype_addColorStop( js_State *J)
    paint  = js_touserdata( J, 0, NVGPAINT_TAG);
    offset = js_tonumber( J, 1);
    style  = (char *) js_tostring( J, 2 + offset);
-   color  = MulleColorCreateFromCString( style);
+   color  = MulleColorMakeFromCString( style);
 
    if( offset == 0.0)
       paint->innerColor = color;
@@ -2208,8 +2208,8 @@ static void   mulle_js_initNVG( js_State *J)
    js_newcfunction( J, MulleColor_function_createHSL, "nvgHSL", 3);
    js_setglobal( J, "nvgHSL");
 
-   js_newcfunction( J, MulleColor_function_createFromCString, "MulleColorCreateFromCString", 2);
-   js_setglobal( J, "MulleColorCreateFromCString");
+   js_newcfunction( J, MulleColor_function_createFromCString, "MulleColorMakeFromCString", 2);
+   js_setglobal( J, "MulleColorMakeFromCString");
 
    /*
     *

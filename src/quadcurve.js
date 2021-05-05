@@ -1,5 +1,5 @@
 function drawPieSlice(ctx, centerX, centerY, radius, startAngle, endAngle, color) {
-   nvgFillColor(ctx, MulleColorCreateFromCString( color));
+   nvgFillColor(ctx, MulleColorMakeFromCString( color));
    //ctx.beginPath();
    nvgBeginPath( ctx);
    // ctx.moveTo( centerX, centerY);
@@ -77,7 +77,7 @@ var Piechart = function (options) {
 
         var labelText = Math.round(100 * val / total_value);
 
-        nvgTextColor(this.ctx, MulleColorCreateFromCString('white'), MulleColorCreateFromCString('blue'));
+        nvgTextColor(this.ctx, MulleColorMakeFromCString('white'), MulleColorMakeFromCString('blue'));
         
         // this.ctx.fillStyle = "black";
         nvgFontFace( this.ctx, "sans");

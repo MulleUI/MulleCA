@@ -37,7 +37,6 @@
 
 //- (id) representedValue;
 
-- (void) removeAllItems;
 - (void) addMenuItemWithTitleCString:(char *) s
                    representedObject:(id) obj;
 

@@ -28,7 +28,7 @@ void   drawContentMode( NVGcontext *vg,
                 rect.size.width,
                 rect.size.height);
    nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 
    size.width  = rect.size.width  / 2.0;
@@ -43,7 +43,7 @@ void   drawContentMode( NVGcontext *vg,
                        smallRect.size.width / 10.0);
    nvgStrokeWidth( vg, 2.0);
    hue = 0.2 + 0.6 * ((double) contentMode / (N_UIViewContentModeNames - 1));
-   nvgStrokeColor( vg, MulleColorCreateHSLA( hue, 1.0, 0.7, 0.7));
+   nvgStrokeColor( vg, MulleColorMakeHSLA( hue, 1.0, 0.7, 0.7));
    nvgStroke( vg);
 }
 
@@ -68,7 +68,7 @@ void   drawRectPlacement( NVGcontext *vg,
                 rect.size.width,
                 rect.size.height);
    nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 
    size.width  = rect.size.width  / 3.0;
@@ -84,7 +84,7 @@ void   drawRectPlacement( NVGcontext *vg,
                        smallRect.size.width / 10.0);
    nvgStrokeWidth( vg, 2.0);
    hue = 0.0 + 0.5 * ((double) i / (36 - 1));
-   nvgStrokeColor( vg, MulleColorCreateHSLA( hue, 1.0, 0.7, 0.7));
+   nvgStrokeColor( vg, MulleColorMakeHSLA( hue, 1.0, 0.7, 0.7));
    nvgStroke( vg);
 
    size.width  = rect.size.width  / 4.0;
@@ -103,7 +103,7 @@ void   drawRectPlacement( NVGcontext *vg,
                        otherRect.size.height,
                        otherRect.size.width / 10.0);
    hue = 0.5 + 0.5 * ((double) i / (36 - 1));
-   nvgFillColor( vg, MulleColorCreateHSLA( hue, 1.0, 0.7, 0.7));
+   nvgFillColor( vg, MulleColorMakeHSLA( hue, 1.0, 0.7, 0.7));
    nvgFill( vg);
 }
 
@@ -135,7 +135,7 @@ void   drawRectSpacePlacement( NVGcontext *vg,
                 rect.size.width,
                 rect.size.height);
    nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 
    size.width  = rect.size.width  / 3.0;
@@ -150,7 +150,7 @@ void   drawRectSpacePlacement( NVGcontext *vg,
                        smallRect.size.width / 10.0);
    nvgStrokeWidth( vg, 2.0);
    hue = 0.0 + 0.5 * ((double) rectMode / (N_UIViewContentModeNames - 1));
-   nvgStrokeColor( vg, MulleColorCreateHSLA( hue, 1.0, 0.7, 0.7));
+   nvgStrokeColor( vg, MulleColorMakeHSLA( hue, 1.0, 0.7, 0.7));
    nvgStroke( vg);
 
    otherRect.origin      = rect.origin;
@@ -173,13 +173,12 @@ void   drawRectSpacePlacement( NVGcontext *vg,
                        otherRect.size.height,
                        otherRect.size.width / 10.0);
    hue = 0.5 + 0.5 * ((double) rectMode / (N_UIViewContentModeNames - 1));
-   nvgFillColor( vg, MulleColorCreateHSLA( hue, 1.0, 0.7, 0.7));
+   nvgFillColor( vg, MulleColorMakeHSLA( hue, 1.0, 0.7, 0.7));
    nvgFill( vg);
 }
 
 
-static void   drawLayoutInSpace( NVGcontext *vg,
-                                 CGRect rect)
+static void   drawLayoutInSpace( NVGcontext *vg, CGRect rect)
 {
    struct MulleLayout  layout;
    CGRect              part;
@@ -194,7 +193,7 @@ static void   drawLayoutInSpace( NVGcontext *vg,
                 rect.size.width,
                 rect.size.height);
    nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor(vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 
    i    = 0;
@@ -222,7 +221,7 @@ static void   drawLayoutInSpace( NVGcontext *vg,
                    part.size.width,
                    part.size.height);
       nvgStrokeWidth( vg, 1.0);
-      nvgStrokeColor( vg, MulleColorCreateRandomOpaque());
+      nvgStrokeColor( vg, MulleColorMakeRandomOpaque());
       nvgStroke( vg);
       ++i;
    }
@@ -234,10 +233,7 @@ static void   drawLayoutInSpace( NVGcontext *vg,
 #define N_ROWS 4
 
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rect;
    struct NVGcontext   *vg;
@@ -247,15 +243,17 @@ BOOL  drawStuff( CALayer *layer,
    NSUInteger          i;
    NSUInteger          j;
    UIEdgeInsets        insets;
+   CGRect              canvas;
 
    vg = MulleContextGetNVGContext( context);
 
-   MulleRectPartititonVertically( frame, N_ROWS, rows, 0);
+   canvas = [layer canvas];
+   MulleRectPartitionVertically( canvas, N_ROWS, rows, 0);
 
    //
    //  test UIViewContentMode
    //
-   MulleRectPartititonHorizontally( rows[ 0], N_UIViewContentModeNames, rects, 0);
+   MulleRectPartitionHorizontally( rows[ 0], N_UIViewContentModeNames, rects, 0);
 
    for( i = 0; i < N_UIViewContentModeNames; i++)
    {
@@ -266,10 +264,10 @@ BOOL  drawStuff( CALayer *layer,
    //
    // test rectangle placement
    //
-   MulleRectPartititonVertically( rows[ 1], 2, subrows, 0);
+   MulleRectPartitionVertically( rows[ 1], 2, subrows, 0);
    for( j = 0; j < 2; j++)
    {
-      MulleRectPartititonHorizontally( subrows[ j], 18, rects, 0);
+      MulleRectPartitionHorizontally( subrows[ j], 18, rects, 0);
       for( i = 0; i < 18; i++)
       {
          drawRectPlacement( vg, UIEdgeInsetsInsetRect( rects[ i], insets), j * 18 + i);
@@ -279,7 +277,7 @@ BOOL  drawStuff( CALayer *layer,
    //
    // test rectangle placement in space
    //
-   MulleRectPartititonHorizontally( rows[ 2], N_UIViewContentModeNames - UIViewContentModeCenter, rects, 0);
+   MulleRectPartitionHorizontally( rows[ 2], N_UIViewContentModeNames - UIViewContentModeCenter, rects, 0);
    for( i = UIViewContentModeCenter; i < N_UIViewContentModeNames; i++)
    {
       drawRectSpacePlacement( vg,
@@ -291,12 +289,7 @@ BOOL  drawStuff( CALayer *layer,
    // test layout struct
    //
    drawLayoutInSpace( vg, UIEdgeInsetsInsetRect( rows[ 3], insets));
-
-   return( NO);
 }
-
-// scale stuff for stream
-#define SCALE     2.0
 
 void   setupScene( MulleWindowPlane *contentPlane, CGContext *context)
 {
@@ -310,9 +303,9 @@ void   setupScene( MulleWindowPlane *contentPlane, CGContext *context)
    insets = UIEdgeInsetsMake( 8, 8, 8, 8);
    frame  = UIEdgeInsetsInsetRect( frame, insets);
 
-   view  = [[[UIView alloc] initWithFrame:frame] autorelease];
+   view  = [UIView viewWithFrame:frame];
    layer = [view layer];
-   [layer setDrawContentsCallback:drawStuff];
+   [layer setDrawCallback:drawStuff];
    [contentPlane addSubview:view];
 }
 
@@ -327,19 +320,19 @@ int   main()
     */
    @autoreleasepool
    {
-      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
+      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)] autorelease];
       assert( window);
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
+      context = [window context];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       setupScene( [window contentPlane], context);
 
       [window dump];
 
-      [window renderLoopWithContext:context];
+      [window renderLoop];
       [[UIApplication sharedInstance] terminate];
    }
 }

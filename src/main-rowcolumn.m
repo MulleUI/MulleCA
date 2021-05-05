@@ -11,6 +11,7 @@
 #import <string.h>
 
 
+// A UIStackView Demo
 
 #define N_SUBVIEWS  10
 
@@ -30,18 +31,18 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    rootView  = [[[UIStackView alloc] initWithFrame:CGRectMake( 0, 0, 256, 256)] autorelease];
    [rootView setDebugNameCString:"rowColumnView"];
    [rootView setBackgroundColor:getNVGColor( 0xFFFF00FF)];
-   [rootView setAutoresizingMask:MulleUIViewAutoresizingStickToCenter];
+   [rootView setAutoresizingMask:MulleUIViewAutoresizingStickToMiddle|MulleUIViewAutoresizingStickToCenter];
    [rootView setAxis:UILayoutConstraintAxisVertical];
    [rootView setDistribution:MulleStackViewDistributionFillRowColumn];
-   [rootView setContentInsets:UIEdgeInsetsMake( 10, 10, 10, 10)];
+   [rootView setPadding:UIEdgeInsetsMake( 10, 10, 10, 10)];
 
-   MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00);
+   MulleColorMakeRandom( 0xFF0000FF, 0x00FFFF00);
    /* CHILD 1 */
    for( i = 0; i < N_SUBVIEWS; i++)
    {
       frame = CGRectMake( 0, 0, 8 + i * 8, 8 + i * 8);
       view  = [[[UIView alloc] initWithFrame:frame] autorelease];
-      [view setBackgroundColor:MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00)];
+      [view setBackgroundColor:MulleColorMakeRandom( 0xFF0000FF, 0x00FFFF00)];
 
       [rootView addSubview:view];
    }
@@ -80,8 +81,8 @@ int  main()
 
       [window dump];
 
-      context = [window createContext];
-      [window renderLoopWithContext:context];
+      context = [window context];
+      [window renderLoop];
 
       [application terminate];
    }

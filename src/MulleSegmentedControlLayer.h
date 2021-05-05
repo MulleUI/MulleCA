@@ -7,7 +7,7 @@ struct MulleUISegment
    CGSize      offset;
    CGColorRef  backgroundColor;
    CGColorRef  selectionBackgroundColor;
-   CGRect      frame;  // this value is ephemeral and used during rendering
+   CGRect      rect;  // this value is ephemeral and used during rendering
    // these are values for UIView
    char        isSelected; 
    char        wasSelected;  // memo for click code

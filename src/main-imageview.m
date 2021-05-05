@@ -33,7 +33,7 @@ void   setupScene( MulleWindowPlane *plane, CGContext *context)
 
    stackView = [[[UIStackView alloc] initWithFrame:frame] autorelease];
    insets    = UIEdgeInsetsMake( 2, 2, 2, 2);
-   [stackView setContentInsets:insets];
+   [stackView setPadding:insets];
    [stackView setDistribution:MulleStackViewDistributionFillRowColumn];
    [stackView setAxis:UILayoutConstraintAxisHorizontal];
    // [stackView setMinimumInteritemSpacing:20.0];
@@ -66,7 +66,7 @@ void   setupScene( MulleWindowPlane *plane, CGContext *context)
 
       view  = [[[UIImageView alloc] initWithImage:image] autorelease];
       [stackView addSubview:view];
-   }      
+   }
 }
 
 
@@ -76,7 +76,7 @@ int   main()
    UIWindow    *window;
 
    /*
-    * window and app 
+    * window and app
     */
    @autoreleasepool
    {
@@ -85,14 +85,14 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
+      context = [window context];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       setupScene( [window contentPlane], context);
 
       [window dump];
 
-      [window renderLoopWithContext:context];
+      [window renderLoop];
       [[UIApplication sharedInstance] terminate];
    }
 }
