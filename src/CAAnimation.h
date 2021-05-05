@@ -10,6 +10,7 @@ enum CAAnimationBits
 {
    CAAnimationStarted     = 0x1,
    CAAnimationHasReversed = 0x2,
+   CAAnimationEnded       = 0x4,
    // options
    CAAnimationReverses    = 0x10000
 };
@@ -23,17 +24,19 @@ enum CAAnimationBits
 //  CGRect
 //  BOOL
 // none of these values are retain/release
-
+//
+// Should generalize this to array of float/int/bool ?
+//
 union CAAnimationValue
 {
-   BOOL              boolValue;
-   NSInteger         integerValue;
-   CGFloat           floatValue;
-   CGColorRef        color;
-   CGPoint           point;
-   CGSize            size;
-   CGRect            rect;
-   MulleEdgeInsets   insets;
+   BOOL              boolValue;        // 0 1
+   NSInteger         integerValue;     // 32 or 64 bit integer
+   CGFloat           floatValue;       // 32  bit float usually
+   CGColorRef        color;            // four floats
+   CGPoint           point;            // two floats
+   CGSize            size;             // two floats
+   CGRect            rect;             // four floats
+   MulleEdgeInsets   insets;           // four floats
 };
 
 
@@ -63,7 +66,7 @@ struct CAAnimationValueRange
 };
 
 
-static inline struct CAAnimationValueRange 
+static inline struct CAAnimationValueRange
    CGAnimationValueRangeMakeWithRects( CGRect start, CGRect end)
 {
    struct CAAnimationValueRange  range;
@@ -73,7 +76,7 @@ static inline struct CAAnimationValueRange
    return( range);
 }
 
-static inline struct CAAnimationValueRange 
+static inline struct CAAnimationValueRange
    CGAnimationValueRangeMakeWithColors( CGColorRef start, CGColorRef end)
 {
    struct CAAnimationValueRange  range;
@@ -119,10 +122,10 @@ struct CAAnimationOptions
 @property( assign) SEL    animationWillStartSelector;
 @property( assign) SEL    animationDidStopSelector;
 @property( assign) void   *context;
-@property( assign) char   *identifier; 
+@property( assign) char   *identifier;
 
-@property( assign) NSUInteger  started; 
-@property( assign) NSUInteger  ended; 
+@property( assign) NSUInteger  started;
+@property( assign) NSUInteger  ended;
 
 - (void) willStart;
 - (void) didPreempt;
@@ -141,16 +144,17 @@ struct CAAnimationOptions
 {
    struct CARelativeTimeRange   _relative;  // delay, copied from initialRenderdelay
    enum CAAnimationValueType    _valueType;
-   union CAAnimationValue       _start;     
-   union CAAnimationValue       _end;     
-   union CAAnimationValue       _repeatStart;  
+   union CAAnimationValue       _start;
+   union CAAnimationValue       _end;
+   union CAAnimationValue       _repeatStart;
+   CGFloat                      _originalRepeatCount;
 
    MulleQuadratic               _quadratic;
    SEL                          _propertySetter;
 
    // mutating state
-   struct CAAbsoluteTimeRange   _absolute;   
-   CGFloat                      _repeatCount; // original state will be lost 
+   struct CAAbsoluteTimeRange   _absolute;
+   CGFloat                      _repeatCount; // original state will be lost
    NSUInteger                   _bits;        // options and more
    NSUInteger                   _frames;
 }
@@ -158,7 +162,9 @@ struct CAAnimationOptions
 //@property( retain) CAAnimationGroup        *animationGroup;
 @property( retain) MulleAnimationDelegate  *animationDelegate;
 
-
+//
+// You can reuse an existing CAAnimation by calling init again
+//
 - (id) initWithPropertySetter:(SEL) propertySetter
                     valueType:(enum CAAnimationValueType) type
                    valueRange:(struct CAAnimationValueRange *) range
@@ -188,7 +194,7 @@ struct CAAnimationOptions
 - (id) initWithPropertySetter:(SEL) propertySetter
                    startPoint:(CGPoint) start
                      endPoint:(CGPoint) end
-                      options:(struct CAAnimationOptions *) options;                      
+                      options:(struct CAAnimationOptions *) options;
 
 - (id) initWithPropertySetter:(SEL) propertySetter
               startFloatValue:(CGFloat) start
@@ -206,16 +212,21 @@ struct CAAnimationOptions
                       options:(struct CAAnimationOptions *) options;
 
 
-// called by the renderloop
-- (void) animateLayer:(CALayer *) layer
-         absoluteTime:(CAAbsoluteTime) now;
+- (void) animateObject:(id) object
+          absoluteTime:(CAAbsoluteTime) now;
 
 // subclass must override this method, to do their special effect
-- (void) animateLayer:(CALayer *) layer
+- (void) animateObject:(id) object
 normalizedRelativeTime:(double) x;
+
++ (void) animateObjects:(struct mulle_pointerarray *) objects
+           absoluteTime:(CAAbsoluteTime) renderTime;
 
 // used if options are set to CAAnimationReverses (and CAAnimationRepeats)
 - (void) reverse;
+
+// animation will start again with values as given
+- (void) reset;
 
 @end
 

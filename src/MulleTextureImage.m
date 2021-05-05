@@ -13,10 +13,12 @@
                             context:(CGContext *) context
                             options:(NSUInteger) options
 {
+   NVGcontext   *vg;
    assert( context && [context isKindOfClass:[CGContext class]]);
 
    // TODO: would like to move this code to CGContext
-   _image = nvgluCreateFramebuffer( [context nvgContext],
+   vg     = [context nvgContext];
+   _image = nvgluCreateFramebuffer( vg,
                                     bitmapSize.size.width,
                                     bitmapSize.size.height,
                                     options);
@@ -83,11 +85,14 @@
    framebuffer = [self framebuffer];
    if( ! framebuffer)
       return( nil);
+     
    bitmapSize                 = _bitmapSize;
    bitmapSize.colorComponents = 4;
 
    data.length = bitmapSize.size.width * bitmapSize.size.height * 4;
    data.bytes  = mulle_allocator_malloc( &mulle_stdlib_allocator, data.length);
+
+   // white background ?
    memset( data.bytes, 0xFF, data.length);
 
    nvgluBindFramebuffer( framebuffer);

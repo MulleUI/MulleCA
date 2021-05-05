@@ -10,6 +10,7 @@
 #include <mulle-container/mulle-container.h>  // TODO: why not get for free ?
 
 #include "CGBase.h"
+#include "CGAffineTransform.h"
 
 
 enum CGPathCommand
@@ -20,13 +21,11 @@ enum CGPathCommand
 };
 
 
-typedef struct CGAffineTransform   CGAffineTransform;
-
 //
 // this is always mutable, but CGMutablePathRef is kept in the API for
 // somewhat better compatiblity
 //
-typedef struct CGPath 
+typedef struct CGPath
 {
   struct mulle_buffer        _commands;
   struct mulle_structarray   _floats;
@@ -46,9 +45,9 @@ void   CGPathDestroy( struct CGPath *path);
 
 
 // standard API...
-static void inline  CGPathMoveToPoint( CGMutablePathRef path, 
-                                       const CGAffineTransform *m, 
-                                       CGFloat x, 
+static void inline  CGPathMoveToPoint( CGMutablePathRef path,
+                                       const CGAffineTransform *m,
+                                       CGFloat x,
                                        CGFloat y)
 {
    if( ! path)
@@ -60,9 +59,9 @@ static void inline  CGPathMoveToPoint( CGMutablePathRef path,
    _mulle_structarray_add( &path->_floats, &y);
 }
 
-static void inline  CGPathAddLineToPoint( CGMutablePathRef path, 
-                                          const CGAffineTransform *m, 
-                                          CGFloat x, 
+static void inline  CGPathAddLineToPoint( CGMutablePathRef path,
+                                          const CGAffineTransform *m,
+                                          CGFloat x,
                                           CGFloat y)
 {
    if( ! path)

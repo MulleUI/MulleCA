@@ -13,7 +13,6 @@
 
 @implementation UITextView ( UIEvent)
 
-
 - (UIEvent *) mouseDown:(UIEvent *) event
 {
    CGPoint   mouseLocation;
@@ -39,7 +38,6 @@
        
    return( nil);
 }
-
 
 
 - (UIEvent *) keyDown:(UIEvent *) event

@@ -9,55 +9,56 @@
 #import "UIEdgeInsets.h"
 
 
-
-// scale stuff for stream
-#define SCALE     2.0
-
-void   setupScene( UIWindow *window, CGContext *context)
+void   setupScene( MulleWindowPlane *contentPlane)
 {
    UIView        *view;
    CGRect         frame;
    UIEdgeInsets   insets;
    CALayer        *layer;
-  
-   frame        = [window frame];
+
+   frame        = [contentPlane bounds];
    frame.origin = CGPointZero;
 
    insets = UIEdgeInsetsMake( 8, 8, 8, 8);
    frame  = UIEdgeInsetsInsetRect( frame, insets);
 
    view  = [[[UIView alloc] initWithFrame:frame] autorelease];
-   layer = [view mainLayer];
+   layer = [view layer];
    [layer setBackgroundColor:CGColorCreateGenericRGB( 0.0, 1.0, 0.0, 1.0)];
    [layer setBorderColor:CGColorCreateGenericRGB( 1.0, 0.0, 0.0, 1.0)];
    [layer setCornerRadius:20];
    [layer setBorderWidth:40];
 
-   [window addSubview:view];
+   [contentPlane addSubview:view];
 }
 
 
 int   main()
 {
-   CGContext   *context;
-   UIWindow    *window;
+   UIWindow        *window;
+   UIApplication   *app;
 
    /*
-    * window and app 
+    * window and app
     */
-   window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
-   assert( window);
+   app = [UIApplication sharedInstance];
 
-   [[UIApplication sharedInstance] addWindow:window];
+   mulle_testallocator_initialize();
+   mulle_default_allocator = mulle_testallocator;
+   {
+      /*
+      * window and app
+      */
+      window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800, 600)];
+      [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
-   context = [window createContext];
-   [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+      setupScene( [window contentPlane]);
 
-   setupScene( window, context);
+      [window dump];
 
-   [window dump];
-   [window renderLoopWithContext:context];
-
-   [[UIApplication sharedInstance] terminate];
+      [app addWindow:window];
+      [window renderLoop];
+      [app terminate];
+   }
 }
 

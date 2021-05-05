@@ -8,7 +8,10 @@
 #import "UIScrollView.h"
 #import "UIStackView.h"
 #import "MulleMenuButton.h"
+#import "CGContext.h"
 #import "CGGeometry+CString.h"
+#import "MulleTextLayer.h"
+
 
 // Layouting of MulleMenu
 //
@@ -23,20 +26,71 @@
 
 @implementation MulleMenu
 
+#define CORNER_RADIUS  2.0
+#define SHADOW_TOP     2.0
+#define SHADOW_BOTTOM  6.0
+#define SHADOW_LEFT    2.0
+#define SHADOW_RIGHT   6.0
+#define SHADOW_FEATHER (SHADOW_BOTTOM+SHADOW_RIGHT)
+#define SHADOW_WIDTH   (SHADOW_LEFT + SHADOW_RIGHT)
+#define SHADOW_HEIGHT  (SHADOW_TOP  + SHADOW_BOTTOM)
+
+
+static void   drawCallback( CALayer *layer, CGContext *ctxt)
+{
+	NVGpaint     shadowPaint;
+   float        x;
+   float        y;
+   float        w;
+   float        h;
+   NVGcontext   *vg;
+   CGRect       canvas;
+
+   vg = MulleContextGetNVGContext( ctxt);
+
+   canvas = [layer canvas];
+
+   x = CGRectGetMinX( canvas);
+   y = CGRectGetMinY( canvas);
+   w = CGRectGetWidth( canvas);
+   h = CGRectGetHeight( canvas);
+
+	// Drop shadow
+	shadowPaint = nvgBoxGradient(vg, x,y+SHADOW_TOP, w,h, CORNER_RADIUS*2, SHADOW_FEATHER,
+                                 nvgRGBA(0,0,0,64),
+                                 nvgRGBA(0,0,0,0));
+
+	nvgBeginPath(vg);
+   	nvgRect(vg, x-SHADOW_LEFT,y-SHADOW_TOP, w+SHADOW_WIDTH,h+SHADOW_HEIGHT);
+   	nvgRoundedRect(vg, x,y, w,h, CORNER_RADIUS);
+   	nvgPathWinding(vg, NVG_HOLE);
+   	nvgFillPaint(vg, shadowPaint);
+	nvgFill(vg);
+
+//	// Window
+//	nvgBeginPath(vg);
+//   	nvgRoundedRect(vg, x,y, w,h, CORNER_RADIUS);
+//   	nvgFillColor(vg, nvgRGBA(200,200,200,255));
+//	nvgFill(vg);
+}
+
+
 - (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
 {
    CGRect   frame;
    CGSize   size;
 
-   self         = [super initWithLayer:layer];
-   frame.origin = CGPointZero;
-   frame.size   = [layer frame].size;
+   self = [super initWithLayer:layer
+                         frame:frame];
+   [layer setDrawCallback:drawCallback];
 
-   _stackView  = [UIStackView mulleViewWithFrame:frame];
+   frame.origin = CGPointMake( 0.0f, 0.0f);
+   _stackView   = [UIStackView viewWithFrame:frame];
    [_stackView setAxis:UILayoutConstraintAxisVertical];
    [_stackView setDistribution:MulleStackViewDistributionUnbounded];
 
-   _scrollView = [UIScrollView mulleViewWithFrame:frame];
+   _scrollView = [UIScrollView viewWithFrame:frame];
    [_scrollView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
    [_scrollView setShowsHorizontalScrollIndicator:NO];
    [[_scrollView contentView] addSubview:_stackView];
@@ -50,7 +104,7 @@
 }
 
 
-- (void) addMenuButton:(MulleMenuButton *) button;
+- (void) addMenuButton:(MulleMenuButton *) button
 {
    [_stackView addSubview:button];
    [self setNeedsLayout];
@@ -58,7 +112,7 @@
 
 
 #ifdef DEBUG
-- (void) setHidden:(BOOL) flag 
+- (void) setHidden:(BOOL) flag
 {
    [super setHidden:flag];
 }
@@ -76,84 +130,68 @@
 // refused to fit, it can get wrapped into a scrollview (automatically ?) or
 // be discard/truncated ?
 //
-- (void) layoutSubview:(UIView *) view
-              inBounds:(CGRect) bounds
-      autoresizingMask:(UIViewAutoresizing) autoresizingMask
+//- (void) layoutSubview:(UIView *) view
+//              inRect:(CGRect) bounds
+//      autoresizingMask:(UIViewAutoresizing) autoresizingMask
+//{
+//   // increase size for top/down layout, later in -layout
+//   // shrink size to fit
+//   if( view == _scrollView)
+//   {
+//      bounds.size.height = 1000000.0; // large...
+//      [_scrollView setContentSize:bounds.size];
+//   }
+//
+//   [super layoutSubview:view
+//               inRect:bounds
+//       autoresizingMask:autoresizingMask];
+//}
+
+
+// TODO: Das MulleMenu ist der Container für die Scrollview.
+//       die MenuButtons in der StackView ergeben die grösse der Stackview
+//       die dann auch die contentSize der ScrollView ist.
+//       Die Platzierung des Menus ist wegen x/y/w/h abhängig von der
+//       dargestellten Grösse. Diese wird vom MullePopUpButton vorgegeben.
+//       Dadurch wird ev. die Breite des Menus beinflusst ? Eher nein.
+//       Aber der Frame wird gesetzt. Im layout gehts dann nur darum von der
+//       Stackview die grösse in die ScrollView zu kopieren.
+
+- (enum UILayoutStrategy) layoutStrategy
 {
-   // increase size for top/down layout, later in -layout
-   // shrink size to fit
-   if( view == _scrollView)
-   {
-      bounds.size.height = 1000000.0; // large...
-      [_scrollView setContentSize:bounds.size];
-   }
-
-   [super layoutSubview:view
-               inBounds:bounds
-       autoresizingMask:autoresizingMask];
+   return( UILayoutStrategyStop);
 }
-
-
-- (CGSize) sizeThatFits:(CGSize) size 
-                context:(CGContext *) context
-{
-   CGSize   bestSize;
-
-   bestSize = [_stackView sizeThatFits:size
-                               context:context];
-   if( bestSize.width < size.width)
-      size.width = bestSize.width;
-   if( bestSize.height < size.height)
-      size.height = bestSize.height;
-   return( size);
-}
-
 
 - (void) layout
 {
    CGSize   size;
    CGRect   frame;
+   CGRect   contentFrame;
    CGRect   before;
    UIView   *contentView;
+   CGSize   contentSize;
+   CGFloat  y;
 
-   [super layout];
+   [super layout];  // just resets needsLayout for us
 
-   assert( _stackView);
-
-   //
-   // shrink stackView to fit our bounds, which are what exactly ?
-   // and why do they matter ?
-   frame.origin = CGPointZero;
-   size         = CGSizeMake( 10000000.0, 10000000.0);
-   frame.size   = [_stackView sizeThatFits:size];
-   [_stackView setFrame:frame];
+   contentFrame.origin = CGPointZero;
+   contentFrame.size   = [self sizeThatFits:CGSizeMake( INFINITY, INFINITY)];
+   [_stackView setFrame:contentFrame];
+   [_stackView layout];
 
    assert( _scrollView);
 
+   frame = [self frame];
+   [_scrollView setFrame:CGRectMake( 0, 0, frame.size.width, frame.size.height)];
+   [_scrollView setBounds:CGRectMake( 0, 0, frame.size.width, contentFrame.size.height)];
+   [_scrollView layout];
+
    // reflect size in scrollView contentSize
-   [_scrollView setContentSize:frame.size];
+   y = contentFrame.size.height - frame.size.height;
+   [_scrollView setContentOffset:CGPointMake( 0, y)];
+   [_scrollView setContentSize:contentFrame.size];
 
-   // Now make the menu as large as possible. This will resize the scroll
-   // View as well.
-   //
-   // this should be done by the scrollview. Is it necessary to use
-   // a separate property for contentSize, if we could use the bounds
-   // of the contentView as storage ?
-   // 
-   //   contentView  = [_scrollView contentView];
-   //   frame.origin = [contentView frame].origin;
-   //   [contentView setFrame:frame];
-
-   // so scrollview can set indicator views
-   [_scrollView layoutSubviews];
-
-   // shrink self to fit if frame.size.height is less than current
-   before = [self frame];
-   if( before.size.height > frame.size.height)
-   {
-      frame.origin = before.origin;
-      [self setFrame:frame];
-   }
+   [self dump];
 }
 
 
@@ -167,9 +205,11 @@
 
    for( i = 0; i < n; i++)
    {
-      menuButton = [MulleMenuButton mulleViewWithFrame:CGRectMake( 0, 0, 200, 20)];
+      menuButton = [MulleMenuButton viewWithFrame:CGRectMake( 0, 0, 200, 20)];
       [menuButton setTitleCString:titles[ i]];
       [menuButton setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+      [menuButton setContentHorizontalAlignment:CAAlignmentLeft];
+
       [menuButton setTarget:target];
       [menuButton setAction:@selector( menuButtonClicked:)];
 
@@ -183,4 +223,44 @@
    }
 }
 
+
+-(CGSize) sizeThatFits:(CGSize) size
+               context:(CGContext *) context
+{
+   struct mulle_pointerarrayenumerator   rover;
+   UIView                                *view;
+   struct mulle_pointerarray             *stackedSubviews;
+   CGSize                                result;
+   CGSize                                buttonSize;
+
+   assert( context);
+
+   // minwidth is 80 so make that the initial value
+   result          = CGSizeMake( 80.0, 0.0);
+   stackedSubviews = [_stackView _subviews];
+
+   assert( _stackView);
+   assert( mulle_pointerarray_get_count( stackedSubviews) > 0);
+
+   rover = mulle_pointerarray_enumerate( stackedSubviews);
+   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
+   {
+      buttonSize = [view sizeThatFits:CGSizeMake( INFINITY, INFINITY)
+                              context:context];
+      assert( buttonSize.height > 0.0);
+      if( buttonSize.width > result.width)
+         result.width = buttonSize.width;
+      result.height += buttonSize.height;
+   }
+   mulle_pointerarrayenumerator_done( &rover);
+
+   return( result);
+}
+
+- (void) setFrame:(CGRect) frame
+{
+   fprintf( stderr, "%s\n", CGRectCStringDescription( frame));
+   [self setNeedsLayout];
+   [super setFrame:frame];
+}
 @end

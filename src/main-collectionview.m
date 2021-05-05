@@ -47,7 +47,8 @@
       [_label setFont:[UIFont boldSystemFontOfSize:40.0]];
       [_label setBackgroundColor:[UIColor underPageBackgroundColor]];
       [_label setTextColor:[UIColor blackColor]];
-
+      [_label setUserInteractionEnabled:NO];
+      
       [[self contentView] addSubview:_label];
    }
    return self;
@@ -219,7 +220,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
       rect.origin.y = rand() % ((int) 4000 - 64);
       rect.size     = CGSizeMake( 64, 64);
       view  = [[[UIView alloc] initWithFrame:rect] autorelease];
-      [view setBackgroundColor:MulleColorCreateRandom( 0x00FF00FF, 0xFF00FF00)];
+      [view setBackgroundColor:MulleColorMakeRandom( 0x00FF00FF, 0xFF00FF00)];
       [contentView addSubview:view];
    }
 */
@@ -239,13 +240,13 @@ int   main()
 
    [[UIApplication sharedInstance] addWindow:window];
 
-   context = [window createContext];
+   context = [window context];
    [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
    setupSceneInContentPlane( [window contentPlane]);
 
    [window dump];
-   [window renderLoopWithContext:context];
+   [window renderLoop];
 
    [[UIApplication sharedInstance] terminate];
 }

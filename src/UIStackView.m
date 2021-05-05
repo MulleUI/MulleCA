@@ -21,13 +21,16 @@ struct UIStackViewLayoutContext
 @implementation UIStackView
 
 - (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
 {
-   [super initWithLayer:layer];
-
-   _axis                    = UILayoutConstraintAxisVertical;
-   _minimumInteritemSpacing = 10.0;
-   _minimumLineSpacing      = 10.0;
-
+   self = [super initWithLayer:layer
+                         frame:frame];
+   if( self)
+   {
+      _axis                    = UILayoutConstraintAxisVertical;
+      _minimumInteritemSpacing = 10.0;
+      _minimumLineSpacing      = 10.0;
+   }
    return( self);
 }
 
@@ -62,8 +65,7 @@ struct UIStackViewLayoutContext
       return( NO);
 
    // calculate area, where we can layout
-   ctxt->bounds = [self bounds];
-   ctxt->bounds = UIEdgeInsetsInsetRect( ctxt->bounds, _contentInsets);
+   ctxt->bounds = [self layoutRect];
 
    switch( _alignment)
    {
@@ -71,7 +73,7 @@ struct UIStackViewLayoutContext
    case MulleUIStackViewAlignmentBottom : ctxt->defaultMask = MulleUIViewAutoresizingStickToBottom; break;
    case UIStackViewAlignmentLeading     : ctxt->defaultMask = MulleUIViewAutoresizingStickToLeft; break;
    case UIStackViewAlignmentTrailing    : ctxt->defaultMask = MulleUIViewAutoresizingStickToRight; break;
-   default :                              ctxt->defaultMask = MulleUIViewAutoresizingStickToCenter; break;
+   default :                              ctxt->defaultMask = MulleUIViewAutoresizingStickToMiddle|MulleUIViewAutoresizingStickToCenter; break;
    }
    return( YES);
 }
@@ -130,7 +132,7 @@ struct UIStackViewLayoutContext
       if( mask == UIViewAutoresizingNone)
          mask = ctxt.defaultMask;
       [self layoutSubview:view
-                 inBounds:rect
+                 inRect:rect
          autoresizingMask:mask];
       rect.origin.value[ axis] += rect.size.value[ axis];
    }
@@ -226,7 +228,7 @@ struct UIStackViewLayoutContext
 
       // each view autoresizes in the bounds we divided it up for
       [self layoutSubview:view
-                 inBounds:rect
+                 inRect:rect
          autoresizingMask:mask];
 
       rect.origin.value[ axis] += rect.size.value[ axis];
@@ -271,7 +273,7 @@ struct UIStackViewLayoutContext
       size                   = [view mulleLayoutSize];
       rect.size.value[ axis] = size.value[ axis];
       [self layoutSubview:view
-                 inBounds:rect
+                 inRect:rect
          autoresizingMask:mask];
       rect.origin.value[ axis] += rect.size.value[ axis] + space;
    }
@@ -329,7 +331,7 @@ struct UIStackViewLayoutContext
                                  + (space * i)
                                  - rect.size.value[ axis] / 2;
       [self layoutSubview:view
-                 inBounds:rect
+                 inRect:rect
          autoresizingMask:mask];
       ++i;
    }
@@ -361,10 +363,9 @@ struct UIStackViewLayoutContext
    spacing.value[ axis]      = [self minimumInteritemSpacing];
    spacing.value[ otherAxis] = [self minimumLineSpacing];
 
-   bounds        = [self bounds];
-   bounds        = UIEdgeInsetsInsetRect( bounds, [self contentInsets]);
-   rowBounds     = bounds;
-   column        = 0;
+   bounds    = [self layoutRect];
+   rowBounds = bounds;
+   column    = 0;
 
    rover  = mulle_pointerarray_enumerate( self->_subviews);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &view))
@@ -390,7 +391,7 @@ struct UIStackViewLayoutContext
          rect.size = frame.size;
 
       [self layoutSubview:view
-                 inBounds:rect
+                 inRect:rect
          autoresizingMask:MulleUIViewAutoresizingStickToTop|MulleUIViewAutoresizingStickToLeft];
 
       // advance preshrunk remaining row
@@ -419,8 +420,8 @@ struct UIStackViewLayoutContext
 }
 
 
-- (CGSize) sizeThatFits:(CGSize) size
-                context:(CGContext *) context
+-(CGSize) sizeThatFits:(CGSize) size
+               context:(CGContext *) context
 {
    UIView       *first;
    UIView       *last;

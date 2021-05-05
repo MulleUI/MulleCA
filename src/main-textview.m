@@ -89,7 +89,7 @@ int   main()
 #if 0      
          [textField setTextOffset:CGPointMake( 80.0, 0.0)];
 #endif
-         // [insideButton setClipsSubviews:YES];
+         // [insideButton setClipsToBounds:YES];
          [contentView addSubview:textField];
       }
 #endif
@@ -175,11 +175,11 @@ int   main()
 
       [window dump];
 
-      context = [window createContext];
+      context = [window context];
       assert( context);
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
-      [window renderLoopWithContext:context];
+      [window renderLoop];
 
       [[UIApplication sharedInstance] terminate];
    }

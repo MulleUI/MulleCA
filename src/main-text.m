@@ -88,10 +88,7 @@ void   drawText( NVGcontext *vg,
 }
 
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rows[ 4];
    CGRect              columns[ 2];
@@ -109,21 +106,21 @@ BOOL  drawStuff( CALayer *layer,
    font  = [context fontWithNameCString:"sans"];
    nvgFontFace( vg, [font nameCString]);
 
-   MulleRectPartititonHorizontally( frame, 4, rows, 20);
+   MulleRectPartitionHorizontally( [layer canvas], 4, rows, 20);
    for( i = 0; i < 4; i++)
    {
-      MulleRectPartititonVertically( rows[ i], 2, columns, 20);
+      MulleRectPartitionVertically( rows[ i], 2, columns, 20);
       for( j = 0; j < 2; j++)
       {
          if( j == 0)
          {
-            fore = MulleColorCreate( 0xFFFFFFFF);
-            back = MulleColorCreate( 0x000000FF);
+            fore = MulleColorMake( 0xFFFFFFFF);
+            back = MulleColorMake( 0x000000FF);
          }
          else
          {
-            back = MulleColorCreate( 0xFFFFFFFF);
-            fore = MulleColorCreate( 0x000000FF);
+            back = MulleColorMake( 0xFFFFFFFF);
+            fore = MulleColorMake( 0x000000FF);
          }
 
          nvgStrokeWidth( vg, 1.0);
@@ -160,22 +157,18 @@ BOOL  drawStuff( CALayer *layer,
          }
       }
    }
-
-   return( NO);
 }
 
 
-// scale stuff for stream
-#define SCALE     2.0
 
-void   setupScene( UIWindow *window, CGContext *context)
+void   setupScene( UIView *contentPlane, CGContext *context)
 {
    UIView        *view;
    CGRect         frame;
    UIEdgeInsets   insets;
    CALayer        *layer;
 
-   frame        = [window frame];
+   frame        = [contentPlane frame];
    frame.origin = CGPointZero;
 
    insets = UIEdgeInsetsMake( 20, 20, 20, 20);
@@ -183,8 +176,8 @@ void   setupScene( UIWindow *window, CGContext *context)
 
    view  = [[[UIView alloc] initWithFrame:frame] autorelease];
    layer = [view layer];
-   [layer setDrawContentsCallback:drawStuff];
-   [window addSubview:view];
+   [layer setDrawCallback:drawStuff];
+   [contentPlane addSubview:view];
 }
 
 
@@ -192,6 +185,7 @@ int   main()
 {
    CGContext   *context;
    UIWindow    *window;
+   CGRect      frame;
 
    /*
     * window and app
@@ -201,19 +195,20 @@ int   main()
 
    @autoreleasepool
    {
-      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
+      frame   = CGRectMake( 0.0, 0.0, 800.0, 600.0);
+      window  = [[[UIWindow alloc] initWithFrame:frame] autorelease];
       assert( window);
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
-      [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+      context = [window context];
+      [context setBackgroundColor:CGColorCreateGenericRGB( 0.0, 0.0, 1.0, 1.0)];
 
-      setupScene( window, context);
+      setupScene( [window contentPlane], context);
 
       [window dump];
 
-      [window renderLoopWithContext:context];
+      [window renderLoop];
       [[UIApplication sharedInstance] terminate];
    }
    mulle_testallocator_reset();

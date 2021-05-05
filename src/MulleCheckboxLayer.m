@@ -54,11 +54,11 @@ static char  *cpToUTF8(int cp, char* str)
 }
 
 
-- (BOOL) drawContentsInContext:(CGContext *) context
+- (void) drawInContext:(CGContext *) context
 {
    CGFloat             fontPixelSize;
    CGFont              *font;
-   CGRect              frame;
+   CGRect              canvas;
    char                *name;
    char                icon[8];
    NVGpaint            bg;
@@ -67,11 +67,11 @@ static char  *cpToUTF8(int cp, char* str)
    font = [context fontWithNameCString:_fontName ? _fontName : "sans"];
    name = [font nameCString];  // get actual name, which could have different address
 
-   frame = [self frame];
+   canvas = [self canvas];
 
    fontPixelSize = [self fontPixelSize];
    if( fontPixelSize == 0.0)
-      fontPixelSize = frame.size.height;
+      fontPixelSize = canvas.size.height;
 
    vg = [context nvgContext];
    if( _cString)
@@ -80,12 +80,26 @@ static char  *cpToUTF8(int cp, char* str)
    	nvgFontFace( vg, name);
       nvgTextColor( vg, nvgRGBA(255,255,255,255), [self backgroundColor]); // TODO: use textColor
       nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-      nvgText(vg, frame.origin.x + 28, frame.origin.y + frame.size.height * 0.5f, _cString, NULL);
+      nvgText(vg, canvas.origin.x + 28,
+                  canvas.origin.y + canvas.size.height * 0.5f,
+                  _cString,
+                  NULL);
    }
 
-   bg = nvgBoxGradient(vg, frame.origin.x + 1, frame.origin.y + (int)(frame.size.height * 0.5f) - 9 + 1, 18, 18, 3, 3, nvgRGBA(0, 0, 0, 32), nvgRGBA(0, 0, 0, 92));
+   bg = nvgBoxGradient(vg, canvas.origin.x + 1,
+                           canvas.origin.y + (int)(canvas.size.height * 0.5f) - 9 + 1,
+                           18,
+                           18,
+                           3,
+                           3,
+                           nvgRGBA(0, 0, 0, 32),
+                           nvgRGBA(0, 0, 0, 92));
    nvgBeginPath(vg);
-   nvgRoundedRect(vg, frame.origin.x + 1, frame.origin.y + (int)(frame.size.height * 0.5f) - 9, 18, 18, 3);
+   nvgRoundedRect(vg, canvas.origin.x + 1,
+                      canvas.origin.y + (int)(canvas.size.height * 0.5f) - 9,
+                      18,
+                      18,
+                      3);
    nvgFillPaint(vg, bg);
    nvgFill(vg);
 
@@ -98,10 +112,11 @@ static char  *cpToUTF8(int cp, char* str)
       nvgFontFace(vg, name);
       nvgTextColor( vg, nvgRGBA(0,32,0,255), [self backgroundColor]); // TODO: use textColor
       nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-      nvgText(vg, frame.origin.x + 9 + 2, frame.origin.y + frame.size.height * 0.5f, cpToUTF8(ICON_CHECK, icon), NULL);
+      nvgText(vg, canvas.origin.x + 9 + 2,
+                  canvas.origin.y + canvas.size.height * 0.5f,
+                  cpToUTF8(ICON_CHECK, icon),
+                  NULL);
    }
-
-   return( NO);
 }
 
 

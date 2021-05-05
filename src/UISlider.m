@@ -9,27 +9,31 @@
 - (id) initWithFrame:(CGRect) frame
 {
    MulleSliderLayer  *sliderLayer;
+   CGRect            rect;
 
-   sliderLayer = [[[MulleSliderLayer alloc] initWithFrame:frame] autorelease];
-   return( [self initWithLayer:sliderLayer]);
+   rect.origin = CGPointZero;
+   rect.size   = frame.size;
+   sliderLayer = [[[MulleSliderLayer alloc] initWithFrame:rect] autorelease];
+   return( [self initWithLayer:sliderLayer
+                         frame:frame]);
 }
 
 
 - (void) setValueFromEvent:(UIEvent *) event
 {
    CGPoint  point;
-   float    value;
+   CGFloat  value;
    CGRect   rect;
 
 	point = [event mouseLocationInView:self];
    // fprintf( stderr, "%s %s\n", __PRETTY_FUNCTION__, CGPointCStringDescription( point));
 
-   rect = [(MulleSliderLayer *) _mainLayer controlRectWithFrame:[self bounds]];
+   rect = [(MulleSliderLayer *) _mainLayer controlRectForRect:[_mainLayer canvas]];
    if( rect.size.width >= rect.size.height)
    {
       if( point.x >= rect.origin.x)
          point.x -= rect.origin.x;
-      else 
+      else
          point.x = 0;
       if( point.x >= CGRectGetMaxX( rect))
          point.x = CGRectGetMaxX( rect);
@@ -39,7 +43,7 @@
    {
       if( point.y >= rect.origin.y)
          point.y -= rect.origin.y;
-      else 
+      else
          point.y = 0;
       if( point.y >= CGRectGetMaxY( rect))
          point.y = CGRectGetMaxY( rect);
@@ -51,7 +55,7 @@
 
 - (UIEvent *) consumeMouseEvent:(UIEvent *) event
 {
-   
+
    [self setValueFromEvent:event];
    if( [self isContinuous])
    {

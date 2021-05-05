@@ -215,7 +215,7 @@ UIViewContentMode  UIViewContentModeParseCString( char *s)
 // }
 
 
-void   MulleRectPartititonVertically( CGRect frame,
+void   MulleRectPartitionVertically( CGRect frame,
                                       NSUInteger n,
                                       CGRect *rects,
                                       CGFloat space)
@@ -257,7 +257,7 @@ void   MulleRectPartititonVertically( CGRect frame,
 // }
 //
 
-void   MulleRectPartititonHorizontally( CGRect frame,
+void   MulleRectPartitionHorizontally( CGRect frame,
                                         NSUInteger n,
                                         CGRect *rects,
                                         CGFloat space)

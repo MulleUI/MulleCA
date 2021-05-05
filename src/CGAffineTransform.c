@@ -16,6 +16,8 @@
 
 #include "CGAffineTransform.h"
 
+#include "CGGeometry.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -27,65 +29,14 @@
 
 const CGAffineTransform CGAffineTransformIdentity = { 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
 
-CGAffineTransform CGAffineTransformConcat(CGAffineTransform t2, CGAffineTransform t1) {
+
+
+CGAffineTransform CGAffineTransformMakeRotation(CGFloat angle) {
     CGAffineTransform ret;
 
-    ret.a = t2.a * t1.a + t2.b * t1.c;
-    ret.b = t2.a * t1.b + t2.b * t1.d;
-    ret.c = t2.c * t1.a + t2.d * t1.c;
-    ret.d = t2.c * t1.b + t2.d * t1.d;
-    ret.tx = t2.tx * t1.a + t2.ty * t1.c + t1.tx;
-    ret.ty = t2.tx * t1.b + t2.ty * t1.d + t1.ty;
-
-    return ret;
-}
-
-
-CGAffineTransform CGAffineTransformMake(float a, float b, float c, float d, float tx, float ty) {
-    CGAffineTransform ret;
-
-    ret.a = a;
-    ret.b = b;
-    ret.c = c;
-    ret.d = d;
-    ret.tx = tx;
-    ret.ty = ty;
-
-    return ret;
-}
-
-
-CGAffineTransform CGAffineTransformMakeTranslation(float tx, float ty) {
-    CGAffineTransform ret;
-
-    ret.a = 1.0f;
-    ret.b = 0.0f;
-    ret.c = 0.0f;
-    ret.d = 1.0f;
-    ret.tx = tx;
-    ret.ty = ty;
-
-    return ret;
-}
-
-
-CGAffineTransform CGAffineTransformMakeScale(float sx, float sy) {
-    CGAffineTransform ret;
-    ret.a = sx;
-    ret.b = 0.0f;
-    ret.c = 0.0f;
-    ret.d = sy;
-    ret.tx = 0.0f;
-    ret.ty = 0.0f;
-
-    return ret;
-}
-
-
-CGAffineTransform CGAffineTransformMakeRotation(float angle) {
-    CGAffineTransform ret;
-
-    if (IS_NEAR(angle, ((float)kPi / 2.0f), 0.0001f)) {
+   // TODO: is this desirable ?
+   // TODO: use nvg PI definition here if code is to be kept
+    if (IS_NEAR(angle, ((CGFloat) kPi / 2.0f), 0.0001f)) {
         ret.a = 0;
         ret.b = 1.0f;
         ret.c = -1.0f;
@@ -95,6 +46,7 @@ CGAffineTransform CGAffineTransformMakeRotation(float angle) {
 
         return ret;
     }
+
     ret.a = cosf(angle);
     ret.b = sinf(angle);
     ret.c = -ret.b;
@@ -104,6 +56,8 @@ CGAffineTransform CGAffineTransformMakeRotation(float angle) {
 
     return ret;
 }
+
+
 
 
 CGAffineTransform CGAffineTransformRotate(CGAffineTransform curTransform, float angle) {
@@ -172,11 +126,59 @@ int CGAffineTransformEqualToTransform(CGAffineTransform t2, CGAffineTransform t1
     return 0;
 }
 
-/**
- @Status Interoperable
-*/
-CGSize CGSizeApplyAffineTransform(CGSize size, CGAffineTransform t) {
-    return CGSizeMake( 
-        (CGFloat)((double)t.a * size.width + (double)t.c * size.height),
-        (CGFloat)((double)t.b * size.width + (double)t.d * size.height));
+//
+// MEMO: the ifs probably preclude too much compiler optimization where
+//       steps can be computed and combined with other steps
+//
+CGAffineTransform   MulleAffineTransformMakeProjection( CGRect frame, CGRect bounds)
+{
+   CGAffineTransform   xform;
+   CGPoint             scale;
+
+   xform = CGAffineTransformMakeTranslation( -bounds.origin.x, -bounds.origin.y);
+
+   //
+   // now translate bounds for context
+   //
+   //if( ! CGSizeEqualToSize( frame.size, bounds.size))
+   {
+      scale.x = frame.size.width  / bounds.size.width;
+      scale.y = frame.size.height / bounds.size.height;
+      xform   = CGAffineTransformConcat( xform,
+                                         CGAffineTransformMakeScale( scale.x, scale.y));
+   }
+
+   //if( ! CGPointEqualToPoint( frame.origin, CGPointMake( 0, 0)))
+      xform = CGAffineTransformConcat( xform,
+                                       CGAffineTransformMakeTranslation( frame.origin.x,
+                                                                         frame.origin.y));
+   return( xform);
 }
+
+
+// could also do
+CGAffineTransform   MulleAffineTransformMakeInverseProjection( CGRect frame, CGRect bounds)
+{
+   CGPoint             scale;
+   CGAffineTransform   xform;
+
+   xform = CGAffineTransformMakeTranslation( bounds.origin.x, bounds.origin.y);
+   //if( ! CGSizeEqualToSize( frame.size, bounds.size))
+   {
+      scale.x = bounds.size.width / frame.size.width;
+      scale.y = bounds.size.height / frame.size.height;
+
+      xform   = CGAffineTransformConcat( CGAffineTransformMakeScale( scale.x, scale.y),
+                                         xform);
+   }
+
+   //if( ! CGPointEqualToPoint( bounds.origin, CGPointMake( 0, 0)))
+      xform = CGAffineTransformConcat( CGAffineTransformMakeTranslation( -frame.origin.x,
+                                                                         -frame.origin.y),
+                                       xform);
+   return( xform);
+}
+
+
+// -original-
+

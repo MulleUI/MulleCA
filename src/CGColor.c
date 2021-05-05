@@ -449,7 +449,7 @@ static void mulle_normalized_hsl_to_normalized_rgb(float hsl[3], float rgb[3])
 #endif
 
 
-CGColorRef   MulleColorCreateFromCString( char *string)
+CGColorRef   MulleColorMakeFromCString( char *string)
 {
    size_t          len;
    unsigned int    rgba[ 4];

@@ -2,6 +2,7 @@
 
 #import "CALayer.h"
 #import "CGContext.h"
+#import "CGContext+CGFont.h"
 #import "UIWindow.h"
 #import "UIColor.h"
 #import "UIApplication.h"
@@ -43,12 +44,10 @@ static UIEvent   *buttonClicked( id <UIControl> control, UIEvent *event)
 
 
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rect;
+   CGRect              canvas;
    MulleJS             *js;
    struct NVGcontext   *nvg;
    CGSize              size;
@@ -57,8 +56,10 @@ BOOL  drawStuff( CALayer *layer,
    nvg = MulleContextGetNVGContext( context);
 
    // clip javascript drawing
-   nvgScissor( nvg, frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-   nvgTranslate( nvg, frame.origin.x, frame.origin.y);
+   canvas = [layer canvas];
+
+   nvgIntersectScissor( nvg, canvas.origin.x, canvas.origin.y, canvas.size.width, canvas.size.height);
+   nvgTranslate( nvg, canvas.origin.x, canvas.origin.y);
 
    @autoreleasepool
    {
@@ -72,9 +73,9 @@ BOOL  drawStuff( CALayer *layer,
              forKey:@"bengal"];
       [js setObject:patternBitmap
              forKey:@"pattern"];
-      [js setObject:@(frame.size.width)
+      [js setObject:@(canvas.size.width)
              forKey:@"width"];
-      [js setObject:@(frame.size.height)
+      [js setObject:@(canvas.size.height)
              forKey:@"height"];
       [js setObject:[UIColor mulleValueWithCGColor:[(id) layer backgroundColor]]
              forKey:@"backgroundColor"];
@@ -82,15 +83,15 @@ BOOL  drawStuff( CALayer *layer,
       filename = MulleObjC_asprintf( "/home/src/srcO/MulleUI/src/%s", javascript);
       [js runScriptFileCString:filename];
    }
-   return( YES);
 }
+
 
 static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
 {
    UIView             *rootView;
    UIView             *displayView;
    MulleMenu          *menuView;
-   UIButton           *button;
+   MullePopUpButton   *button;
    MulleMenuButton    *menuButton;
    CALayer            *layer;
    CGRect             frame;
@@ -103,7 +104,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    assert( frame.size.width > 0.0);
    assert( frame.size.width  > 0.0);
 
-   rootView  = [UIView mulleViewWithFrame:CGRectZero];
+   rootView  = [UIView viewWithFrame:CGRectZero];
    [rootView setDebugNameCString:"RootView"];
    [rootView setBackgroundColor:getNVGColor( 0xFFFFFFFF)];
    [rootView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
@@ -112,17 +113,17 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    // because the root view is still zero sized, the -10.2 as size is really
    // the margin. The 100 is the height of the display
 
-   displayView  = [UIView mulleViewWithFrame:CGRectZero];
+   displayView  = [UIView viewWithFrame:CGRectZero];
    [displayView setBackgroundColor:getNVGColor( 0x00007FFF)];
    [displayView setDebugNameCString:"DisplayView"];
    [displayView setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
    [displayView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 
    layer = [displayView layer];
-   [displayView setDrawContentsCallback:drawStuff];
+   [displayView setDrawCallback:drawStuff];
    [rootView addSubview:displayView];
 
-   button = [MullePopUpButton mulleViewWithFrame:CGRectMake( 0, 0, 120, 20)];
+   button = [MullePopUpButton viewWithFrame:CGRectMake( 0, 0, 120, 20)];
    [button setTitleCString:"Change"];
    [button setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
    [button setAutoresizingMask:MulleUIViewAutoresizingStickToTop|MulleUIViewAutoresizingStickToLeft];
@@ -170,8 +171,8 @@ int  main()
 
       [window dump];
 
-      context = [window createContext];
-      [window renderLoopWithContext:context];
+      context = [window context];
+      [window renderLoop];
 
       [application terminate];
    }

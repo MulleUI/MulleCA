@@ -48,7 +48,7 @@ static UIEvent   *hButtonClicked( id <UIControl> control, UIEvent *event)
          else
             hAlign = CAAlignmentRight;
 
-      [control setTitleCString:s];
+      [(MullePopUpButton *) control setTitleCString:s];
    }
    return( nil);
 }
@@ -79,14 +79,13 @@ static UIEvent   *vButtonClicked( id <UIControl> control, UIEvent *event)
          else
             vAlign = MulleTextVerticalAlignmentMiddle;
 
-      [control setTitleCString:s];
+      [(MullePopUpButton *) control setTitleCString:s];
    }
    return( nil);
 }
 
 
 static void   willAnimateCallback( UIWindow *window,
-                                   CGContext *context,
                                    struct MulleFrameInfo *info,
                                    CAAbsoluteTime now)
 {
@@ -97,10 +96,12 @@ static void   willAnimateCallback( UIWindow *window,
    NSUInteger              i, n;
    char                    *s;
    CGFloat                 bounds[4];
+   CGContext              *context;
 
-   plane = [window contentPlane];
-   n     = [plane getSubviews:views
-                       length:10];
+   context = [window context];
+   plane   = [window contentPlane];
+   n       = [plane getSubviews:views
+                         length:10];
 
    for( i = 0; i < n; i++)
    {
@@ -110,7 +111,8 @@ static void   willAnimateCallback( UIWindow *window,
       label = (UILabel *) views[ i];
       if( [label debugNameCString] && *[label debugNameCString] == 'i')
       {
-         [one  getFontTextBounds:bounds];
+         [one getFontTextBounds:bounds
+                        context:context];
 
          s = MulleObjC_asprintf( "H Align   : %s\n"
                                  "V Align   : %s\n"
@@ -165,7 +167,7 @@ int   main()
 
    contentView = [window contentPlane];
 
-   context = [window createContext];
+   context = [window context];
    [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
    /* singleline Label */
@@ -175,7 +177,7 @@ int   main()
       frame.origin.x    = (800.0 - frame.size.width ) / 2.0;
       frame.origin.y    = 50;
 
-      label = [UILabel mulleViewWithFrame:frame];
+      label = [UILabel viewWithFrame:frame];
       [label setDebugNameCString:"one"];
       [label setBackgroundColor:[UIColor lightGrayColor]];
       [label setCString:"Text on one line"];
@@ -193,7 +195,7 @@ int   main()
       frame.origin.y   += frame.size.height + 50;
       frame.size.height = 80+80+20;
 
-      label = [UILabel mulleViewWithFrame:frame];
+      label = [UILabel viewWithFrame:frame];
       [label setDebugNameCString:"three"];
       [label setBackgroundColor:[UIColor lightGrayColor]];
       [label setCString:"Text 1 on three lynes\nText 2 on three lynes\nText3 on three lines"];
@@ -210,7 +212,7 @@ int   main()
       frame.origin.y   += frame.size.height + 50;
       frame.size.height = 80+10;
 
-      label = [UILabel mulleViewWithFrame:frame];
+      label = [UILabel viewWithFrame:frame];
       [label setDebugNameCString:"info"];
       [label setBackgroundColor:[UIColor lightGrayColor]];
       [label setCString:"Info"];
@@ -223,7 +225,7 @@ int   main()
    }
 
    {
-      button = [MullePopUpButton mulleViewWithFrame:CGRectMake( 0, 0, 120, 20)];
+      button = [MullePopUpButton viewWithFrame:CGRectMake( 0, 0, 120, 20)];
       [button setTitleCString:"Horizontal"];
       [button setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
       [button setAutoresizingMask:MulleUIViewAutoresizingStickToTop|MulleUIViewAutoresizingStickToLeft];
@@ -234,7 +236,7 @@ int   main()
       [contentView addSubview:button];
 
 
-      button = [MullePopUpButton mulleViewWithFrame:CGRectMake( 0, 0, 120, 20)];
+      button = [MullePopUpButton viewWithFrame:CGRectMake( 0, 0, 120, 20)];
       [button setTitleCString:"Vertical"];
       [button setMargins:UIEdgeInsetsMake( 10, 10, 10, 10)];
       [button setAutoresizingMask:MulleUIViewAutoresizingStickToTop|MulleUIViewAutoresizingStickToRight];
@@ -247,7 +249,7 @@ int   main()
    [window dump];
    [window setWillLayoutCallback:willAnimateCallback];
 
-   [window renderLoopWithContext:context];
+   [window renderLoop];
 
    [[UIApplication sharedInstance] terminate];
 

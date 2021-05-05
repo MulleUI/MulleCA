@@ -44,8 +44,8 @@ void   set_layer_background( CAGradientLayer *layer, CGContext *context)
 #else
    paint = [[[MullePaint alloc] initLinearGradientWithStartPoint:CGPointMake( CGRectGetMinX( rect), CGRectGetMinY( rect))
                                          endPoint:CGPointMake( CGRectGetMaxX( rect), CGRectGetMaxY( rect))
-                                       innerColor:MulleColorCreate( 0x00FF00FF)
-                                       outerColor:MulleColorCreate( 0xFF0000FF)
+                                       innerColor:MulleColorMake( 0x00FF00FF)
+                                       outerColor:MulleColorMake( 0xFF0000FF)
                                         CGContext:context] autorelease];
 
 #endif
@@ -96,14 +96,14 @@ UIView   *setupScene( UIWindow *window, CGContext *context, int argc, char *argv
 
    rect = MulleRectAlignCenterInRow( rect, referenceCenter);
    {
-      label = [UILabel mulleViewWithFrame:rect];
+      label = [UILabel viewWithFrame:rect];
 
       [label setCString:argv[ 2]];
       [label setFontPixelSize:110];  // why ?
       [label setAlignmentMode:CAAlignmentCenter];
       [label mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentBoundsMiddle];
-      [label setBackgroundColor:MulleColorCreate( 0xFFFFFF40)];
-      [label setTextColor:MulleColorCreate( 0x101020FF)];
+      [label setBackgroundColor:MulleColorMake( 0xFFFFFF40)];
+      [label setTextColor:MulleColorMake( 0x101020FF)];
 
       [[window contentPlane] addSubview:label];
    }
@@ -119,18 +119,18 @@ UIView   *setupScene( UIWindow *window, CGContext *context, int argc, char *argv
    rect = MulleRectAlignCenterInRow( rect, referenceCenter);
 
    {
-      label = [UILabel mulleViewWithFrame:rect];
+      label = [UILabel viewWithFrame:rect];
 
       [label setCString:argv[ 1]];
 
       [label setFont:[UIFont fontWithNameCString:"hacked"]];
       [label setFontPixelSize:64.0];
-      [label setInsets:UIEdgeInsetsMake( 0, 16, 0, 0)];
+      [label setPadding:UIEdgeInsetsMake( 0, 16, 0, 0)];
       [label setAlignmentMode:CAAlignmentLeft];
       [label mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentBoundsMiddle];
-      [label setBackgroundColor:MulleColorCreate( 0xFFFFFF40)];
-      [label setTextColor:MulleColorCreate( 0x101020FF)];
-//      [label setTextBackgroundColor:MulleColorCreate( 0xFFFFFF40)];
+      [label setBackgroundColor:MulleColorMake( 0xFFFFFF40)];
+      [label setTextColor:MulleColorMake( 0x101020FF)];
+//      [label setTextBackgroundColor:MulleColorMake( 0xFFFFFF40)];
 
       [[window contentPlane] addSubview:label];
    }
@@ -162,18 +162,18 @@ UIView   *setupScene( UIWindow *window, CGContext *context, int argc, char *argv
          ++s;
       }
 
-      label = [UILabel mulleViewWithFrame:rect];
+      label = [UILabel viewWithFrame:rect];
       [label setCString:mulle_buffer_get_string( &buffer)];
       mulle_buffer_done( &buffer);
 
       [label setFontSize:20.0];
       // [label setFont:[UIFont boldSystemFontOfSize:40.0]];
-      [label setInsets:UIEdgeInsetsMake( 8, 16, 8, 16)];
+      [label setPadding:UIEdgeInsetsMake( 8, 16, 8, 16)];
       [label setLineBreakMode:NSLineBreakByWordWrapping];
       [label setAlignmentMode:CAAlignmentLeft];
       [label mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentTop];
-      [label setBackgroundColor:MulleColorCreate( 0xFFFFFF40)];
-      [label setTextColor:MulleColorCreate( 0x101020FF)];
+      [label setBackgroundColor:MulleColorMake( 0xFFFFFF40)];
+      [label setTextColor:MulleColorMake( 0x101020FF)];
 
       [[window contentPlane] addSubview:label];
    }
@@ -209,7 +209,6 @@ static void   printImage( UIWindow *window, CGContext *context)
    [window getFrameInfo:&info];
 
    info.frame.size      =
-   info.windowSize      =
    info.framebufferSize = [view frame].size;
    info.UIScale.dx      = 1.0;
    info.UIScale.dy      = 1.0;
@@ -253,7 +252,7 @@ int   main( int argc, char *argv[])
    // produces shader vert error, which is boring
    // this is just an assert to verify that a CGContext can't live w/o a
    // window
-   context = [window createContext];
+   context = [window context];
    assert( ! context);  // can't work without a window
 #endif
 
@@ -272,7 +271,7 @@ int   main( int argc, char *argv[])
    //
    @autoreleasepool
    {
-      context = [window createContext];
+      context = [window context];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
       [context addFontWithContentsOfFileWithFileRepresentationString:"Roboto-Regular-Hacked.ttf"
                                                      fontNameCString:"hacked"];

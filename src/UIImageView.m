@@ -27,7 +27,7 @@
    layerClass = [image preferredLayerClass];
    if( ! layerClass)
       layerClass = [[self class] layerClass];
-   
+
    frame.origin = CGPointMake( 0, 0);
    frame.size   = [image size];
 

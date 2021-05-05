@@ -1,6 +1,7 @@
 #import "import-private.h"
 
 #import "CGContext.h"
+#import "CGContext+CGFont.h"
 #import "CGGeometry+CString.h"
 #import "UIApplication.h"
 #import "UIWindow.h"
@@ -14,18 +15,16 @@
 
 
 static char  *demo_0_text = "VfL_TychoFaurier";
-static char  *demo_1_text = "A";
+static char  *demo_1_text = "f";
 
 static void   demo( CGContext *context, CGRect rect, char *text, char *fontname, int i)
 {
-   _NVGtransform    transform;
    CGPoint          origin;
    CGRect           border;
    CGRect           frame;
    CGSize           size;
    MulleTextLayer   *layer;
    NVGcontext       *vg;
-   NVGscissor       scissor;
    UIEdgeInsets     insets;
    static CGRect    old[ 4];
 
@@ -36,7 +35,8 @@ static void   demo( CGContext *context, CGRect rect, char *text, char *fontname,
    [layer setFontName:fontname];
    [layer setFontPixelSize:10.0];
    [layer setAlignmentMode:CAAlignmentCenter];
-   frame.size = [layer sizeToFit:CGSizeMake( INFINITY, INFINITY)
+   [layer mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentBottom]; // T
+   frame.size = [layer sizeThatFits:CGSizeMake( INFINITY, INFINITY)
                          context:context];
    frame.origin = MulleSizeGetCenterInRect( frame.size, rect);
    [layer setFrame:frame];
@@ -47,50 +47,28 @@ static void   demo( CGContext *context, CGRect rect, char *text, char *fontname,
       fprintf( stderr, "%d: %s\n", i, CGRectCStringDescription( frame));
    }
 
-   nvgCurrentTransform( vg, transform);
-   nvgGetScissor( vg, &scissor);
-
    // TODO: move to context
-   [layer setTransform:transform
-               scissor:&scissor];
-   if ( [layer drawInContext:context])
-   {
-      nvgSetScissor( vg, &scissor);
-      nvgResetTransform( vg);
-      nvgTransform( vg, transform[ 0], transform[ 1], transform[ 2],
-                        transform[ 3], transform[ 4], transform[ 5]);
-   }
-
-   // DRAW BORDER MANUALLY
-   insets = UIEdgeInsetsMake( 2, 2, 2, 2);
-   border = UIEdgeInsetsExtrudeRect( frame, insets);
-
-   nvgBeginPath( vg);
-   nvgRect( vg, border.origin.x,
-                border.origin.y,
-                border.size.width,
-                border.size.height);
-   nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8000007F));
-   nvgStroke( vg);
-
-//   [layer drawContentsInContext:context];
+   [layer setBackgroundColor:MulleColorMake( 0)];
+   [layer setBorderColor:MulleColorMake( 0)];
+   nvgSave( vg);
+   [layer renderInContext:context];
+   nvgRestore( vg);
 }
 
 
 static void   demo_0( CGContext *context, CGRect rect)
 {
-//   demo( context, rect, demo_0_text, NULL, 0);
+   demo( context, rect, demo_0_text, NULL, 0);
 }
 
 static void   demo_1( CGContext *context,  CGRect rect)
 {
-//   demo( context, rect, demo_1_text, NULL, 1);
+   demo( context, rect, demo_1_text, NULL, 1);
 }
 
 static void   demo_2( CGContext *context,  CGRect rect)
 {
-//   demo( context, rect, demo_0_text, "hacked", 2);
+   demo( context, rect, demo_0_text, "hacked", 2);
 }
 
 static void   demo_3( CGContext *context,  CGRect rect)
@@ -112,7 +90,7 @@ void   drawRect( NVGcontext *vg,  CGRect rect)
                 rect.size.width,
                 rect.size.height);
    nvgStrokeWidth( vg, 1.0);
-   nvgStrokeColor(vg, MulleColorCreate( 0x8080007F));
+   nvgStrokeColor( vg, MulleColorMake( 0x8080007F));
    nvgStroke( vg);
 }
 
@@ -120,10 +98,7 @@ void   drawRect( NVGcontext *vg,  CGRect rect)
 #define N_ROWS    2
 #define N_COLUMNS 2
 
-BOOL  drawStuff( CALayer *layer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *layer, CGContext *context)
 {
    CGRect              rect;
    struct NVGcontext   *vg;
@@ -135,75 +110,60 @@ BOOL  drawStuff( CALayer *layer,
 
    vg = MulleContextGetNVGContext( context);
 
-   MulleRectPartititonVertically( frame, N_ROWS, rows, 0);
+   MulleRectPartitionVertically( [layer canvas], N_ROWS, rows, 8);
 
    //
    //  test UIViewContentMode
    //
-   insets = UIEdgeInsetsMake( 8, 8, 8, 8);
-
    for( i = 0; i < N_ROWS; i++)
    {
-      MulleRectPartititonHorizontally( rows[ i], N_COLUMNS, columns, 0);
+      MulleRectPartitionHorizontally( rows[ i], N_COLUMNS, columns, 8);
       for( j = 0; j < N_COLUMNS; j++)
       {
-         rect = UIEdgeInsetsInsetRect( columns[ j], insets);
-         drawRect( vg, rect);
-         (*demos[ i * 2 + j])( context, rect);
+         drawRect( vg, columns[ j]);
+         (*demos[ i * 2 + j])( context, columns[ j]);
       }
    }
-
-   return( NO);
 }
 
-// scale stuff for stream
-#define SCALE     2.0
-
-void   setupScene( MulleWindowPlane *contentPlane, CGContext *context)
+void   setupSceneInPlane( MulleWindowPlane *contentPlane)
 {
    UIView        *view;
    CGRect         frame;
    UIEdgeInsets   insets;
    CALayer        *layer;
 
-   frame  = [contentPlane frame];
+   [contentPlane setPadding:UIEdgeInsetsMake( 8, 8, 8, 8)];
 
-   insets = UIEdgeInsetsMake( 8, 8, 8, 8);
-   frame  = UIEdgeInsetsInsetRect( frame, insets);
-
-   view  = [[[UIView alloc] initWithFrame:frame] autorelease];
-   layer = [view layer];
-   [layer setDrawContentsCallback:drawStuff];
+   frame = [contentPlane layoutRect];
+   view  = [UIView viewWithFrame:frame];
+   [view setDrawCallback:drawStuff];
    [contentPlane addSubview:view];
 }
 
 
 int   main()
 {
-   CGContext   *context;
    UIWindow    *window;
 
    /*
     * window and app
     */
-   @autoreleasepool
-   {
-      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
-      assert( window);
+   window  = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 400.0, 300.0)];
+   assert( window);
 
-      [[UIApplication sharedInstance] addWindow:window];
+   [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
-      [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
-      [context addFontWithContentsOfFileWithFileRepresentationString:"Roboto-Regular-Hacked.ttf"
-                                                     fontNameCString:"hacked"];
+   [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+   [[window context] addFontWithContentsOfFileWithFileRepresentationString:"Roboto-Regular-Hacked.ttf"
+                                                   fontNameCString:"hacked"];
 
-      setupScene( [window contentPlane], context);
+   setupSceneInPlane( [window contentPlane]);
 
-      [window dump];
+   [window dump];
 
-      [window renderLoopWithContext:context];
-      [[UIApplication sharedInstance] terminate];
-   }
+   [window renderLoop];
+   [[UIApplication sharedInstance] terminate];
+   return( 0);
 }
 

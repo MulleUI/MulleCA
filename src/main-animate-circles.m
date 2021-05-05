@@ -17,9 +17,9 @@
 
 @interface CircleLayer : CALayer
 
-@property( observable) CGFloat     scale;  
+@property( observable) CGFloat     scale;
 @property( observable) CGColorRef  color;  // 0 - 1
-@property( observable) CGRect      box;    
+@property( observable) CGRect      box;
 
 @end
 
@@ -28,31 +28,34 @@
 
 - (instancetype) initWithFrame:(CGRect) frame
 {
+   [super initWithFrame:frame];
+
    _scale = 1;
-   _color = MulleColorCreate( 0x000000FF);
-   _box   = frame;
-   return( [super initWithFrame:frame]);
+   _color = MulleColorMake( 0x000000FF);
+   _box   = [self canvas];
+
+   return( self);
 }
 
 @end
 
 
-BOOL  drawStuff( CALayer *aLayer,
-                 CGContext *context,
-                 CGRect frame,
-                 struct MulleFrameInfo *info)
+static void  drawStuff( CALayer *aLayer, CGContext *context)
 {
-   CircleLayer   *layer = (CircleLayer *) aLayer;
-   CGFloat        radius;
-   CGRect         box;
-   struct NVGcontext   *vg;
+   CircleLayer         *layer = (CircleLayer *) aLayer;
+   CGFloat             radius;
+   CGRect              box;
+   CGRect              canvas;
+   struct NVGcontext  *vg;
+
+   canvas = [layer canvas];
 
    vg = MulleContextGetNVGContext( context);
    nvgBeginPath( vg);
-   radius = MulleCGFloatMinimum( CGRectGetWidth( frame), CGRectGetHeight( frame)) / 2 - 10;
+   radius = MulleCGFloatMinimum( CGRectGetWidth( canvas), CGRectGetHeight( canvas)) / 2 - 10;
    radius *= [layer scale];
 
-   nvgCircle( vg, CGRectGetMidX( frame), CGRectGetMidY( frame), radius);
+   nvgCircle( vg, CGRectGetMidX( canvas), CGRectGetMidY( canvas), radius);
    nvgStrokeColor( vg, [layer color]);
    nvgStrokeWidth( vg, 3.5);
    nvgStroke( vg);
@@ -63,33 +66,12 @@ BOOL  drawStuff( CALayer *aLayer,
    nvgStrokeColor( vg, [layer color]);
    nvgStrokeWidth( vg, 3.5);
    nvgStroke( vg);
-
-   return( NO);
 }
 
-// scale stuff for stream
-#define SCALE     2.0
 
-void   setupScene( UIWindow *window, CGContext *context)
+
+void  setupAnimation( CircleLayer *layer)
 {
-   UIView        *view;
-   CGRect         frame;
-   UIEdgeInsets   insets;
-   CircleLayer    *layer;
-
-   frame        = [window frame];
-   frame.origin = CGPointZero;
-
-   insets = UIEdgeInsetsMake( 8, 8, 8, 8);
-   frame  = UIEdgeInsetsInsetRect( frame, insets);
-
-   layer = [[[CircleLayer alloc] initWithFrame:frame] autorelease];
-   view  = [[[UIView alloc] initWithLayer:layer] autorelease];
-   [layer setDrawContentsCallback:drawStuff];
-   [window addSubview:view];
-
-   [layer setColor:MulleColorCreate( 0xFF0000FF)];
-
    // UIView -> CAAnimation
    [UIView beginAnimations:"animation"
                     context:NULL];
@@ -99,34 +81,56 @@ void   setupScene( UIWindow *window, CGContext *context)
    [UIView setAnimationRepeatCount:20];
 
    [layer setScale:-1.0];
-   [layer setColor:MulleColorCreate( 0x0000FFFF)];
+   [layer setColor:MulleColorMake( 0x0000FFFF)];
    [layer setBox:CGRectMake( 100, 100, 100, 100)];
-   
+
    [UIView commitAnimations];
+}
+
+
+void   setupSceneAndAnimation( MulleWindowPlane *contentPlane)
+{
+   UIView        *view;
+   CGRect         frame;
+   UIEdgeInsets   insets;
+   CircleLayer    *layer;
+
+   frame        = [contentPlane bounds];
+   frame.origin = CGPointZero;
+
+   insets = UIEdgeInsetsMake( 8, 8, 8, 8);
+   frame  = UIEdgeInsetsInsetRect( frame, insets);
+
+   layer = [[[CircleLayer alloc] initWithFrame:frame] autorelease];
+   view  = [[[UIView alloc] initWithLayer:layer] autorelease];
+   [layer setDrawCallback:drawStuff];
+   [contentPlane addSubview:view];
+
+   [layer setColor:MulleColorMake( 0xFF0000FF)];
+
+   // UIView -> CAAnimation
+   setupAnimation( layer);
 }
 
 
 int   main()
 {
-   CGContext   *context;
-   UIWindow    *window;
+   UIWindow   *window;
 
    /*
     * window and app
     */
-   window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 400.0 * SCALE, 300.0 * SCALE)] autorelease];
+   window  = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
    assert( window);
 
-   [[UIApplication sharedInstance] addWindow:window];
+   [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
-   context = [window createContext];
-   [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
-
-   setupScene( window, context);
+   setupSceneAndAnimation( window);
 
    [window dump];
-   [window renderLoopWithContext:context];
 
+   [[UIApplication sharedInstance] addWindow:window];
+   [window renderLoop];
    [[UIApplication sharedInstance] terminate];
 }
 

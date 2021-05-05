@@ -26,11 +26,14 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
    struct mulle_bitmap_size   bitmapSize;
    NVGcontext                 *vg;
 
+   assert( context);
+
    frame.origin                      = CGPointZero;
    frame.size                        = size;
 
+   memset( &renderInfo, 0, sizeof( renderInfo));
+
    renderInfo.frame                  = frame;
-   renderInfo.windowSize             = frame.size;
    renderInfo.framebufferSize.width  = frame.size.width;
    renderInfo.framebufferSize.height = frame.size.height;
    renderInfo.UIScale                = CGVectorMake( 1, 1);
@@ -40,12 +43,12 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
    bitmapSize.size.width      = (int) (renderInfo.framebufferSize.width + 0.5);
    bitmapSize.size.height     = (int) (renderInfo.framebufferSize.height + 0.5);
    bitmapSize.colorComponents = 4;
-  
+
    image = [context framebufferImageWithBitmapSize:bitmapSize
                                            options:options];
    if( ! image)
       return( image);
-   
+
    // render view into a framebuffer tied to the texture
    nvgluBindFramebuffer( [image framebuffer]);
    @autoreleasepool
@@ -67,10 +70,10 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
 
 
       nvgBeginPath( vg);
-      nvgRoundedRect( vg, frame.origin.x ,
+      nvgRoundedRect( vg, frame.origin.x + 20 ,
                           frame.origin.y + 20,
-                          frame.size.width,
-                          frame.size.height -20,
+                          frame.size.width - 40,
+                          frame.size.height - 40,
                           40);
       nvgFillColor(vg, nvgRGBA(220,160,0,255));
       nvgFill( vg);
@@ -78,21 +81,23 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
       nvgFontFace( vg, "foo");
       nvgFontSize( vg, 64);
       nvgTextColor( vg, nvgRGBA(0,0,0,255), nvgRGBA(220,160,0,255)); // TODO: use textColor
-      nvgText( vg, frame.origin.x + frame.size.width / 2.0, 
-                   frame.origin.y + frame.size.height / 2.0, 
+
+      nvgTextAlign( vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+      nvgText( vg, frame.origin.x + frame.size.width / 2.0,
+                   frame.origin.y + frame.size.height / 2.0,
                    "XX1XX", NULL);
-      nvgText( vg, -frame.origin.x, 
-                   frame.origin.y, 
-                   "XX2XX", NULL);
-      nvgText( vg, -frame.origin.x, 
-                   -frame.origin.y, 
-                   "XX3XX", NULL);
-      nvgText( vg, 0, 
-                   0, 
-                   "XX4XX", NULL);
-      nvgText( vg, -frame.origin.x, 
-                   frame.origin.y, 
-                   "XX5XX", NULL);
+//      nvgText( vg, -frame.origin.x,
+//                   frame.origin.y,
+//                   "XX2XX", NULL);
+//      nvgText( vg, -frame.origin.x,
+//                   -frame.origin.y,
+//                   "XX3XX", NULL);
+//      nvgText( vg, 0,
+//                   0,
+//                   "XX4XX", NULL);
+//      nvgText( vg, -frame.origin.x,
+//                   frame.origin.y,
+//                   "XX5XX", NULL);
 
       [context endRender];
    }
@@ -102,8 +107,7 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
 }
 
 
-
-static void   printImage( UIWindow *window, CGContext *context)
+static void   printImage( UIWindow *window)
 {
    MulleTextureImage   *image;
    MulleBitmapImage    *bitmapImage;
@@ -113,10 +117,20 @@ static void   printImage( UIWindow *window, CGContext *context)
    // as possible, or until we can make it better...
    @autoreleasepool
    {
-      image       = textureImageWithSize( [[window contentPlane] frame].size, context, NVG_IMAGE_FLIPY);
-      bitmapImage = [image bitmapImage];                                                               
+      [window os_startRender];
+      image = textureImageWithSize( [[window contentPlane] frame].size,
+                                    [window context],
+                                    NVG_IMAGE_FLIPY);
+
+      assert( image);
+      bitmapImage = [image bitmapImage];
+      assert( bitmapImage);
       [bitmapImage writeToPNGFileWithSystemRepresentation:"fbo.png"];
-   }   
+
+      // need to keep the render until we write, otherwise the
+      // framebuffer is released and gone
+      [window os_endRender];
+   }
 }
 
 
@@ -126,35 +140,21 @@ static void   printImage( UIWindow *window, CGContext *context)
 
 int   main( int argc, char *argv[])
 {
-   CGContext                     *context;
-   UIWindow                      *window;
-   UIView                        *view;
-   MulleTextureImage             *image;
-   MulleBitmapImage              *bitmapImage;
-   CGSize                        windowSize;
+   UIWindow   *window;
 
    /*
-    * window and app 
+    * window and app
     */
    @autoreleasepool
    {
-      windowSize = CGSizeMake( 1280, 640);
-
-      context = [window createContext];
-      assert( ! context);  // can't work without a window
-
-      window = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 
-                                                            0.0, 
-                                                            windowSize.width, 
-                                                            windowSize.height)] autorelease];
+      window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 1280, 640)];
+      [window setBackgroundColor:MulleColorMake( 0xFF0000FF)];
       assert( window);
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
-
       // view is already nicely layouted
-      printImage( window, context);
+      printImage( window);
 
       [[UIApplication sharedInstance] terminate];
    }

@@ -5,6 +5,7 @@
 #import "MulleTextLayer.h"
 #import "UIView+UIResponder.h"
 #import "UIEdgeInsets.h"
+#import "CGGeometry+CString.h"
 
 // implemented by UIResponder protocol class, but mulle-clang can't figure
 // it out (yet)
@@ -75,7 +76,8 @@
    return( layer);
 }
 
-- (void) setupLayersWithFrame:(CGRect) frame
+
+- (void) setupLayersInRect:(CGRect) frame
 {
    Class   cls;
 
@@ -92,22 +94,29 @@
 
 
 - (instancetype) initWithLayer:(CALayer *) layer
+                         frame:(CGRect) frame
 {
-   CGRect         frame;
-   CGRect         textLayerFrame;
-   UIEdgeInsets   insets;
+   Class   cls;
+   CGRect  bounds;
 
-   self = [super initWithLayer:layer];
-   if( ! self)
-      return( self);
+   self = [super initWithLayer:layer
+                         frame:frame];
+   if( self)
+   {
+      cls = [self class];
 
-   // layout later
-   frame = [layer frame];
+      bounds.origin = CGPointZero;
+      bounds.size   = frame.size;
 
-   [self setupLayersWithFrame:frame];
-   [self layoutLayersWithFrame:frame];
-   [self hideUnhideTitleLayers];
+      [self setupLayersInRect:bounds];
+      _titleBackgroundLayer = [cls mulleTitleBackgroundLayerWithFrame:frame];
+      [_titleBackgroundLayer setDebugNameCString:"UIButton titleBackgroundLayer"];
+      [self addLayer:_titleBackgroundLayer];
 
+      _titleLayer = [cls titleLayerWithFrame:frame];
+      [_titleLayer setDebugNameCString:"UIButton titleLayer"];
+      [self addLayer:_titleLayer];
+   }
    return( self);
 }
 
@@ -120,21 +129,6 @@
 #endif
 
 
-- (void) hideUnhideTitleLayers
-{
-   char  *s;
-   BOOL   visible;
-
-   s = [_titleLayer cString];
-
-   visible = s && *s;
-
-   [_titleLayer setHidden:! visible];
-   [_titleBackgroundLayer setHidden:! visible];
-   [_titleLayer setCString:visible ? s : ""];
-}
-
-
 - (void) setTitleCString:(char *) s
 {
    [_titleLayer setCString:s];
@@ -144,6 +138,18 @@
 - (char *) titleCString
 {
    return( [_titleLayer cString]);
+}
+
+
+- (void) setContentHorizontalAlignment:(enum CATextLayerAlignmentMode) value
+{
+   [_titleLayer setAlignmentMode:value];
+}
+
+
+- (enum CATextLayerAlignmentMode) contentHorizontalAlignment
+{
+   return( [_titleLayer alignmentMode]);
 }
 
 
@@ -183,7 +189,7 @@
 // immediately. Note that Yoga is the layouting step and doing another
 // layouting is kinda weird.
 //
-- (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame
+- (CGRect) mulleInsetTextLayerFrameInRect:(CGRect) frame
 {
    UIEdgeInsets   insets;
    CGFloat        borderWidth;
@@ -198,50 +204,61 @@
 }
 
 
-- (void) layoutLayersWithFrame:(CGRect) frame
+- (void) hideUnhideTitleLayers
 {
+   char  *s;
+   BOOL   visible;
+
+   s = [_titleLayer cString];
+
+   visible = s && *s;
+
+   [_titleLayer setHidden:! visible];
+   [_titleBackgroundLayer setHidden:! visible];
+   [_titleLayer setCString:visible ? s : ""];
+}
+
+
+- (void) layoutLayers
+{
+   CGRect   bounds;
    CGRect   textLayerFrame;
 
-   textLayerFrame = [self mulleInsetTextLayerFrameWithFrame:frame];
+   bounds = [self bounds];
+
+   [_mainLayer setFrame:bounds];
+   [_titleBackgroundLayer setFrame:bounds];
+
+   textLayerFrame = [self mulleInsetTextLayerFrameInRect:bounds];
    [_titleLayer setFrame:textLayerFrame];
-   [_titleBackgroundLayer setFrame:frame];
+   [self hideUnhideTitleLayers];
 }
 
 
-- (void) setFrame:(CGRect) frame
-{
-   [super setFrame:frame];
-   assert( CGRectEqualToRect( [[self layer] frame], frame));
-   [self layoutLayersWithFrame:frame];
-}
-
-
-
+// TODO: reverse scale size or transformation
 - (CGSize) sizeThatFits:(CGSize) size
-                context:(CGContext *) context 
+                context:(CGContext *) context
 {
-   UIEdgeInsets       insets;
-   CGRect             rect;
-   CGFloat            borderWidth;
-   CGFloat            bounds[ 4];
+   CGSize    result;
+   CGFloat   borderWidth;
+   CALayer   *layer;
+   CGRect    frame;
 
-   borderWidth = [_titleBackgroundLayer borderWidth];
+   result        = [_titleLayer sizeThatFits:size
+                                     context:context];
+   borderWidth   = [_titleBackgroundLayer borderWidth];
+   result.width += borderWidth + 2 * TEXT_MARGIN;
+//   result.height += borderWidth + 2 * TEXT_MARGIN;
 
-   insets = UIEdgeInsetsMake( borderWidth / 2.0f + TEXT_MARGIN,
-                              borderWidth / 2.0f + TEXT_MARGIN,
-                              borderWidth / 2.0f + TEXT_MARGIN,
-                              borderWidth / 2.0f + TEXT_MARGIN);
+   layer = [self layer];
+   assert( layer);
+   frame = [layer frame];
+   assert( frame.size.height > 0.0);
+   result.height = frame.size.height;
 
-   [_titleLayer getFontTextBounds:bounds
-                           context:context];
-
-   rect.origin.x    = bounds[ 0];
-   rect.origin.y    = bounds[ 1];
-   rect.size.width  = bounds[ 2] - bounds[ 0];
-   rect.size.height = bounds[ 3] - bounds[ 1];
- 
-   rect = UIEdgeInsetsExtrudeRect( rect, insets);
-   return( rect.size);
+//   fprintf( stderr, "%s: %s\n",
+//                  __PRETTY_FUNCTION__, CGSizeCStringDescription( result));
+   return( result);
 }
 
 @end

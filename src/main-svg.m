@@ -21,9 +21,6 @@
 #include "Ghostscript_Tiger-svg.inc"
 
 
-// scale stuff for stream
-#define SCALE     2.0
-
 
 static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
 {
@@ -48,64 +45,27 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
    [tigerLayer setBorderWidth:32.0f];
    [tigerLayer setCornerRadius:16.0f];
 
-
    view = [[[UIView alloc] initWithLayer:tigerLayer] autorelease];
-   yoga = [view yoga];
-
-//   [yoga setMarginLeft:YGPercentValue( 5.0)];
-//   [yoga setMarginTop:YGPercentValue( 5.0)];
-   [yoga setEnabled:YES];
-   [yoga setWidth:YGPercentValue( 100.0)];
-   [yoga setHeight:YGPercentValue( 100.0)];
-   [view setNeedsLayout];
-
-   yoga = [contentPlane yoga];
-   [yoga setEnabled:YES];
-   [contentPlane setNeedsLayout];
-
+   [view setAutoresizingMask:MulleUIViewAutoresizingFlexible];
    [contentPlane addSubview:view];
 }
 
 
-int  main()
+int  main( int argc, char *argv[])
 {
-   CGContext       *context;
-   UIWindow        *window;
-   UIApplication   *application;
+   UIWindow   *window;
 
-      /*
-       * window and app
-       */
-   mulle_testallocator_initialize();
-   mulle_default_allocator = mulle_testallocator;
+   window  = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 640.0, 400.0)];
+   assert( window);
 
-   @autoreleasepool
-   {
-      window  = [[[UIWindow alloc] initWithFrame:CGRectMake( 0.0, 0.0, 320.0 * SCALE, 200.0 * SCALE)] autorelease];
-      assert( window);
+   [[UIApplication sharedInstance] addWindow:window];
 
-      [[UIApplication sharedInstance] addWindow:window];
+   setupSceneInContentPlane( [window contentPlane]);
 
-      setupSceneInContentPlane( [window contentPlane]);
+   [window dump];
+   [window renderLoop];
 
-      [window dump];
-
-      context = [window createContext];
-      [window renderLoopWithContext:context];
-
-      [[UIApplication sharedInstance] terminate];
-   }
-
-   /*
-      Hunt for leaks:
-
-      MULLE_OBJC_EPHEMERAL_SINGLETON=YES \
-      MULLE_OBJC_TRACE_INSTANCE=YES \
-      MULLE_OBJC_TRACE_METHOD_CALL=YES \
-      MULLE_TESTALLOCATOR_TRACE=2 \
-         ./kitchen/Debug/calculator
-   */
-
-   mulle_testallocator_reset();
-  }
+   [[UIApplication sharedInstance] terminate];
+   return( 0);
+}
 

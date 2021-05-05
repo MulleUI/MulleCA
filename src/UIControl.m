@@ -26,7 +26,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
 }
 
 
-- (UIEvent *) consumeMouseEventIfDisabled:(UIEvent *) event
+- (UIEvent *) consumeMouseEvent:(UIEvent *) event
 {
 	UIControlState   state;
 
@@ -53,7 +53,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    fprintf( stderr, "%s: %s\n", __PRETTY_FUNCTION__, [(UIView *) self cStringDescription]);
 #endif
 
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
 	   return( event);   
@@ -78,7 +78,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    fprintf( stderr, "%s: %s\n", __PRETTY_FUNCTION__, [(UIView *) self cStringDescription]);
 #endif
 
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
 	   return( event);   
@@ -122,7 +122,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    fprintf( stderr, "%s: %s\n", __PRETTY_FUNCTION__, [(UIView *) self cStringDescription]);
 #endif
 
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
    {
@@ -152,7 +152,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    // TODO: have a "consumeEvent" method instead, which checks for being
    //       disabled in UIControl. UIView will return event by default
    //       modal MulleWindowPlane might return nil if not hidden.. ??
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
 	   return( event);   
@@ -177,7 +177,7 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    // TODO: have a "consumeEvent" method instead, which checks for being
    //       disabled in UIControl. UIView will return event by default
    //       modal MulleWindowPlane might return nil if not hidden.. ??
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
 	   return( event);   
@@ -200,10 +200,10 @@ PROTOCOLCLASS_IMPLEMENTATION( UIControl)
    fprintf( stderr, "%s: %s\n", __PRETTY_FUNCTION__, [(UIView *) self cStringDescription]);
 #endif
 
-   // TODO: have a "consumeEvent" method instead, which checks for being
+   // TODO: have a "consumeEvent" method instead, which will checks for being
    //       disabled in UIControl. UIView will return event by default
    //       modal MulleWindowPlane might return nil if not hidden.. ??
-	event = [self consumeMouseEventIfDisabled:event];
+	event = [self consumeMouseEvent:event];
 	// event was handled if nil
 	if( ! event)
 	   return( event);   

@@ -13,8 +13,8 @@
    self = [super initWithFrame:frame];
    if( self)
       self->_maximumValue = 1.0;
-   [self setControlColor:MulleColorCreate( 0x000000FF)];
-   return( self);      
+   [self setControlColor:MulleColorMake( 0x000000FF)];
+   return( self);
 }
 
 
@@ -24,7 +24,7 @@
       value = _maximumValue;
    if( value < _minimumValue)
       value = _minimumValue;
- 
+
    _value = value; // use property setter to get future goodness ??
 }
 
@@ -55,7 +55,7 @@
 #define KNOB_OUTLINE  4.0
 #define SLOT_WIDTH    4.0
 
-- (CGFloat) knobRadiusWithFrame:(CGRect) frame 
+- (CGFloat) knobRadiusForRect:(CGRect) frame
 {
    if( frame.size.width >= frame.size.height)
       return( (int)(frame.size.height * 0.5f - KNOB_OUTLINE / 2));
@@ -64,12 +64,12 @@
 }
 
 
-- (CGRect) controlRectWithFrame:(CGRect) frame 
+- (CGRect) controlRectForRect:(CGRect) frame
 {
    CGRect    rect;
    CGFloat   kr;
 
-   kr   = [self knobRadiusWithFrame:frame];
+   kr   = [self knobRadiusForRect:frame];
 
    rect = MulleEdgeInsetsInsetRect( _controlInsets, frame);
 
@@ -88,9 +88,9 @@
 }
 
 
-- (BOOL) drawContentsInContext:(CGContext *) context
+- (void) drawInContext:(CGContext *) context
 {
-   CGRect              frame;
+   CGRect              canvas;
    CGRect              rect;
    NVGpaint            bg;
 	NVGpaint            knob;
@@ -98,8 +98,8 @@
    float               normalized;
 	float               centerX;   // relative vertical position (0.25 is first quarter, 0.5 is center)
 	float               centerY;   // relative vertical position (0.25 is first quarter, 0.5 is center)
-	float               kr;   // knob radius 
-   float               pos;  // knob position from 0.0 to 1.0 
+	float               kr;   // knob radius
+   float               pos;  // knob position from 0.0 to 1.0
    BOOL                isHorizontal;
 
    pos        = 0.0;
@@ -110,26 +110,26 @@
    // stupido protection
    assert( pos >= 0.0 && pos <= 1.0);
 
-   vg    = [context nvgContext];
-   frame = [self frame];
+   vg     = [context nvgContext];
+   canvas = [self canvas];
 
-   // knob radius 
-   kr    = [self knobRadiusWithFrame:frame];
-   // slider position from 0.0 to 1.0 
+   // knob radius
+   kr    = [self knobRadiusForRect:canvas];
+   // slider position from 0.0 to 1.0
 
    // Slot rect
-   rect    = [self controlRectWithFrame:frame];
- 	centerX = CGRectGetMidX( frame);
- 	centerY = CGRectGetMidY( frame);
+   rect    = [self controlRectForRect:canvas];
+ 	centerX = CGRectGetMidX( canvas);
+ 	centerY = CGRectGetMidY( canvas);
 
 	nvgBeginPath(vg);
 
-   isHorizontal = frame.size.width >= frame.size.height;
+   isHorizontal = canvas.size.width >= canvas.size.height;
    if(isHorizontal)
    	nvgRoundedRect(vg, rect.origin.x , centerY - SLOT_WIDTH / 2, rect.size.width, SLOT_WIDTH, 3);
    else
    	nvgRoundedRect(vg, centerX - SLOT_WIDTH / 2, rect.origin.y, SLOT_WIDTH, rect.size.height,  3);
-   
+
 	nvgFillColor(vg, [self controlColor]);
 	nvgFill(vg);
 
@@ -162,8 +162,6 @@
 	nvgStrokeColor(vg, [self backgroundColor]);
    nvgStrokeWidth( vg, KNOB_OUTLINE);
 	nvgStroke(vg);
-
-   return( NO);
 }
 
 @end

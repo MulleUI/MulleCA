@@ -43,7 +43,7 @@ int   main()
 
       [[UIApplication sharedInstance] addWindow:window];
 
-      context = [window createContext];
+      context = [window context];
       [context setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
 
       /* simple Button */
@@ -64,7 +64,7 @@ int   main()
 #if 0      
          [textView setTextOffset:CGPointMake( 80.0, 0.0)];
 #endif
-         // [insideButton setClipsSubviews:YES];
+         // [insideButton setClipsToBounds:YES];
          [contentView addSubview:textView];
       }
 
@@ -86,7 +86,7 @@ int   main()
 #endif
 
       [window dump];
-      [window renderLoopWithContext:context];
+      [window renderLoop];
 
       [[UIApplication sharedInstance] terminate];
    }

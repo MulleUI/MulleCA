@@ -53,12 +53,12 @@ static inline CGPoint   MulleRectGetCenter( CGRect rect)
 // MulleSize_CenterInRect lesbarer ?
 static inline CGPoint   MulleSizeGetCenterInRect( CGSize size, CGRect rect)
 {
-   CGPoint   origin;
+   CGPoint   center;
 
-   origin.x = CGRectGetMidX( rect) - size.width / 2.0;
-   origin.y = CGRectGetMidY( rect) - size.height / 2.0;
+   center.x = CGRectGetMidX( rect) - size.width / 2.0;
+   center.y = CGRectGetMidY( rect) - size.height / 2.0;
 
-   return( origin);
+   return( center);
 }
 
 CGFloat   MulleSizeGetAspectFitFactor( CGSize dstSize, CGSize srcSize);
@@ -83,8 +83,8 @@ CGRect   MulleSizeApplyContentModeInRect( CGSize size,
 // take frame and partition into 'n' equal sized rects and spaced apart rects
 // n must be >= 1.
 //
-void   MulleRectPartititonVertically( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
-void   MulleRectPartititonHorizontally( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
+void   MulleRectPartitionVertically( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
+void   MulleRectPartitionHorizontally( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
 
 
 //
@@ -222,7 +222,7 @@ enum MulleLayoutVerticalPlacement
    MulleLayoutPlacementUp            = 1,    // aligns bottom of rect with other top
    MulleLayoutPlacementDown          = 2,    // aligns top of rect with other bottom
    MulleLayoutPlacementMiddle        = 3,    // aligns middle (H) of rect with other middle
-   MulleLayoutPlacementTopAligned    = 4,    // aligns bottom of rect with other top
+   MulleLayoutPlacementTopAligned    = 4,    // aligns top of rect with other top
    MulleLayoutPlacementBottomAligned = 5,    // aligns bottom of rect with other top
 };
 
@@ -233,10 +233,12 @@ enum MulleLayoutHorizontalPlacement
    MulleLayoutPlacementRight         = 2,    // aligns left edge of rect with other right
    MulleLayoutPlacementCenter        = 3,    // aligns center (V) of rect with other center
    MulleLayoutPlacementLeftAligned   = 4,    // aligns left edge of rect with other left
-   MulleLayoutPlacementRightAligned  = 5    // aligns right edge of rect with other right
+   MulleLayoutPlacementRightAligned  = 5     // aligns right edge of rect with other right
 };
 
 typedef NSUInteger    MulleLayoutPlacement;
+
+#define _MulleLayoutPlacementMake( h, v)     ((NSUInteger) h << 4 | v)
 
 static inline  MulleLayoutPlacement
    MulleLayoutPlacementMake( enum MulleLayoutHorizontalPlacement h,
@@ -258,6 +260,9 @@ static inline enum MulleLayoutHorizontalPlacement
 }
 
 
+//
+// placement allows rect to keep current origin in one of the dimensions
+//
 static inline CGPoint   MullePlaceRectNextToRect( CGRect rect,
                                                   CGRect other,
                                                   MulleLayoutPlacement placement)

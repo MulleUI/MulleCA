@@ -6,6 +6,7 @@
 #import "import-private.h"
 
 #import "UIColor.h"
+#import "UIView+Layout.h"
 #import "CAShapeLayer.h"
 
 #define DISCLOSURE_WIDTH  24.0
@@ -76,35 +77,39 @@
 }
 
 
-- (void) setupLayersWithFrame:(CGRect) frame
+- (void) setupLayersInRect:(CGRect) bounds
 {
    CGRect   rect;
 
-   [super setupLayersWithFrame:frame];
+   [super setupLayersInRect:bounds];
 
-   rect.origin.x    = CGRectGetMaxX( frame) - DISCLOSURE_WIDTH;
-   rect.origin.y    = frame.origin.y;
+   rect.origin.x    = CGRectGetMaxX( bounds) - DISCLOSURE_WIDTH;
+   rect.origin.y    = bounds.origin.y;
    rect.size.width  = DISCLOSURE_WIDTH;
-   rect.size.height = frame.size.height;
-   _disclosureLayer = [self mulleDisclosureLayerWithFrame:frame];
+   rect.size.height = bounds.size.height;
+   _disclosureLayer = [self mulleDisclosureLayerWithFrame:rect];
 
    [self addLayer:_disclosureLayer];
 }
 
 
-- (CGRect) mulleInsetTextLayerFrameWithFrame:(CGRect) frame
+- (CGRect) mulleInsetTextLayerFrameInRect:(CGRect) frame
 {
    CGRect   rect;
 
-   rect = [super mulleInsetTextLayerFrameWithFrame:frame];
+   rect = [super mulleInsetTextLayerFrameInRect:frame];
    rect.size.width -= DISCLOSURE_WIDTH / 2.0;
    return( rect);
 }
 
 
-- (void) layoutLayersWithFrame:(CGRect) frame
+- (void) layoutLayers
 {
-   [super layoutLayersWithFrame:frame];
+   CGRect   frame;
+
+   [super layoutLayers];
+
+   frame = [self layoutRect];
 
    frame.origin.x   = CGRectGetMaxX( frame) - DISCLOSURE_WIDTH;
    frame.size.width = DISCLOSURE_WIDTH;

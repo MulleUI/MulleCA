@@ -94,7 +94,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
       // create a row view (transparent though)
       frame = CGRectMake( 0, 0, 0, 0);
       rowView  = [[[UIView alloc] initWithFrame:frame] autorelease];
-      [rowView setBackgroundColor:MulleColorCreateRandom( 0xFF0000FF, 0x00FFFF00)];
+      [rowView setBackgroundColor:MulleColorMakeRandom( 0xFF0000FF, 0x00FFFF00)];
 
       yoga = [rowView yoga];
       [yoga setEnabled:YES];
@@ -137,7 +137,7 @@ static void   setupSceneInContentPlane( MulleWindowPlane *contentPlane)
          // create actual views
          frame = CGRectMake( 0, 0, 0, 0);
          view  = [[[UIButton alloc] initWithFrame:frame] autorelease];
-         // [view setBackgroundColor:MulleColorCreateRandom( 0x00FF00FF, 0xFF00FF00)];
+         // [view setBackgroundColor:MulleColorMakeRandom( 0x00FF00FF, 0xFF00FF00)];
          sprintf( name, "%ld,%ld", j, i);
          [(UIButton *) view setTitleCString:name];
 
@@ -220,8 +220,8 @@ int  main()
 
       [window dump];
 
-      context = [window createContext];
-      [window renderLoopWithContext:context];
+      context = [window context];
+      [window renderLoop];
 
       [application terminate];
    }

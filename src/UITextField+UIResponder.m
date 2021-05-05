@@ -6,6 +6,7 @@
 #import "import-private.h"
 
 #import "UIEvent.h"
+#import "UIView+CALayer.h"
 #import "MulleTextLayer.h"
 #import "MulleTextLayer+Cursor.h"
 #import "MulleTextLayer+Selection.h"
@@ -92,8 +93,6 @@
 
 
 // consumeKeyDown handled by MulleKeyboardEventConsumer
-
-
 - (UIEvent *) consumeUnicodeCharacter:(UIEvent *) event
 {
    UIUnicodeEvent *unicodeEvent = (UIUnicodeEvent *) event;
@@ -111,12 +110,16 @@
 - (UIEvent *) consumeMouseDown:(UIEvent *) event
 {
    CGPoint   mouseLocation;
+   CGPoint   canvasLocation;
 
    mouseLocation = [event mouseLocationInView:self];
    fprintf( stderr, "b) %s\n", CGPointCStringDescription( mouseLocation));
 
-   [_titleLayer setCursorPositionToPoint:mouseLocation];
-   [_titleLayer startSelectionAtPoint:mouseLocation];
+   canvasLocation = [self convertPoint:mouseLocation 
+                               toLayer:_titleLayer];
+
+   [_titleLayer setCursorPositionToPoint:canvasLocation];
+   [_titleLayer startSelectionAtPoint:canvasLocation];
 
    return( nil);
 }
@@ -125,12 +128,15 @@
 - (UIEvent *) consumeMouseDragged:(UIEvent *) event
 {
    CGPoint                     mouseLocation;
+   CGPoint                     canvasLocation;
    struct MulleIntegerPoint    cursor;
 
-   mouseLocation = [event mouseLocationInView:self];
-   [_titleLayer adjustSelectionToPoint:mouseLocation];
+   mouseLocation  = [event mouseLocationInView:self];
+   canvasLocation = [self convertPoint:mouseLocation 
+                               toLayer:_titleLayer];   
+   [_titleLayer adjustSelectionToPoint:canvasLocation];
 
-   cursor = [_titleLayer cursorPositionForPoint:mouseLocation];
+   cursor = [_titleLayer cursorPositionForPoint:canvasLocation];
    [_titleLayer setCursorPosition:cursor];   
    return( nil);
 }

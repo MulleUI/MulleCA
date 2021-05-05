@@ -24,8 +24,8 @@
 {
    UIControlIvars;
 
-   UIScrollView   *_scrollView;
-   UIStackView    *_stackView;
+   UIScrollView     *_scrollView;
+   UIStackView      *_stackView;
 
    MulleMenuButton  *_clickedButton;
 }

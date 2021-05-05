@@ -138,7 +138,6 @@ struct MulleNVGPerformance
 struct MulleFrameInfo
 {
    CGRect        frame;
-   CGSize        windowSize;
    CGSize        framebufferSize;
    CGVector      UIScale;
    CGFloat       pixelRatio;
@@ -153,13 +152,12 @@ struct MulleFrameInfo
 // other textures around. Each frame is encloded in a
 // startRender and an endRender. frames can't be nested.
 //
-// A window can deal in theory with multiple contexts... 
-// The glfw window is necessary to the set the current OpenGL context. 
+// The glfw window is necessary to the set the current OpenGL context.
 // Therefore there is a 1:1 relationship between a context and a window. A
 // thread can have multiple contexts though. But each context needs to be
-// switched in and out. This is done with [UIWindow os_startRender]. The 
-// nanovg context is tied to the OpenGL context. Effectively you have to 
-// enclose drawing calls and OpenGL state calls with 
+// switched in and out. This is done with [UIWindow os_startRender]. The
+// nanovg context is tied to the OpenGL context. Effectively you have to
+// enclose drawing calls and OpenGL state calls with
 // os_startRender/os_endRender. This is locking, so that there is no
 // accidental switching.
 //
@@ -189,6 +187,7 @@ struct MulleFrameInfo
 
 
 - (CAAbsoluteTime) renderStartTimestamp;
+
 
 //
 // Maintain an internal mapping of image to textureID, the textureID is
