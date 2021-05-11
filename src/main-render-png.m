@@ -208,8 +208,8 @@ static void   printImage( UIWindow *window, CGContext *context)
 
    [window getFrameInfo:&info];
 
-   info.frame.size      =
    info.framebufferSize = [view frame].size;
+   info.size            = info.framebufferSize;
    info.UIScale.dx      = 1.0;
    info.UIScale.dy      = 1.0;
    info.pixelRatio      = 1.0; // difference framebuffer / window (egal)

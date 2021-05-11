@@ -34,7 +34,7 @@
    CALayer <MulleCursor>   *layer;
    CGFloat                  offset;
 
-   layer  = [self layerAtCursor];
+   layer  = (id) [self layerAtCursor];
    if(! layer)
       return( 0.0);
 
@@ -45,7 +45,7 @@
 
 - (NSUInteger) characterIndexForCursor:(struct MulleIntegerPoint) cursor
 {
-   CALayer < MulleCursor>           *layer;
+   MulleTextLayer < MulleCursor>    *layer;
    struct MulleTextLayerRowGlyphs   *p;
    NVGglyphPosition                 *glyph;
    struct MulleIntegerPoint         max;
@@ -256,7 +256,7 @@
 
    fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
 
-   layer    = [self layerAtCursor];
+   layer    = (id) [self layerAtCursor];
    row      = [self rowOfLayer:layer];
    pos.y   -= row;
    point    = [(MulleTextLayer *) layer pointOverCursorPosition:pos];
@@ -283,7 +283,7 @@
 
    fprintf( stderr, "read cursor: %lu/%lu\n", (long) pos.x, (long) pos.y);
 
-   layer    = [self layerAtCursor];
+   layer    = (id) [self layerAtCursor];
    row      = [self rowOfLayer:layer];
    pos.y   -= row;
    point    = [(MulleTextLayer *) layer pointUnderCursorPosition:pos];

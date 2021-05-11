@@ -16,6 +16,7 @@
 #import "CALayer.h"
 #import "CAShapeLayer.h"
 #import "CATime.h"
+#import "CATransaction.h"
 #import "CGAffineTransform+CString.h"
 #import "CGAffineTransform.h"
 #import "CGBase.h"

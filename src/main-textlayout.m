@@ -38,7 +38,7 @@ static void   demo( CGContext *context, CGRect rect, char *text, char *fontname,
    [layer mulleSetVerticalAlignmentMode:MulleTextVerticalAlignmentBottom]; // T
    frame.size = [layer sizeThatFits:CGSizeMake( INFINITY, INFINITY)
                          context:context];
-   frame.origin = MulleSizeGetCenterInRect( frame.size, rect);
+   frame.origin = MulleOriginOfSizeCenteredInRect( frame.size, rect);
    [layer setFrame:frame];
 
    if( ! CGRectEqualToRect( old[ i], frame))

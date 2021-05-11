@@ -33,7 +33,8 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
 
    memset( &renderInfo, 0, sizeof( renderInfo));
 
-   renderInfo.frame                  = frame;
+   renderInfo.size                   = frame.size;
+   renderInfo.viewportFrame          = CGRectMake( 0, 0, frame.size.width, frame.size.height);
    renderInfo.framebufferSize.width  = frame.size.width;
    renderInfo.framebufferSize.height = frame.size.height;
    renderInfo.UIScale                = CGVectorMake( 1, 1);
@@ -53,7 +54,7 @@ static MulleTextureImage   *textureImageWithSize( CGSize size, CGContext *contex
    nvgluBindFramebuffer( [image framebuffer]);
    @autoreleasepool
    {
-      [context startRenderWithFrameInfo:&renderInfo];
+      [context beginRenderWithFrameInfo:&renderInfo];
       [context clearFramebuffer];
 
       vg = [context nvgContext];

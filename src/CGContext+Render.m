@@ -10,15 +10,15 @@
 
 @implementation CGContext ( Render)
 
-- (void) renderLayers:(struct mulle_pointerarray *) layers
+- (void) renderObjects:(struct mulle_pointerarray *) objects
 {
    struct mulle_pointerarrayenumerator   rover;
-   CALayer                               *layer;
+   id <CGRenderObject>                   *obj;
 
-   rover = mulle_pointerarray_enumerate( layers);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &layer))
+   rover = mulle_pointerarray_enumerate( objects);
+   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &obj))
    {
-      [layer renderInContext:self];
+      [obj renderInContext:self];
    }
    mulle_pointerarrayenumerator_done( &rover);
 }

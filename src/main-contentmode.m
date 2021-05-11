@@ -102,7 +102,7 @@ void   setupSceneInContentPlane( MulleWindowPlane *plane)
    [plane addSubview:button];
 
 //   imageSize     = [image size];
-//   frame.origin  = MulleSizeGetCenterInRect( imageSize, frame);
+//   frame.origin  = MulleOriginOfSizeCenteredInRect( imageSize, frame);
 }
 
 

@@ -229,7 +229,7 @@ static char  geometryShaderSource[] =
 #define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
 
 
-- (void) startRenderWithFrameInfo:(struct MulleFrameInfo *) info
+- (void) beginRenderWithFrameInfo:(struct MulleFrameInfo *) info
 {
    double   t;
    GLint    value;
@@ -239,13 +239,13 @@ static char  geometryShaderSource[] =
    _currentFrameInfo = *info;
 
 #if RENDER_DEBUG
-   if( ! CGSizeEqualToSize( info->frame.size, info->framebufferSize) ||
-       ! CGSizeEqualToSize( info->frame.size, info->windowSize) ||
-       ! CGSizeEqualToSize( info->framebufferSize, info->windowSize))
-      fprintf( stderr, "Frame: %s, FB: %s, Window: %s\n",
-               CGSizeCStringDescription( info->frame.size),
+   if( ! CGSizeEqualToSize( info->viewportFrame.size, info->framebufferSize) ||
+       ! CGSizeEqualToSize( info->viewportFrame.size, info->size) ||
+       ! CGSizeEqualToSize( info->framebufferSize, info->size))
+      fprintf( stderr, "Viewport: %s, FB: %s, Window: %s\n",
+               CGSizeCStringDescription( info->viewportFrame.size),
                CGSizeCStringDescription( info->framebufferSize),
-               CGSizeCStringDescription( info->windowSize));
+               CGSizeCStringDescription( info->size));
 #endif
    _renderStartTimestamp = CAAbsoluteTimeNow();
    if( _renderStartTimestamp == 0.0)
@@ -273,28 +273,15 @@ static char  geometryShaderSource[] =
    }
    // < performance measurement
 
-   glViewport( 0, 0, info->frame.size.width, info->frame.size.height);
-   nvgBeginFrame( _vg, info->frame.size.width,
-                       info->frame.size.height,
+   glViewport( info->viewportFrame.origin.x,
+               info->viewportFrame.origin.y,
+               info->viewportFrame.size.width,
+               info->viewportFrame.size.height);
+   nvgBeginFrame( _vg, info->size.width,
+                       info->size.height,
                        info->pixelRatio);
    _isRendering = YES;
    _alpha       = 1.0;
-
-   nvgResetTransform( _vg);
-   nvgScissor( _vg, 0.0, 0.0, info->frame.size.width, info->frame.size.height);
-
-/*
-#if MULLE_UI_GLVERSION != MULLE_GLES2
-   {
-      struct GLNVGcontext   *vgl = (struct GLNVGcontext *) _vg;
-      unsigned int          program;
-      GLfloat               matrix[ 4][ 4];
-
-      program = vgl->shader.prog;
-      glUniform1f( glGetUniformLocation( program, "time", glfwGetTime());
-   }
-#endif
-*/
 }
 
 
@@ -525,6 +512,5 @@ static char  geometryShaderSource[] =
    mulle_pointerarray_destroy( _framebufferImages);
    _framebufferImages = NULL;
 }
-
 
 @end
