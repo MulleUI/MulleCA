@@ -20,6 +20,7 @@
 #include "CATime.h"
 #include "nanoperf.h"
 
+// UNUSED:
 typedef enum
 {
 //  CG Drawing Bitfield   |STROKE|   |FILL  |   |EO    |
@@ -31,7 +32,7 @@ typedef enum
 } CGPathDrawingMode;
 // clang-format on
 
-
+// UNUSED:
 typedef enum
 {
     kCGInterpolationDefault = 0,
@@ -41,6 +42,7 @@ typedef enum
     kCGInterpolationHigh = 3
 } CGInterpolationQuality;
 
+// UNUSED:
 typedef enum
 {
     // Each of these constants has a Facility and a Facility Value, documented below.
@@ -99,15 +101,17 @@ typedef enum
 } CGBlendMode;
 
 // clang-format off
+
+// UNUSED:
 typedef enum {
 //  CG Drawing Bitfield     |FILL  |   |STROKE|   |CLIP  |
-    kCGTextInvisible = 0,
-    kCGTextFill =           (1 << 0),
-    kCGTextStroke =                    (1 << 1),
-    kCGTextFillStroke =     (1 << 0) | (1 << 1),
-    kCGTextClip =                                 (1 << 2),
-    kCGTextFillClip =       (1 << 0) |            (1 << 2),
-    kCGTextStrokeClip =                (1 << 1) | (1 << 2),
+    kCGTextInvisible      = 0,
+    kCGTextFill           = (1 << 0),
+    kCGTextStroke         =            (1 << 1),
+    kCGTextFillStroke     = (1 << 0) | (1 << 1),
+    kCGTextClip           =                       (1 << 2),
+    kCGTextFillClip       = (1 << 0) |            (1 << 2),
+    kCGTextStrokeClip     =            (1 << 1) | (1 << 2),
     kCGTextFillStrokeClip = (1 << 0) | (1 << 1) | (1 << 2)
 } CGTextDrawingMode;
 // clang-format on
@@ -137,8 +141,9 @@ struct MulleNVGPerformance
 
 struct MulleFrameInfo
 {
-   CGRect        frame;
-   CGSize        framebufferSize;
+   CGSize        size;             // window coordinates size
+   CGSize        framebufferSize;  // actual pixels (frameSize * pixelRatio)
+   CGRect        viewportFrame;    // used for the viewport (use: 0, 0, frameSize)
    CGVector      UIScale;
    CGFloat       pixelRatio;
    NSUInteger    renderFrame;      // current frame nr (can wrap)
@@ -181,7 +186,7 @@ struct MulleFrameInfo
 
 - (struct NVGcontext *) nvgContext;
 
-- (void) startRenderWithFrameInfo:(struct MulleFrameInfo *) info;
+- (void) beginRenderWithFrameInfo:(struct MulleFrameInfo *) info;
 - (void) endRender;
 - (void) resetTransform;
 
@@ -223,6 +228,8 @@ static inline void   CGContextSetAlpha( CGContextRef self, CGFloat alpha)
 }
 
 
+// Most of these can be easily implemented with nvg, but currently I have
+// no need and rather spend the time elsewhere
 #if 0
 void CGContextFlush(CGContextRef c);
 void CGContextRelease(CGContextRef c);

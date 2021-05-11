@@ -311,7 +311,7 @@ static void   drawStuff( CALayer *layer, CGContext *context)
       nvgStroke( vg);
 
       rect.size   = CGSizeMake( 150, 150);
-      rect.origin = MulleSizeGetCenterInRect( rect.size, columns[ i]);
+      rect.origin = MulleOriginOfSizeCenteredInRect( rect.size, columns[ i]);
       rect        = CGRectIntegral( rect);
 
       if( i & 1)

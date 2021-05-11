@@ -95,8 +95,8 @@ static void   willAnimateCallback( UIWindow *window,
    static CAAbsoluteTime   last;
    NSUInteger              i, n;
    char                    *s;
-   CGFloat                 bounds[4];
-   CGContext              *context;
+   CGRect                  bounds;
+   CGContext               *context;
 
    context = [window context];
    plane   = [window contentPlane];
@@ -111,8 +111,7 @@ static void   willAnimateCallback( UIWindow *window,
       label = (UILabel *) views[ i];
       if( [label debugNameCString] && *[label debugNameCString] == 'i')
       {
-         [one getFontTextBounds:bounds
-                        context:context];
+         bounds = [one fontTextBoundsWithContext:context];
 
          s = MulleObjC_asprintf( "H Align   : %s\n"
                                  "V Align   : %s\n"
@@ -126,8 +125,8 @@ static void   willAnimateCallback( UIWindow *window,
                [one fontAscender],
                [one fontDescender],
                [one fontLineHeight],
-               bounds[ 1],
-               bounds[ 3]);
+               CGRectGetMinY( bounds),
+               CGRectGetMaxY( bounds));
 
          [label setCString:s];
          continue;

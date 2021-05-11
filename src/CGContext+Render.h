@@ -12,14 +12,21 @@
 #import "import.h"
 
 
+@protocol CGRenderObject
+
+- (void) renderInContext:(CGContext *) context;
+
+@end
+
+
 @interface CGContext( Render)
 
-
-// the layers to render. 
-// will be rendered front to back, layers must have their transform setup
-// already.
-// The layers will *NOT* be retained. The layers array will not be copied.
 //
-- (void) renderLayers:(struct mulle_pointerarray *) layers;
+// The CGRenderObjects to render.
+// They will be rendered front (0) to back (n).
+// The objects will *NOT* be retained. The objects array will not be copied or
+// kept.
+//
+- (void) renderObjects:(struct mulle_pointerarray *) layers;
 
 @end

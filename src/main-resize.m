@@ -80,7 +80,7 @@ static void   didRenderCallback( UIWindow *window,
    vg = MulleContextGetNVGContext( [window context]);
 
    rect.origin = CGPointZero;
-   rect.size   = info->frame.size;
+   rect.size   = info->size;
 
    depth = 1;
    for(;;)

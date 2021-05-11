@@ -5,6 +5,34 @@
 #include <assert.h>
 
 
+MulleQuadratic   MulleQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
+{
+   MulleQuadratic   quadratic;
+
+   switch( curvetype)
+   {
+   case CAAnimationCurveEaseInOut:
+      MulleQuadraticInit( &quadratic, 0.0, 0.025, 1.0 - 0.025, 1.0);
+      break;
+
+   case CAAnimationCurveEaseOut:
+      MulleQuadraticInit( &quadratic, 0.0, 0.9, 0.9, 1.0);
+      break;
+
+   case CAAnimationCurveEaseIn:
+      MulleQuadraticInit( &quadratic, 0.0, 0.0, 0.1, 1.0);
+      break;
+
+   default :
+      MulleQuadraticInit( &quadratic, 0.0, 0.333, 0.666, 1.0);
+      break;
+   }
+
+   return( quadratic);
+}
+
+
+
 @implementation CAAnimation
 
 static const struct CAAnimationOptions   CAAnimationDefaultOptions =
@@ -153,6 +181,23 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 
 
 - (id) initWithPropertySetter:(SEL) propertySetter
+                   startRange:(NSRange) start
+                     endRange:(NSRange) end
+                      options:(struct CAAnimationOptions *) options;
+{
+   struct CAAnimationValueRange  range;
+
+   range.start.range = start;
+   range.end.range   = end;
+   return( [self initWithPropertySetter:propertySetter
+                              valueType:CAAnimationValueNSRange
+                             valueRange:&range
+                            repeatStart:range.start
+                                options:options]);
+}
+
+
+- (id) initWithPropertySetter:(SEL) propertySetter
             startIntegerValue:(NSInteger) start
               endIntegerValue:(NSInteger) end
                       options:(struct CAAnimationOptions *) options;
@@ -212,6 +257,10 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 }
 
 
+//
+// this is called by the layer (ahem) animatableObject
+// which does the animation now
+//
 - (void) animateObject:(id) object
 normalizedRelativeTime:(double) x
 {
@@ -234,6 +283,28 @@ normalizedRelativeTime:(double) x
    case CAAnimationValueNSInteger :
       value.integerValue = round( (self->_end.integerValue - self->_start.integerValue) * x + self->_start.integerValue);
       mulle_objc_object_call( object, self->_propertySetter, (void *) value.integerValue);
+      break;
+
+   case CAAnimationValueNSRange :
+      // tricky coz its unsigned
+      // is the location moving down ?
+      //
+      // also tricky as we may not accidentally round up too much
+      //
+      if( self->_start.range.location > self->_end.range.location)
+         value.range.location = self->_start.range.location - floor( (self->_start.range.location - self->_end.range.location) * x);
+      else
+         value.range.location = self->_start.range.location + floor( (self->_end.range.location - self->_start.range.location) * x);
+      if( self->_start.range.length > self->_end.range.length)
+         value.range.length = self->_start.range.length - floor( (self->_start.range.length - self->_end.range.length) * x);
+      else
+         value.range.length = self->_start.range.length + floor( (self->_end.range.length - self->_start.range.length) * x);
+      {
+         mulle_metaabi_struct_void_return( NSRange)   param;
+
+         param.p = value.range;
+         mulle_objc_object_call( object, self->_propertySetter, &param);
+      }
       break;
 
    case CAAnimationValueCGFloat :
@@ -313,12 +384,13 @@ normalizedRelativeTime:(double) x
    }
 }
 
+
 - (void) animateObject:(id) object
           absoluteTime:(CAAbsoluteTime) now
 {
    CGFloat          x;
    CGFloat          t;
-   CAAbsoluteTime   delay;
+   CAAbsoluteTime   diff;
 
    if( self->_bits & CAAnimationEnded)
       return;
@@ -347,9 +419,9 @@ normalizedRelativeTime:(double) x
    if( now >= self->_absolute.end)
       now = self->_absolute.end;
 
-   delay = CATimeSubtract( now, self->_absolute.start);
-   t     = delay / self->_relative.duration;
-   x     = MulleQuadraticGetValueForNormalizedDistance( &self->_quadratic, t);
+   diff = CATimeSubtract( now, self->_absolute.start);
+   t    = diff / self->_relative.duration;
+   x    = MulleQuadraticGetValueForNormalizedDistance( &self->_quadratic, t);
 
    if( self->_repeatCount > 0.0)
    {
@@ -363,6 +435,7 @@ normalizedRelativeTime:(double) x
    [self animateObject:object
 normalizedRelativeTime:x];
 
+   // not yet done ?
    if( now != self->_absolute.end)
       return;
 

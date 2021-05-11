@@ -85,6 +85,6 @@ typedef enum UITextAlignment
 // the ascender is lineHeight - baseLiney
 - (CGFloat) fontLineHeight;
 - (CGFloat) fontBaseline;
-- (void) getFontTextBounds:(CGFloat [4]) bounds;
+- (CGRect) textBounds;
 
 @end

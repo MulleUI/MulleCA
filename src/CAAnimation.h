@@ -6,6 +6,19 @@
 #import "CATime.h"
 #import "MulleEdgeInsets.h"
 
+
+enum CAAnimationCurve
+{
+   CAAnimationCurveEaseInOut,
+   CAAnimationCurveEaseIn,
+   CAAnimationCurveEaseOut,
+   CAAnimationCurveLinear
+};
+
+
+MulleQuadratic   MulleQuadraticForAnimationCurve( enum CAAnimationCurve curvetype);
+
+
 enum CAAnimationBits
 {
    CAAnimationStarted     = 0x1,
@@ -30,8 +43,9 @@ enum CAAnimationBits
 union CAAnimationValue
 {
    BOOL              boolValue;        // 0 1
-   NSInteger         integerValue;     // 32 or 64 bit integer
-   CGFloat           floatValue;       // 32  bit float usually
+   NSInteger         integerValue;     // a 32 or 64 bit integer
+   NSRange           range;            // two 32 or 64 bit integers
+   CGFloat           floatValue;       // a 32 bit float usually
    CGColorRef        color;            // four floats
    CGPoint           point;            // two floats
    CGSize            size;             // two floats
@@ -92,6 +106,7 @@ enum CAAnimationValueType
    CAAnimationValueUndefined,
    CAAnimationValueBOOL,
    CAAnimationValueNSInteger,
+   CAAnimationValueNSRange,
    CAAnimationValueCGFloat,
    CAAnimationValueCGColorRef,
    CAAnimationValueCGPoint,
@@ -134,13 +149,20 @@ struct CAAnimationOptions
 @end
 
 
+@protocol CAAnimatableObject
+
+- (void) animateWithAbsoluteTime:(CAAbsoluteTime) time;
+
+@end
+
 
 //
 // TODO: interpolating RGB is easy, but not necessarily very nice looking.
 //       Possibly implement http://labs.adamluptak.com/javascript-color-blending/
 //       though it is costly
 //       HSV seems like a cheaper and probably more gainly alternative
-@interface CAAnimation : NSObject
+//
+@interface CAAnimation : NSObject <NSCopying>
 {
    struct CARelativeTimeRange   _relative;  // delay, copied from initialRenderdelay
    enum CAAnimationValueType    _valueType;
@@ -164,6 +186,7 @@ struct CAAnimationOptions
 
 //
 // You can reuse an existing CAAnimation by calling init again
+// Could/maybe should generalize this with NSValue ?
 //
 - (id) initWithPropertySetter:(SEL) propertySetter
                     valueType:(enum CAAnimationValueType) type
@@ -199,6 +222,11 @@ struct CAAnimationOptions
 - (id) initWithPropertySetter:(SEL) propertySetter
               startFloatValue:(CGFloat) start
                 endFloatValue:(CGFloat) end
+                      options:(struct CAAnimationOptions *) options;
+
+- (id) initWithPropertySetter:(SEL) propertySetter
+                   startRange:(NSRange) start
+                     endRange:(NSRange) end
                       options:(struct CAAnimationOptions *) options;
 
 - (id) initWithPropertySetter:(SEL) propertySetter

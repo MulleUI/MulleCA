@@ -51,7 +51,7 @@ static inline CGPoint   MulleRectGetCenter( CGRect rect)
 }
 
 // MulleSize_CenterInRect lesbarer ?
-static inline CGPoint   MulleSizeGetCenterInRect( CGSize size, CGRect rect)
+static inline CGPoint   MulleOriginOfSizeCenteredInRect( CGSize size, CGRect rect)
 {
    CGPoint   center;
 
@@ -75,7 +75,6 @@ CGRect   MulleSizeApplyContentModeInRect( CGSize size,
                                           UIViewContentMode contentMode,
                                           CGRect rect);
 
-
 //void   MulleRectSplitVertically( CGRect frame, CGRect *frame1, CGRect *frame2)
 //void   MulleRectSplitHorizontally( CGRect frame, CGRect *frame1, CGRect *frame2);
 
@@ -85,6 +84,29 @@ CGRect   MulleSizeApplyContentModeInRect( CGSize size,
 //
 void   MulleRectPartitionVertically( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
 void   MulleRectPartitionHorizontally( CGRect frame, NSUInteger n, CGRect *rects, CGFloat space);
+
+
+static inline CGRect   MulleRectCenterInRect( CGRect rect, CGRect otherRect)
+{
+   return( MulleSizeApplyContentModeInRect( rect.size, UIViewContentModeCenter, otherRect));
+}
+
+
+// so adjust x, so that centers align
+static inline CGRect   MulleRectAlignCenterInColumn( CGRect rect,
+                                                     CGPoint otherCenter)
+{
+   rect.origin.x += otherCenter.x - CGRectGetMidX( rect);
+   return( rect);
+}
+
+
+static inline CGRect   MulleRectAlignCenterInRow( CGRect rect,
+                                                  CGPoint otherCenter)
+{
+   rect.origin.y += otherCenter.y - CGRectGetMidY( rect);
+   return( rect);
+}
 
 
 //
@@ -191,23 +213,6 @@ CGRect   _MulleLayoutAddToRow( struct MulleLayout *p,
 CGRect   _MulleLayoutAddToRowWithOverflow( struct MulleLayout *p,
                                            CGSize size,
                                            MulleEdgeInsets margins);
-
-
-// so adjust x, so that centers align
-static inline CGRect   MulleRectAlignCenterInColumn( CGRect rect,
-                                                     CGPoint otherCenter)
-{
-   rect.origin.x += otherCenter.x - CGRectGetMidX( rect);
-   return( rect);
-}
-
-
-static inline CGRect   MulleRectAlignCenterInRow( CGRect rect,
-                                                  CGPoint otherCenter)
-{
-   rect.origin.y += otherCenter.y - CGRectGetMidY( rect);
-   return( rect);
-}
 
 
 //
