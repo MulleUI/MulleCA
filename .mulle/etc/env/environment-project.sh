@@ -1,31 +1,7 @@
 #
 #
 #
-export PROJECT_NAME="MulleUI"
-
-
-#
-#
-#
-export PROJECT_C_NAME="MulleUI"
-
-
-#
-#
-#
-export PROJECT_IDENTIFIER="MulleUI"
-
-
-#
-#
-#
-export PROJECT_DOWNCASE_IDENTIFIER="mulle_ui"
-
-
-#
-#
-#
-export PROJECT_UPCASE_IDENTIFIER="MULLE_UI"
+export PROJECT_NAME="MulleCA"
 
 
 #

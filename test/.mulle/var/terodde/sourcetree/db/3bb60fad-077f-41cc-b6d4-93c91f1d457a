@@ -1,0 +1,4 @@
+mulle-vararg;symlink;no-all-load,no-cmake-searchpath,no-import,no-singlephase;3bb60fad-077f-41cc-b6d4-93c91f1d457a;${MULLE_VARARG_URL:-https://github.com/mulle-c/mulle-vararg/archive/${MULLE_TAG}.tar.gz};${MULLE_VARARG_BRANCH};${MULLE_VARARG_TAG:-latest};;
+/stash/mulle-objc-runtime/
+/home/src/srcO/MulleCA/test/stash/mulle-vararg
+https://github.com/mulle-c/mulle-vararg/archive/latest.tar.gz

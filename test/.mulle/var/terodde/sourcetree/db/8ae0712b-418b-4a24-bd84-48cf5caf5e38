@@ -1,0 +1,4 @@
+mulle-concurrent;symlink;no-all-load,no-cmake-searchpath,no-import,no-singlephase;8ae0712b-418b-4a24-bd84-48cf5caf5e38;${MULLE_CONCURRENT_URL:-https://github.com/mulle-concurrent/mulle-concurrent/archive/${MULLE_TAG}.tar.gz};${MULLE_CONCURRENT_BRANCH};${MULLE_CONCURRENT_TAG:-latest};;
+/stash/mulle-objc-runtime/
+/home/src/srcO/MulleCA/test/stash/mulle-concurrent
+https://github.com/mulle-concurrent/mulle-concurrent/archive/latest.tar.gz

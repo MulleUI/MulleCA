@@ -5,8 +5,7 @@
 
 #import "import-private.h"
 
-#import "CALayer.h"
-#import "CALayer+CAAnimation.h"
+#import "CAAnimation.h"
 
 
 @implementation CATransaction

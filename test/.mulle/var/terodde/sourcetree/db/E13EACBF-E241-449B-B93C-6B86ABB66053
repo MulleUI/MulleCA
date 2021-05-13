@@ -1,0 +1,4 @@
+MulleObjC;symlink;;E13EACBF-E241-449B-B93C-6B86ABB66053;${MULLE_OBJC_URL:-https://github.com/mulle-objc/MulleObjC/archive/latest.tar.gz};${MULLE_OBJC_BRANCH:-};${MULLE_OBJC_TAG:-};;
+/stash/MulleCA/
+/home/src/srcO/MulleCA/test/stash/MulleObjC
+https://github.com/mulle-objc/MulleObjC/archive/latest.tar.gz

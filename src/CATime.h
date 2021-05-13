@@ -1,10 +1,11 @@
 #ifndef CA_TIME_H__
 #define CA_TIME_H__
+
 #include "include.h"
 
-#include <time.h>
 
-typedef double    CARelativeTime;
+typedef double   CARelativeTime;
+
 
 static inline void   CARelativeTimeInit( CARelativeTime *p, double value)
 {
@@ -19,14 +20,16 @@ struct CARelativeTimeRange
    CARelativeTime   duration;
 };
 
-static inline struct CARelativeTimeRange   
-   CARelativeTimeRangeMake( CARelativeTime delay, CARelativeTime duration) 
+
+static inline struct CARelativeTimeRange
+   CARelativeTimeRangeMake( CARelativeTime delay, CARelativeTime duration)
 {
     struct CARelativeTimeRange result = { delay, duration };
     return result;
 }
 
-static inline void   CARelativeTimeRangeInit( struct CARelativeTimeRange *p, 
+
+static inline void   CARelativeTimeRangeInit( struct CARelativeTimeRange *p,
                                               CARelativeTime delay,
                                               CARelativeTime duration)
 {
@@ -38,7 +41,7 @@ static inline void   CARelativeTimeRangeInit( struct CARelativeTimeRange *p,
 }
 
 
-typedef double    CAAbsoluteTime;
+typedef mulle_timeinterval_t   CAAbsoluteTime;
 
 
 static inline void   CAAbsoluteTimeInit( CAAbsoluteTime *p, double value)
@@ -53,14 +56,14 @@ struct CAAbsoluteTimeRange
    CAAbsoluteTime   end;
 };
 
-static inline struct CAAbsoluteTimeRange   
-   CAAbsoluteTimeRangeMake( CAAbsoluteTime start, CAAbsoluteTime end) 
+static inline struct CAAbsoluteTimeRange
+   CAAbsoluteTimeRangeMake( CAAbsoluteTime start, CAAbsoluteTime end)
 {
     struct CAAbsoluteTimeRange result = { start, end };
     return result;
 }
 
-static inline void   CAAbsoluteTimeRangeInit( struct CAAbsoluteTimeRange *p, 
+static inline void   CAAbsoluteTimeRangeInit( struct CAAbsoluteTimeRange *p,
                                               CAAbsoluteTime start,
                                               CAAbsoluteTime end)
 {
@@ -72,27 +75,26 @@ static inline void   CAAbsoluteTimeRangeInit( struct CAAbsoluteTimeRange *p,
 }
 
 
-#ifndef NS_IN_S
-# define NS_IN_S (1000*1000*1000)
-#endif
-
 static inline CAAbsoluteTime   CAAbsoluteTimeWithTimespec( struct timespec a)
 {
-   return( a.tv_sec + a.tv_nsec / (double) NS_IN_S);
+   return( a.tv_sec + a.tv_nsec / (double) (1000*1000*1000));
 }
 
 
-CAAbsoluteTime  CAAbsoluteTimeNow( void);
+static inline CAAbsoluteTime  CAAbsoluteTimeNow( void)
+{
+   return( mulle_timeinterval_now());
+}
 
 
 static inline CAAbsoluteTime   CAAbsoluteTimeWithSecondsAndNanoseconds( int tv_sec, long tv_nsec)
 {
-   return( tv_sec + tv_nsec / (double) NS_IN_S);
+   return( tv_sec + tv_nsec / (double) (1000*1000*1000));
 }
 
 static inline CARelativeTime   CARelativeTimeWithSecondsAndNanoseconds( int tv_sec, long tv_nsec)
 {
-   return( tv_sec + tv_nsec / (double) NS_IN_S);
+   return( tv_sec + tv_nsec / (double) (1000*1000*1000));
 }
 
 
@@ -108,4 +110,4 @@ static inline double   CATimeSubtract( double a, double b)
    return( a - b);
 }
 
-#endif 
+#endif

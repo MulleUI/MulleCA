@@ -1,35 +1,10 @@
+#define _GNU_SOURCE
+
 #import "CAAnimation.h"
 
 #import "import-private.h"
 
 #include <assert.h>
-
-
-MulleQuadratic   MulleQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
-{
-   MulleQuadratic   quadratic;
-
-   switch( curvetype)
-   {
-   case CAAnimationCurveEaseInOut:
-      MulleQuadraticInit( &quadratic, 0.0, 0.025, 1.0 - 0.025, 1.0);
-      break;
-
-   case CAAnimationCurveEaseOut:
-      MulleQuadraticInit( &quadratic, 0.0, 0.9, 0.9, 1.0);
-      break;
-
-   case CAAnimationCurveEaseIn:
-      MulleQuadraticInit( &quadratic, 0.0, 0.0, 0.1, 1.0);
-      break;
-
-   default :
-      MulleQuadraticInit( &quadratic, 0.0, 0.333, 0.666, 1.0);
-      break;
-   }
-
-   return( quadratic);
-}
 
 
 
@@ -39,16 +14,11 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 {
    { 0, 1 },      // 1 second starting immediately
    1.0,
-   { 0.0, 0.333, 0.666, 1.0 },  // linear as default
    0
 };
 
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    valueType:(enum CAAnimationValueType) type
-                   valueRange:(struct CAAnimationValueRange *) range
-                  repeatStart:(union CAAnimationValue) repeatStart
-                      options:(struct CAAnimationOptions *) options
+- (id) initWithOptions:(struct CAAnimationOptions *) options
 {
    // no need for super coz NSObject based
    if( ! options)
@@ -63,16 +33,9 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
       return( nil);
    }
 
-   self->_relative       = options->timeRange;
-   self->_bits           = options->bits & ~0xFFFF;  // mask off our internal state bits
-   self->_propertySetter = propertySetter;
+   self->_relative            = options->timeRange;
+   self->_bits                = options->bits & ~0xFFFF;  // mask off our internal state bits
 
-   self->_quadratic      = options->curve;
-
-   self->_valueType           = type;
-   self->_start               = range->start;
-   self->_end                 = range->end;
-   self->_repeatStart         = repeatStart;
    self->_repeatCount         = options->repeatCount;
    // only used for reset
    self->_originalRepeatCount = self->_repeatCount;
@@ -80,174 +43,18 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
    return( self);
 }
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                   startColor:(CGColorRef) start
-                     endColor:(CGColorRef) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
 
-   range.start.color = start;
-   range.end.color   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueCGColorRef
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    startRect:(CGRect) start
-                      endRect:(CGRect) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.rect = start;
-   range.end.rect   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueCGRect
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-              startEdgeInsets:(MulleEdgeInsets) start
-                endEdgeInsets:(MulleEdgeInsets) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.insets = start;
-   range.end.insets   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueEdgeInsets
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    startSize:(CGSize) start
-                      endSize:(CGSize) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.size = start;
-   range.end.size   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueCGSize
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-                   startPoint:(CGPoint) start
-                     endPoint:(CGPoint) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.point = start;
-   range.end.point   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueCGPoint
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-              startFloatValue:(CGFloat) start
-                endFloatValue:(CGFloat) end
-                      options:(struct CAAnimationOptions *) options
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.floatValue = start;
-   range.end.floatValue   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueCGFloat
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-                   startRange:(NSRange) start
-                     endRange:(NSRange) end
-                      options:(struct CAAnimationOptions *) options;
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.range = start;
-   range.end.range   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueNSRange
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-            startIntegerValue:(NSInteger) start
-              endIntegerValue:(NSInteger) end
-                      options:(struct CAAnimationOptions *) options;
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.integerValue = start;
-   range.end.integerValue   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueNSInteger
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
-
-- (id) initWithPropertySetter:(SEL) propertySetter
-               startBOOLValue:(BOOL) start
-                 endBOOLValue:(BOOL) end
-                      options:(struct CAAnimationOptions *) options;
-{
-   struct CAAnimationValueRange  range;
-
-   range.start.boolValue = start;
-   range.end.boolValue   = end;
-   return( [self initWithPropertySetter:propertySetter
-                              valueType:CAAnimationValueBOOL
-                             valueRange:&range
-                            repeatStart:range.start
-                                options:options]);
-}
 
 - (void) reverse
 {
-   union CAAnimationValue     tmp;
-
    self->_relative.delay = 0.0;
 
-   tmp          = self->_start;
-   self->_start = self->_end;
-   self->_end   = tmp;
-   if( self->_bits & CAAnimationHasReversed)
+   if( ! (self->_bits & CAAnimationHasReversed))
    {
-      self->_end = tmp;
-   }
-   else
-   {
-      self->_end   = self->_repeatStart;
       self->_bits |= CAAnimationHasReversed;
    }
 }
+
 
 - (void) reset
 {
@@ -263,125 +70,10 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 //
 - (void) animateObject:(id) object
 normalizedRelativeTime:(double) x
+           elapsedTime:(CARelativeTime) elapsed
 {
-   union CAAnimationValue   value;
-
-   assert( x >= 0.0);
-   assert( x <= 1.0);
-   assert( object);
-
-   switch( self->_valueType)
-   {
-   case CAAnimationValueUndefined :
-      abort();
-
-   case CAAnimationValueBOOL :
-      value.boolValue = round( (self->_end.boolValue - self->_start.boolValue) * x + self->_start.boolValue);
-      mulle_objc_object_call( object, self->_propertySetter, (void *) (intptr_t) value.boolValue);
-      break;
-
-   case CAAnimationValueNSInteger :
-      value.integerValue = round( (self->_end.integerValue - self->_start.integerValue) * x + self->_start.integerValue);
-      mulle_objc_object_call( object, self->_propertySetter, (void *) value.integerValue);
-      break;
-
-   case CAAnimationValueNSRange :
-      // tricky coz its unsigned
-      // is the location moving down ?
-      //
-      // also tricky as we may not accidentally round up too much
-      //
-      if( self->_start.range.location > self->_end.range.location)
-         value.range.location = self->_start.range.location - floor( (self->_start.range.location - self->_end.range.location) * x);
-      else
-         value.range.location = self->_start.range.location + floor( (self->_end.range.location - self->_start.range.location) * x);
-      if( self->_start.range.length > self->_end.range.length)
-         value.range.length = self->_start.range.length - floor( (self->_start.range.length - self->_end.range.length) * x);
-      else
-         value.range.length = self->_start.range.length + floor( (self->_end.range.length - self->_start.range.length) * x);
-      {
-         mulle_metaabi_struct_void_return( NSRange)   param;
-
-         param.p = value.range;
-         mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueCGFloat :
-      value.floatValue = (self->_end.floatValue - self->_start.floatValue) * x + self->_start.floatValue;
-      {
-         mulle_metaabi_struct_void_return( float)   param;
-
-         param.p = value.floatValue;
-         mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueCGColorRef :
-      value.color.r = (self->_end.color.r - self->_start.color.r) * x + self->_start.color.r;
-      value.color.g = (self->_end.color.g - self->_start.color.g) * x + self->_start.color.g;
-      value.color.b = (self->_end.color.b - self->_start.color.b) * x + self->_start.color.b;
-      value.color.a = (self->_end.color.a - self->_start.color.a) * x + self->_start.color.a;
-
-      {
-         mulle_metaabi_struct_void_return( CGColorRef)   param;
-
-         param.p = value.color;
-         mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueCGPoint :
-      value.point.x = (self->_end.point.x - self->_start.point.x) * x + self->_start.point.x;
-      value.point.y = (self->_end.point.y - self->_start.point.y) * x + self->_start.point.y;
-      {
-         mulle_metaabi_struct_void_return( CGPoint)   param;
-
-         param.p = value.point;
-         mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueCGSize :
-      value.size.width  = (self->_end.size.width  - self->_start.size.width)  * x + self->_start.size.width;
-      value.size.height = (self->_end.size.height - self->_start.size.height) * x + self->_start.size.height;
-      {
-         mulle_metaabi_struct_void_return( CGSize)   param;
-
-         param.p = value.size;
-         mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueCGRect :
-      value.rect.origin.x    = (self->_end.rect.origin.x - self->_start.rect.origin.x) * x + self->_start.rect.origin.x;
-      value.rect.origin.y    = (self->_end.rect.origin.y - self->_start.rect.origin.y) * x + self->_start.rect.origin.y;
-      value.rect.size.width  = (self->_end.rect.size.width - self->_start.rect.size.width) * x + self->_start.rect.size.width;
-      value.rect.size.height = (self->_end.rect.size.height - self->_start.rect.size.height) * x + self->_start.rect.size.height;
-      {
-        mulle_metaabi_struct_void_return( CGRect)   param;
-
-        param.p = value.rect;
-        mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   case CAAnimationValueEdgeInsets :
-      value.insets.top    = (self->_end.insets.top    - self->_start.insets.top)    * x + self->_start.insets.top;
-      value.insets.left   = (self->_end.insets.left   - self->_start.insets.left )  * x + self->_start.insets.left ;
-      value.insets.bottom = (self->_end.insets.bottom - self->_start.insets.bottom) * x + self->_start.insets.bottom;
-      value.insets.right  = (self->_end.insets.right  - self->_start.insets.right)  * x + self->_start.insets.right;
-      {
-        mulle_metaabi_struct_void_return( MulleEdgeInsets)   param;
-
-        param.p = value.insets;
-        mulle_objc_object_call( object, self->_propertySetter, &param);
-      }
-      break;
-
-   default :
-      abort();
-   }
+   if( _animationFunction)
+      (*_animationFunction)( self, object, x, elapsed);
 }
 
 
@@ -399,7 +91,9 @@ normalizedRelativeTime:(double) x
    if( ! (self->_bits & CAAnimationStarted))
    {
       self->_absolute.start = CATimeAdd( now, self->_relative.delay);
-      self->_absolute.end   = CATimeAdd( self->_absolute.start, self->_relative.duration);
+      self->_absolute.end   = CATimeAdd( self->_absolute.start,
+                                         self->_relative.duration);
+      self->_lastFrame      = now;
       self->_bits          |= CAAnimationStarted;
    }
 
@@ -421,11 +115,10 @@ normalizedRelativeTime:(double) x
 
    diff = CATimeSubtract( now, self->_absolute.start);
    t    = diff / self->_relative.duration;
-   x    = MulleQuadraticGetValueForNormalizedDistance( &self->_quadratic, t);
 
    if( self->_repeatCount > 0.0)
    {
-      if( x > self->_repeatCount)  // exhausted ? Done!
+      if( t > self->_repeatCount)  // exhausted ? Done!
       {
          self->_repeatCount = 0.0;
          return;
@@ -433,7 +126,10 @@ normalizedRelativeTime:(double) x
    }
 
    [self animateObject:object
-normalizedRelativeTime:x];
+normalizedRelativeTime:t
+           elapsedTime:CATimeSubtract( self->_lastFrame, now)];
+
+   self->_lastFrame = now;
 
    // not yet done ?
    if( now != self->_absolute.end)
@@ -487,7 +183,9 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 + (void) animateObjects:(struct mulle_pointerarray *) objects
            absoluteTime:(CAAbsoluteTime) renderTime
 {
-   performSelectorOnObjects( objects, @selector( animateWithAbsoluteTime:), renderTime);
+   performSelectorOnObjects( objects,
+                             @selector( animateWithAbsoluteTime:),
+                             renderTime);
 }
 
 @end
@@ -513,7 +211,7 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 {
    // if this is the first time we got this, then
    // send the delegate a message
-   if( _started++)
+   if( _startedCount++)
       return;
    if( ! _animationWillStartSelector)
       return;
@@ -528,7 +226,7 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 {
    // if we got #animations messages, then the last one
    // to finish sends the delegate emessage
-   if( ++_ended != _started)
+   if( ++_endedCount != _startedCount)
       return;
    if( ! _animationDidStopSelector)
       return;
@@ -543,12 +241,12 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 {
    // if we got #animations messages, then the last one
    // to finish sends the delegat message
-   if(  _ended == _started)
+   if(  _endedCount == _startedCount)
       return;
    if( ! _animationDidStopSelector)
       return;
 
-   _ended = _started;  // don't send more
+   _endedCount = _startedCount;  // don't send more
 
    [_delegate performSelector:_animationDidStopSelector
                    withObject:(id) _identifier

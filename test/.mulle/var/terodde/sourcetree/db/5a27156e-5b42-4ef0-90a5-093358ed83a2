@@ -1,0 +1,4 @@
+mulle-dlfcn;symlink;no-actual-link,no-all-load,no-cmake-searchpath,no-import,no-public,no-singlephase;5a27156e-5b42-4ef0-90a5-093358ed83a2;${MULLE_DLFCN_URL:-https://github.com/mulle-core/mulle-dlfcn/archive/${MULLE_TAG}.tar.gz};${MULLE_DLFCN_BRANCH};${MULLE_DLFCN_TAG:-latest};;
+/stash/MulleObjC-startup/
+/home/src/srcO/MulleCA/test/stash/mulle-dlfcn
+https://github.com/mulle-core/mulle-dlfcn/archive/latest.tar.gz
