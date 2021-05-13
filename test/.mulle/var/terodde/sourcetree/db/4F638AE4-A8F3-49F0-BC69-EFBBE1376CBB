@@ -1,0 +1,4 @@
+mulle-c11;symlink;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-link,no-recurse,no-singlephase;4F638AE4-A8F3-49F0-BC69-EFBBE1376CBB;${MULLE_C11_URL:-https://github.com/mulle-c/mulle-c11/archive/${MULLE_TAG}.tar.gz};${MULLE_C11_BRANCH};${MULLE_C11_TAG:-latest};;
+/stash/mulle-allocator/
+/home/src/srcO/MulleCA/test/stash/mulle-c11
+https://github.com/mulle-c/mulle-c11/archive/latest.tar.gz

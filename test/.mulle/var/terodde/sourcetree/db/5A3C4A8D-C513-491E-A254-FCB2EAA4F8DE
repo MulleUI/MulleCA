@@ -1,0 +1,4 @@
+mulle-atinit;symlink;no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;5A3C4A8D-C513-491E-A254-FCB2EAA4F8DE;${MULLE_ATINIT_URL:-https://github.com/mulle-core/mulle-atinit/archive/${MULLE_TAG}.tar.gz};${MULLE_ATINIT_BRANCH};${MULLE_ATINIT_TAG:-latest};;
+/stash/mulle-testallocator/
+/home/src/srcO/MulleCA/test/stash/mulle-atinit
+https://github.com/mulle-core/mulle-atinit/archive/latest.tar.gz

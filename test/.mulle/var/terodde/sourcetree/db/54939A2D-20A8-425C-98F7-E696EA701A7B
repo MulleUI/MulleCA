@@ -1,0 +1,4 @@
+mulle-layout;symlink;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-singlephase;54939A2D-20A8-425C-98F7-E696EA701A7B;${MULLE_LAYOUT_URL:-https://github.com/MulleUI/mulle-layout/archive/latest.tar.gz};${MULLE_LAYOUT_BRANCH:-};${MULLE_LAYOUT_TAG:-};;
+/stash/MulleCA/
+/home/src/srcO/MulleCA/test/stash/mulle-layout
+https://github.com/MulleUI/mulle-layout/archive/latest.tar.gz

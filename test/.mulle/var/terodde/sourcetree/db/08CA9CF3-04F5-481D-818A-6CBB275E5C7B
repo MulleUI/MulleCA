@@ -1,0 +1,4 @@
+mulle-container;symlink;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-singlephase;08CA9CF3-04F5-481D-818A-6CBB275E5C7B;${MULLE_CONTAINER_URL:-https://github.com/mulle-c/mulle-container/archive/latest.tar.gz};${MULLE_CONTAINER_BRANCH:-};${MULLE_CONTAINER_TAG:-};;
+/stash/MulleCA/
+/home/src/srcO/MulleCA/test/stash/mulle-container
+https://github.com/mulle-c/mulle-container/archive/latest.tar.gz

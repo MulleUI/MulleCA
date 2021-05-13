@@ -1,12 +1,6 @@
 //
 // Copyright (c) 2021 Nat!, Mulle kybernetiK
 //
-#ifdef __has_include
-# if __has_include( "NSObject.h")
-#  import "NSObject.h"
-# endif
-#endif
-
 #import "import.h"
 
 #import "CATime.h"
@@ -47,9 +41,19 @@ enum CATransactionState
 
 
 //
-// The orginal CATransaction operates with class methods and the storage
-// is thread local. Here you have to do the storage of the transaction
-// yourself.
+// Create a CATransaction, then start with -begin.
+// Now object should add themselves with -addAnimatableObject: on animatable
+// property changes. This stops when you issue -commit.
+//
+// Now all the animatable objects are sent a -commitImplicitAnimationsWithID:
+// delegate:parameters: method. A CALayer will then create CABasicAnimations
+// on its own behalf. That's all CATransaction does. The actual animation
+// is done with -animateWithAbsoluteTime: on each CALayer.
+//
+// The orginal CATransaction operates with class methods and the it is stored
+// is thread local. Here you have to do create the transaction yourself,
+// it is still thread local though. Don't operate on layers from multiple
+// threads though (at the same time).
 //
 @interface CATransaction : NSObject
 {
