@@ -6,6 +6,7 @@
 #import "import-private.h"
 
 #import "CAAnimation.h"
+#import "CAAnimationGroup.h"
 
 
 @implementation CATransaction
@@ -17,7 +18,7 @@ static struct
 
 
 //
-// need to run this in +load so that CATransactionGetCurrentTransactionManager
+// need to run this in +load so that CATransactionGetCurrentTransaction
 // can be called
 //
 + (void) load
@@ -33,16 +34,17 @@ static struct
 }
 
 
-id     CATransactionGetCurrentTransactionManager( void)
+id   CATransactionGetCurrentTransaction( void)
 {
    return( mulle_thread_tss_get( Self.thread_key));
 }
 
 
-void   CATransactionSetCurrentTransactionManager( id p)
+void   CATransactionSetCurrentTransaction( id p)
 {
    mulle_thread_tss_set( Self.thread_key, p);
 }
+
 
 - (instancetype) init
 {
@@ -53,6 +55,7 @@ void   CATransactionSetCurrentTransactionManager( id p)
 
 - (void) dealloc
 {
+   [_animationGroup release];
    _mulle_pointerarray_done( &_animatedObjects);
    [super dealloc];
 }
@@ -60,87 +63,44 @@ void   CATransactionSetCurrentTransactionManager( id p)
 
 - (void) reset
 {
+   [_animationGroup autorelease];
+   _animationGroup = nil;
+
    _mulle_pointerarray_reset( &_animatedObjects);
-
-   _animationDelay              = 0.0;
-   _animationDuration           = 2.0;
-   _animationRepeatCount        = 0.0;
-   _animationAutoreverses       = NO;
-
-   // keep delegate ? NO
-   _animationDelegate           = nil;
-   _animationWillStartSelector  = 0;
-   _animationDidStopSelector    = 0;
-
-   MulleObjCObjectSetDuplicatedCString( self, &_animationID, NULL);
-
-   _animationID = NULL;
-   _context     = NULL;
-
    mulle_thread_tss_set( Self.thread_key, NULL);
 }
 
 
 - (void) begin
 {
-   assert( mulle_thread_tss_get( Self.thread_key) == NULL);
-
    _state = CATransactionStarted;
+   _animationGroup = [CAAnimationGroup new];
    mulle_thread_tss_set( Self.thread_key, self);
 }
 
 
+//
+// TODO: Extend this to have chained animation groups, so that you can have
+//       more complex animations.
+//
 - (void) commit
 {
-   char                                  *animationID;
-   id                                    delegate;
    id <CAImplicitlyAnimatableObject>     obj;
-   MulleAnimationDelegate                *animationDelegate;
-   SEL                                   didEnd;
-   SEL                                   willStart;
-   struct CAAnimationParameters          parameters;
-   struct mulle_pointerarray             tmp;
    struct mulle_pointerarrayenumerator   rover;
-   void                                  *context;
 
    assert( _state == CATransactionStarted);
 
    _state = CATransactionCommitting;
-
-   animationDelegate = nil;
-   if( _animationDelegate)
    {
-      animationDelegate = [[MulleAnimationDelegate new] autorelease];
-      [animationDelegate setIdentifier:_animationID];
-      [animationDelegate setContext:_context];
-      [animationDelegate setDelegate:_animationDelegate];
-      [animationDelegate setAnimationWillStartSelector:_animationWillStartSelector];
-      [animationDelegate setAnimationDidStopSelector:_animationDidStopSelector];
+      rover = mulle_pointerarray_enumerate( &_animatedObjects);
+      while( _mulle_pointerarrayenumerator_next( &rover, (void **) &obj))
+      {
+         [obj commitImplicitAnimationsWithAnimationGroup:_animationGroup];
+      }
+      mulle_pointerarrayenumerator_done( &rover);
+
+      [self reset];
    }
-
-   parameters.animationDelay        = _animationDelay;
-   parameters.animationDuration     = _animationDuration;
-   parameters.animationRepeatCount  = _animationRepeatCount;
-   parameters.animationCurve        = _animationCurve;
-   parameters.animationAutoreverses = _animationAutoreverses;
-
-   rover = mulle_pointerarray_enumerate( &_animatedObjects);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &obj))
-   {
-      [obj commitImplicitAnimationsWithID:_animationID
-                                 delegate:animationDelegate
-                               parameters:&parameters]; // either UIView class or CATransaction
-   }
-   mulle_pointerarrayenumerator_done( &rover);
-
-   //
-   // TODO: we need a special kind of animation that is actually just calling
-   //       the delegate at appropriate times. This animation needs to be
-   //       part of a obj ? Window obj ? Or some completely different
-   //       mechanism ?
-   //
-
-   [self reset];
    _state = CATransactionIdle;
 }
 
@@ -158,17 +118,6 @@ void   CATransactionSetCurrentTransactionManager( id p)
 }
 
 
-- (void) setAnimationID:(char *) s
-{
-   MulleObjCObjectSetDuplicatedCString( self, &_animationID, s);
-}
-
-
-- (char *) animationID
-{
-   return( _animationID);
-}
-
 
 //
 //
@@ -181,5 +130,17 @@ void   CATransactionSetCurrentTransactionManager( id p)
    assert( _mulle_pointerarray_find( &_animatedObjects, obj) == mulle_not_found_e);
    _mulle_pointerarray_add( &_animatedObjects, obj);
 }
+
+
+
+// forward dynamic properties to animationGroup
+- (void *) forward:(void *) param
+{
+   assert( _animationGroup);
+   return( mulle_objc_object_call_variablemethodid_inline( _animationGroup,
+                                                          (mulle_objc_methodid_t) _cmd,
+                                                          param));
+}
+
 
 @end

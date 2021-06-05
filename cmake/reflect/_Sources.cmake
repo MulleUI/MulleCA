@@ -8,12 +8,21 @@ if( MULLE_TRACE_INCLUDE)
    MESSAGE( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
+#
+# contents selected with patternfile ??-source--sources
+#
 set( SOURCES
+src/CAAnimationGroup.m
 src/CAAnimation.m
 src/CABasicAnimation.m
+src/CAPolarPoint.c
+src/CAQuadratic.c
 src/CATransaction.m
 )
 
+#
+# contents selected with patternfile ??-source--stage2-sources
+#
 set( STAGE2_SOURCES
 src/MulleObjCLoader+MulleCA.m
 )

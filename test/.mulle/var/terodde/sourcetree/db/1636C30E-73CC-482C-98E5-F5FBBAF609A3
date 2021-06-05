@@ -1,4 +1,0 @@
-mulle-allocator;symlink;no-all-load,no-cmake-searchpath,no-import,no-singlephase;1636C30E-73CC-482C-98E5-F5FBBAF609A3;${MULLE_ALLOCATOR_URL:-https://github.com/mulle-c/mulle-allocator/archive/${MULLE_TAG}.tar.gz};${MULLE_ALLOCATOR_BRANCH};${MULLE_ALLOCATOR_TAG:-latest};;
-/stash/mulle-testallocator/
-/home/src/srcO/MulleCA/test/stash/mulle-allocator
-https://github.com/mulle-c/mulle-allocator/archive/latest.tar.gz

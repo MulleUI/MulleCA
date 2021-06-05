@@ -8,21 +8,33 @@ if( MULLE_TRACE_INCLUDE)
    MESSAGE( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
+#
+# contents are derived from the file locations
+
 set( INCLUDE_DIRS
 src
 src/reflect
 )
 
+#
+# contents selected with patternfile ??-header--private-generated-headers
+#
 set( PRIVATE_GENERATED_HEADERS
 src/reflect/_MulleCA-import-private.h
 src/reflect/_MulleCA-include-private.h
 )
 
+#
+# contents selected with patternfile ??-header--private-generic-headers
+#
 set( PRIVATE_GENERIC_HEADERS
 src/import-private.h
 src/include-private.h
 )
 
+#
+# contents selected with patternfile ??-header--public-generated-headers
+#
 set( PUBLIC_GENERATED_HEADERS
 src/reflect/_MulleCA-export.h
 src/reflect/_MulleCA-import.h
@@ -30,16 +42,26 @@ src/reflect/_MulleCA-include.h
 src/reflect/_MulleCA-provide.h
 )
 
+#
+# contents selected with patternfile ??-header--public-generic-headers
+#
 set( PUBLIC_GENERIC_HEADERS
 src/import.h
 src/include.h
 )
 
+#
+# contents selected with patternfile ??-header--public-headers
+#
 set( PUBLIC_HEADERS
+src/CAAnimationGroup.h
 src/CAAnimation.h
 src/CABasicAnimation.h
+src/CAPolarPoint.h
+src/CAQuadratic.h
 src/CATime.h
 src/CATransaction.h
+src/CGGeometry+CAAnimation.h
 src/MulleCA.h
 src/MulleObjCLoader+MulleCA.h
 )

@@ -1,4 +1,0 @@
-mulle-stacktrace;symlink;no-all-load,no-cmake-searchpath,no-import,no-public,no-singlephase;DC0E6DE2-37B0-4CCF-BF12-F0C5C7F3A994;${MULLE_STACKTRACE_URL:-https://github.com/mulle-core/mulle-stacktrace/archive/${MULLE_TAG}.tar.gz};${MULLE_STACKTRACE_BRANCH};${MULLE_STACKTRACE_TAG:-latest};;
-/stash/mulle-testallocator/
-/home/src/srcO/MulleCA/test/stash/mulle-stacktrace
-https://github.com/mulle-core/mulle-stacktrace/archive/latest.tar.gz
