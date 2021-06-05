@@ -1,4 +1,0 @@
-mulle-objc-list;symlink;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-header,no-link;1bf163e6-4510-4370-b16f-578c9f3c8156;${MULLE_OBJC_LIST_URL:-https://github.com/mulle-objc/mulle-objc-list/archive/${MULLE_TAG}.tar.gz};${MULLE_OBJC_LIST_BRANCH};${MULLE_OBJC_LIST_TAG:-latest};;
-/stash/MulleObjC/
-/home/src/srcO/MulleCA/test/stash/mulle-objc-list
-https://github.com/mulle-objc/mulle-objc-list/archive/latest.tar.gz

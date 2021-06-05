@@ -9,4 +9,7 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-// no headers
+#include "CAPolarPoint.h"
+#include "CGGeometry+CAAnimation.h"
+//
+// MULLE_MATCH_TO_C_C_HEADERS=CGGeometry+CAAnimation.h:CAPolarPoint.h

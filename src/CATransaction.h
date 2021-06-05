@@ -4,30 +4,65 @@
 #import "import.h"
 
 #import "CATime.h"
+#import "CAQuadratic.h"
 
 
-@class MulleAnimationDelegate;
+@class CAAnimationGroup;
 
 
+// A high level view of the state of a CATransaction. The CATransaction
+// doesn't generate CAAnimations by itself. It just collects animatable objects
+// and provides them with a CAAnimationGroup. The objects (CALayers)
+// themselves generate their animations. See further below for a bit more
+// detail.
 //
-// for technical reasons (compatibility with UIView) we have this protocol
-// to pass the animation parameters
+//          .---------------.
+//          | CATransaction |
+//          '---------------'
 //
-struct CAAnimationParameters
-{
-   CARelativeTime   animationDelay;
-   CARelativeTime   animationDuration;
-   float            animationRepeatCount;
-   NSUInteger       animationCurve;
-   BOOL             animationAutoreverses;
-};
+//  -begin
+//          .---------------.    .------------------.
+//          | CATransaction |--->| CAAnimationGroup |
+//          '---------------'    '------------------'
+//
+//  -addAnimatableObject:
+//          .---------------.    .------------------.
+//          | CATransaction |--->| CAAnimationGroup |
+//          '---------------'    '------------------'
+//                  |
+//                  |            .---------.
+//                  '----------->| CALayer |
+//                               '---------'
+//
+//  -commit
+//          .---------------.
+//          | CATransaction |
+//          '---------------'
+//                  |
+//                  |            .---------.
+//                  '----------->| CALayer |
+//                               '---------'
+//                                    |
+//                                    v
+//                             .-------------.    .------------------.
+//                             | CAAnimation |--->| CAAnimationGroup |
+//                             '-------------'    '------------------'
+//
+// Create a CATransaction, then start with -begin.
+// Now layers should add themselves with -addAnimatableObject: on animatable
+// property (observable) changes. This stops when you issue -commit.
+//
+// Now all the animatable objects are sent a
+// -commitImplicitAnimationsWithAnimationGroup: method.
+// A CALayer will then create CABasicAnimations on its own behalf.
+// That's all CATransaction does. The actual animationis done with
+// -animateWithAbsoluteTime: on each CALayer.
+
 
 
 @protocol CAImplicitlyAnimatableObject
 
-- (void) commitImplicitAnimationsWithID:(char *) animationsID
-                               delegate:(MulleAnimationDelegate *) animationDelegate
-                             parameters:(struct CAAnimationParameters *) info; // either UIView class or CATransaction
+- (void) commitImplicitAnimationsWithAnimationGroup:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
 
 @end
 
@@ -40,50 +75,56 @@ enum CATransactionState
 };
 
 
+// A simplified sketch of a simple animation of a CALayer moving from
+// "fromR" to "toR". First the initial value is set outside of the transaction.
+// Then the transaction is started and the destination value is set. The
+// CALayer notices it's in a transaction and saves the previous value in a
+// snapshot. The layer also adds itself to the transaction. When the
+// transaction ends, the layer produces an animation for the frame and resets
+// the frame to the initial value.
 //
-// Create a CATransaction, then start with -begin.
-// Now object should add themselves with -addAnimatableObject: on animatable
-// property changes. This stops when you issue -commit.
 //
-// Now all the animatable objects are sent a -commitImplicitAnimationsWithID:
-// delegate:parameters: method. A CALayer will then create CABasicAnimations
-// on its own behalf. That's all CATransaction does. The actual animation
-// is done with -animateWithAbsoluteTime: on each CALayer.
+//       -[CALayer setFrame:fromR]  .---------------.-------------.
+//                 |                | CALayer       | -setFrame:  |
+//                 |                |               '-------------'
+//                 |                '---------------'
+//                 v
+//       -[CATransaction begin]
+//                 |                .---------------.-------------.
+//                 |                | CALayer       | -willChange |
+//                 |                |               .-------------.
+//                 v                '---------------| -snapshot   |
+//       -[CALayer setFrame:toR]                    .-------------.
+//                 |                                | -setFrame:  |
+//                 |                                '-------------'
+//                 |
+//                 v
+//       -[CATransaction commit]    .---------------.----------------.
+//                                  | CALayer       | -addAnimation: |
+//                                  |               '----------------'
+//                                  '---------------| -setFrame:     |
+//                                                  '----------------'
 //
-// The orginal CATransaction operates with class methods and the it is stored
-// is thread local. Here you have to do create the transaction yourself,
-// it is still thread local though. Don't operate on layers from multiple
-// threads though (at the same time).
+//
+// The orginal CATransaction operates globally with class methods, on a thread
+// local basis.
+// Here you have to create the transaction yourself, it is still thread local
+// though. Don't operate on layers from multiple threads though (at the
+// same time).
+//
+// Note: this mechanism doesn't work just with layers but can work with all
+//       objects that implement CAImplicitlyAnimatableObject.
 //
 @interface CATransaction : NSObject
 {
    // mutable state
    struct mulle_pointerarray   _animatedObjects;
-
-   char                        *_animationID;
+   CAAnimationGroup            *_animationGroup;
 }
 
 @property( assign, readonly) enum CATransactionState  state;
 
-@property( assign) void             *context;
-
-@property( assign) id               animationDelegate;
-@property( assign) SEL              animationWillStartSelector;
-@property( assign) SEL              animationDidStopSelector;
-
-// keep in order of CAAnimationParameters
-@property( assign) CARelativeTime   animationDelay;
-@property( assign) CARelativeTime   animationDuration;
-@property( assign) float            animationRepeatCount;
-@property( assign) NSUInteger       animationCurve;
-@property( assign) BOOL             animationAutoreverses;
-
-// will be strcpy
-- (void) setAnimationID:(char *) s;
-- (char *) animationID;
-
 - (BOOL) areAnimationsEnabled;
-
 - (void) addAnimatableObject:(id <CAImplicitlyAnimatableObject>) object;
 
 //
@@ -96,8 +137,42 @@ enum CATransactionState
 
 @end
 
+
+//
+// forwarded to the animationGroup. These properties will not be work until a
+// -begin and will stop working after -commit or -cancel
+//
+@interface CATransaction( CAAnimationGroupForwarding)
+
+@property( assign, dynamic) void     *context;
+@property( assign, dynamic) id       animationDelegate;
+@property( assign, dynamic) SEL      animationWillStartSelector;
+@property( assign, dynamic) SEL      animationDidStopSelector;
+@property( assign, dynamic) char     *animationID;
+
+// keep in order of CAAnimationParameters
+@property( assign, dynamic) CARelativeTime     animationDelay;
+@property( assign, dynamic) CARelativeTime     animationDuration;
+@property( assign, dynamic) float              animationRepeatCount;
+@property( assign, dynamic) NSUInteger         animationCurve;
+@property( assign, dynamic) CATweenFunction   *animationTweenFunction;
+@property( assign, dynamic) BOOL               animationAutoreverses;
+
+//
+// For CALayer, implicit additive animations are "added" to the layer.
+// If not additive, all animations are removed prior. An addirtive animation
+// does not use "fixed" values, but rather interpolates from the current value.
+//
+@property( assign, dynamic) BOOL               animationIsAdditive;
+
+// will be strcpy
+- (void) setAnimationID:(char *) s;
+- (char *) animationID;
+
+@end
+
 //
 // on a per-thread basis
 //
-id     CATransactionGetCurrentTransactionManager( void);
-void   CATransactionSetCurrentTransactionManager( id);
+id     CATransactionGetCurrentTransaction( void);
+void   CATransactionSetCurrentTransaction( id);

@@ -1,4 +1,0 @@
-MulleCA;symlink;singlephase;21FAA0A5-41FD-4B82-870A-F597684E6689;${MULLE_CA_URL:-https://github.com/nat/MulleCA/archive/${MULLE_TAG}.tar.gz};;${MULLE_CA_TAG:-latest};;
-/
-/home/src/srcO/MulleCA/test/stash/MulleCA
-https://github.com/nat/MulleCA/archive/latest.tar.gz

@@ -35,7 +35,7 @@ if( NOT MULLE_OBJC_LIBRARY)
          CACHE INTERNAL "need to cache this"
       )
       #
-      # Inherit ObjC loader and link dependency info.
+      # Inherit information from dependency.
       # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
       # Disable with: `mulle-sourcetree mark MulleObjC no-cmake-inherit`
       #
@@ -70,17 +70,9 @@ if( NOT MULLE_OBJC_LIBRARY)
          if( EXISTS "${_TMP_MULLE_OBJC_DIR}/DependenciesAndLibraries.cmake")
             unset( MULLE_OBJC_DEFINITIONS)
             list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE_OBJC_DIR}")
-            # we only want top level INHERIT_OBJC_LOADERS, so disable them
-            if( NOT NO_INHERIT_OBJC_LOADERS)
-               set( NO_INHERIT_OBJC_LOADERS OFF)
-            endif()
-            list( APPEND _TMP_INHERIT_OBJC_LOADERS ${NO_INHERIT_OBJC_LOADERS})
-            set( NO_INHERIT_OBJC_LOADERS ON)
             #
             include( "${_TMP_MULLE_OBJC_DIR}/DependenciesAndLibraries.cmake")
             #
-            list( GET _TMP_INHERIT_OBJC_LOADERS -1 NO_INHERIT_OBJC_LOADERS)
-            list( REMOVE_AT _TMP_INHERIT_OBJC_LOADERS -1)
             #
             list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE_OBJC_DIR}")
             set( INHERITED_DEFINITIONS
@@ -148,7 +140,7 @@ endif()
 
 
 #
-# Generated from sourcetree: 24A4681C-0CF2-457D-8BE8-18526E9B5BAE;mulle-time;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-singlephase;
+# Generated from sourcetree: 24A4681C-0CF2-457D-8BE8-18526E9B5BAE;mulle-time;no-all-load,no-cmake-searchpath,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-time no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-time no-cmake-platform-linux`
 #
@@ -169,7 +161,48 @@ if( NOT MULLE_TIME_LIBRARY)
          ${MULLE_TIME_LIBRARY}
          CACHE INTERNAL "need to cache this"
       )
-      # intentionally left blank
+      #
+      # Inherit information from dependency.
+      # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
+      # Disable with: `mulle-sourcetree mark mulle-time no-cmake-inherit`
+      #
+      # temporarily expand CMAKE_MODULE_PATH
+      get_filename_component( _TMP_MULLE_TIME_ROOT "${MULLE_TIME_LIBRARY}" DIRECTORY)
+      get_filename_component( _TMP_MULLE_TIME_ROOT "${_TMP_MULLE_TIME_ROOT}" DIRECTORY)
+      #
+      #
+      # Search for "DependenciesAndLibraries.cmake" to include.
+      # Disable with: `mulle-sourcetree mark mulle-time no-cmake-dependency`
+      #
+      foreach( _TMP_MULLE_TIME_NAME "mulle-time")
+         set( _TMP_MULLE_TIME_DIR "${_TMP_MULLE_TIME_ROOT}/include/${_TMP_MULLE_TIME_NAME}/cmake")
+         # use explicit path to avoid "surprises"
+         if( EXISTS "${_TMP_MULLE_TIME_DIR}/DependenciesAndLibraries.cmake")
+            unset( MULLE_TIME_DEFINITIONS)
+            list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE_TIME_DIR}")
+            # we only want top level INHERIT_OBJC_LOADERS, so disable them
+            if( NOT NO_INHERIT_OBJC_LOADERS)
+               set( NO_INHERIT_OBJC_LOADERS OFF)
+            endif()
+            list( APPEND _TMP_INHERIT_OBJC_LOADERS ${NO_INHERIT_OBJC_LOADERS})
+            set( NO_INHERIT_OBJC_LOADERS ON)
+            #
+            include( "${_TMP_MULLE_TIME_DIR}/DependenciesAndLibraries.cmake")
+            #
+            list( GET _TMP_INHERIT_OBJC_LOADERS -1 NO_INHERIT_OBJC_LOADERS)
+            list( REMOVE_AT _TMP_INHERIT_OBJC_LOADERS -1)
+            #
+            list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE_TIME_DIR}")
+            set( INHERITED_DEFINITIONS
+               ${INHERITED_DEFINITIONS}
+               ${MULLE_TIME_DEFINITIONS}
+               CACHE INTERNAL "need to cache this"
+            )
+            break()
+         else()
+            message( STATUS "${_TMP_MULLE_TIME_DIR}/DependenciesAndLibraries.cmake not found")
+         endif()
+      endforeach()
    else()
       # Disable with: `mulle-sourcetree mark mulle-time no-require-link`
       message( FATAL_ERROR "MULLE_TIME_LIBRARY was not found")

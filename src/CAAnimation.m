@@ -7,6 +7,17 @@
 #include <assert.h>
 
 
+#import "CAAnimationGroup.h"
+
+
+@interface CAAnimationGroup( Private)
+// kinda private
+- (void) animationWillStart:(CAAnimation *) animation;
+- (void) animationDidStop:(CAAnimation *) animation;
+
+@end
+
+
 
 @implementation CAAnimation
 
@@ -18,6 +29,8 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 };
 
 
+// separated into two parameters, so animations can live without
+// a group
 - (id) initWithOptions:(struct CAAnimationOptions *) options
 {
    // no need for super coz NSObject based
@@ -39,10 +52,26 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
    self->_repeatCount         = options->repeatCount;
    // only used for reset
    self->_originalRepeatCount = self->_repeatCount;
+   self->_removedOnCompletion = YES;
 
    return( self);
 }
 
+
+- (id) init
+{
+   return( [self initWithOptions:NULL]);
+}
+
+
+- (id) copy
+{
+   CAAnimation  *clone;
+
+   clone = NSCopyObject( self, 0, NULL);
+   clone->_animationGroup = nil;
+   return( clone);
+}
 
 
 - (void) reverse
@@ -69,23 +98,49 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 // which does the animation now
 //
 - (void) animateObject:(id) object
-normalizedRelativeTime:(double) x
+normalizedRelativeTime:(double) t
            elapsedTime:(CARelativeTime) elapsed
 {
    if( _animationFunction)
-      (*_animationFunction)( self, object, x, elapsed);
+      (*_animationFunction)( self, object, t, elapsed);
 }
 
 
-- (void) animateObject:(id) object
+// at the moment, if you call this
+- (void) wasPreempted
+{
+   self->_bits |= CAAnimationEnded;
+   [_delegate animationDidStop:self
+                      finished:NO];
+   [_animationGroup animationDidStop:self];
+}
+
+
+- (void) didEnd
+{
+   self->_bits |= CAAnimationEnded;
+   [_delegate animationDidStop:self
+                      finished:YES];
+   [_animationGroup animationDidStop:self];
+}
+
+
+- (BOOL) animateObject:(id) object
           absoluteTime:(CAAbsoluteTime) now
 {
    CGFloat          x;
-   CGFloat          t;
+   double           t;
+   double           e;
    CAAbsoluteTime   diff;
 
    if( self->_bits & CAAnimationEnded)
-      return;
+      return( NO);
+
+   if( self->_bits & CAAnimationPreempt)
+   {
+      [self wasPreempted];
+      return( NO);
+   }
 
    // turn animation time into absolute
    if( ! (self->_bits & CAAnimationStarted))
@@ -93,16 +148,18 @@ normalizedRelativeTime:(double) x
       self->_absolute.start = CATimeAdd( now, self->_relative.delay);
       self->_absolute.end   = CATimeAdd( self->_absolute.start,
                                          self->_relative.duration);
-      self->_lastFrame      = now;
+      self->_currentFrame   = self->_absolute.start; // need this for lastFrame
       self->_bits          |= CAAnimationStarted;
    }
 
    if( now < self->_absolute.start)
-      return;
+      return( YES);
 
+   self->_lastFrame    = self->_currentFrame;
+   self->_currentFrame = now;
    if( _frames++ == 0)
    {
-      [_animationDelegate willStart];
+      [_animationGroup animationWillStart:self];
    }
 
    //
@@ -121,26 +178,28 @@ normalizedRelativeTime:(double) x
       if( t > self->_repeatCount)  // exhausted ? Done!
       {
          self->_repeatCount = 0.0;
-         return;
+         return( YES);
       }
    }
 
    [self animateObject:object
 normalizedRelativeTime:t
-           elapsedTime:CATimeSubtract( self->_lastFrame, now)];
+           elapsedTime:now - self->_lastFrame];
 
-   self->_lastFrame = now;
+   if( _frames == 1)
+   {
+      [_delegate animationDidStart:self];
+   }
 
    // not yet done ?
    if( now != self->_absolute.end)
-      return;
+      return( YES);
 
    // not repeating ? done
    if( self->_repeatCount == 0.0)
    {
-      self->_bits |= CAAnimationEnded;
-      [_animationDelegate didEnd];
-      return;
+      [self didEnd];
+      return( NO);
    }
 
    // _self->_repeatCount > 0.0 means repeats a finite number
@@ -149,9 +208,8 @@ normalizedRelativeTime:t
       self->_repeatCount -= 1.0;
       if( self->_repeatCount <= 0.0)
       {
-         self->_bits |= CAAnimationEnded;
-         [_animationDelegate didEnd];
-         return;
+         [self didEnd];
+         return( NO);
       }
    }
 
@@ -159,6 +217,13 @@ normalizedRelativeTime:t
    self->_bits &= ~CAAnimationStarted;
    if( self->_bits & CAAnimationReverses)
       [self reverse];
+   return( YES);
+}
+
+
+- (BOOL) hasEnded
+{
+   return( (_bits & CAAnimationEnded) ? YES : NO);
 }
 
 
@@ -191,66 +256,3 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 @end
 
 
-
-@implementation MulleAnimationDelegate : NSObject
-
-- (void) setIdentifier:(char *) s
-{
-   MulleObjCObjectSetDuplicatedCString( self, &_identifier, s);
-}
-
-
-- (void) dealloc
-{
-   MulleObjCInstanceDeallocateMemory( self, &_identifier);
-   [super dealloc];
-}
-
-
-- (void) willStart
-{
-   // if this is the first time we got this, then
-   // send the delegate a message
-   if( _startedCount++)
-      return;
-   if( ! _animationWillStartSelector)
-      return;
-
-   [_delegate performSelector:_animationWillStartSelector
-                   withObject:(id) _identifier
-                   withObject:_context];
-}
-
-
-- (void) didEnd
-{
-   // if we got #animations messages, then the last one
-   // to finish sends the delegate emessage
-   if( ++_endedCount != _startedCount)
-      return;
-   if( ! _animationDidStopSelector)
-      return;
-
-   [_delegate performSelector:_animationDidStopSelector
-                   withObject:(id) _identifier
-                   withObject:_context];
-}
-
-
-- (void) didPreempt
-{
-   // if we got #animations messages, then the last one
-   // to finish sends the delegat message
-   if(  _endedCount == _startedCount)
-      return;
-   if( ! _animationDidStopSelector)
-      return;
-
-   _endedCount = _startedCount;  // don't send more
-
-   [_delegate performSelector:_animationDidStopSelector
-                   withObject:(id) _identifier
-                   withObject:_context];
-}
-
-@end

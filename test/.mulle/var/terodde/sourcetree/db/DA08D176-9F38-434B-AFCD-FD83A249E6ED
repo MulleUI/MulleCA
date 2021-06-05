@@ -1,4 +1,0 @@
-mulle-atexit;symlink;no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;DA08D176-9F38-434B-AFCD-FD83A249E6ED;${MULLE_ATEXIT_URL:-https://github.com/mulle-core/mulle-atexit/archive/${MULLE_TAG}.tar.gz};${MULLE_ATEXIT_BRANCH};${MULLE_ATEXIT_TAG:-latest};;
-/stash/mulle-testallocator/
-/home/src/srcO/MulleCA/test/stash/mulle-atexit
-https://github.com/mulle-core/mulle-atexit/archive/latest.tar.gz

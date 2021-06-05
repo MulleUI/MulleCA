@@ -1,4 +1,0 @@
-MulleObjC-startup;symlink;no-dynamic-link,no-header,no-intermediate-link,singlephase;BB6638A5-E0DD-4056-98FE-83A9D025E978;${MULLE_OBJC_STARTUP:-https://github.com/mulle-objc/MulleObjC-startup/archive/${MULLE_TAG}.tar.gz};${MULLE_OBJC_STARTUP_BRANCH};${MULLE_OBJC_STARTUP_TAG:-latest};;
-/
-/home/src/srcO/MulleCA/test/stash/MulleObjC-startup
-https://github.com/mulle-objc/MulleObjC-startup/archive/latest.tar.gz

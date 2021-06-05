@@ -9,8 +9,10 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
+#import "CAAnimationGroup.h"
 #import "CAAnimation.h"
 #import "CABasicAnimation.h"
+#import "CAQuadratic.h"
 #import "CATime.h"
 #import "CATransaction.h"
 #import "MulleObjCLoader+MulleCA.h"

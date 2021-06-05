@@ -1,5 +1,30 @@
 #import "CAAnimation.h"
 
+#import "CATransaction.h"  // for tweenfunction
+#import "CAQuadratic.h"  // for tweenfunction
+
+
+// The basic animation has a definitive starting value and and end value
+// and it interpolates from start to the end. The end value is set at the
+// end "as is", so there is no accumulated interpolation error.
+//
+// An basic animation does not "mix" well with another basic animation of
+// the same property.
+//
+//
+// This is how animations look like  "in flight", they stick to a layer and
+// they share an animation group. The CAAnimationGroup is fairly boring
+// and important though and may even be missing for animations, that are not
+// created during a CATransaction.
+//
+//  .---------.    .------------------.    .------------------.
+//  | CALayer |--->| CABasicAnimation |--->| CAAnimationGroup |
+//  '---------'    '------------------'    '------------------'
+//       |         .------------------.              ^
+//       '-------->| CABasicAnimation |--------------'
+//                 '------------------'
+//
+
 
 enum CAAnimationCurve
 {
@@ -10,7 +35,27 @@ enum CAAnimationCurve
 };
 
 
-MulleQuadratic   MulleQuadraticForAnimationCurve( enum CAAnimationCurve curvetype);
+static inline CAQuadratic
+   CAQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
+{
+   CAQuadratic   quadratic;
+
+   switch( curvetype)
+   {
+   case CAAnimationCurveEaseInOut:
+      return( CAQuadraticEaseInOut);
+
+   case CAAnimationCurveEaseOut:
+      return( CAQuadraticEaseOut);
+
+   case CAAnimationCurveEaseIn:
+      return( CAQuadraticEaseIn);
+
+   default :
+      return( CAQuadraticLinear);
+   }
+}
+
 
 
 struct CAAnimationFloat2
@@ -140,76 +185,117 @@ enum
 struct CABasicAnimationOptions
 {
    struct CAAnimationOptions   base;
-   MulleQuadratic              curve;
+   enum CAAnimationCurve       curve;
+   CATweenFunction             *tween;
 };
+
+
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeTween( struct CARelativeTimeRange timeRange,
+                                     CGFloat repeatCount,
+                                     NSUInteger bits,
+                                     CATweenFunction tween)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, repeatCount, bits),
+              .curve = 0,
+              .tween = tween
+            });
+}
+
+
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeCurve( struct CARelativeTimeRange timeRange,
+                                     CGFloat repeatCount,
+                                     NSUInteger bits,
+                                     enum CAAnimationCurve curve)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, repeatCount, bits),
+              .curve = curve,
+              .tween = 0
+            });
+}
+
 
 
 //
 // TODO: interpolating RGB is easy, but not necessarily very nice looking.
 //       Possibly implement http://labs.adamluptak.com/javascript-color-blending/
 //       though it is costly
-//       HSV seems like a cheaper and probably more gainly alternative
+//       HSV seems like a cheaper and probably more gainly looking alternative
 //
 @interface CABasicAnimation : CAAnimation
 {
-   enum CAAnimationValueType   _valueType;
-   union CAAnimationValue      _start;
-   union CAAnimationValue      _end;
-   union CAAnimationValue      _repeatStart;
+   enum CAAnimationValueType     _valueType;
+   union CAAnimationValue        _start;
+   union CAAnimationValue        _end;
+   union CAAnimationValue        _repeatStart;
 
-   MulleQuadratic              _quadratic;
-   SEL                         _propertySetter;
+   CAQuadratic                   _quadratic;
+   CATweenFunction               *_tween;
+   struct _mulle_objc_property   *_property;
 }
 
 //
 // You can reuse an existing CAAnimation by calling init again
 // Could/maybe should generalize this with NSValue ?
 //
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    valueType:(enum CAAnimationValueType) type
-                   valueRange:(struct CAAnimationValueRange *) range
-                  repeatStart:(union CAAnimationValue) repeatStart
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+              valueType:(enum CAAnimationValueType) type
+             valueRange:(struct CAAnimationValueRange *) range
+            repeatStart:(union CAAnimationValue) repeatStart
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    startRect:(CGRect) start
-                      endRect:(CGRect) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+         startRectValue:(CGRect) start
+           endRectValue:(CGRect) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-              startEdgeInsets:(MulleEdgeInsets) start
-                endEdgeInsets:(MulleEdgeInsets) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+   startEdgeInsetsValue:(MulleEdgeInsets) start
+     endEdgeInsetsValue:(MulleEdgeInsets) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                    startSize:(CGSize) start
-                      endSize:(CGSize) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+         startSizeValue:(CGSize) start
+           endSizeValue:(CGSize) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                   startPoint:(CGPoint) start
-                     endPoint:(CGPoint) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+        startPointValue:(CGPoint) start
+          endPointValue:(CGPoint) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-              startFloatValue:(CGFloat) start
-                endFloatValue:(CGFloat) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+        startFloatValue:(CGFloat) start
+          endFloatValue:(CGFloat) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-                   startRange:(NSRange) start
-                     endRange:(NSRange) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+        startRangeValue:(NSRange) start
+          endRangeValue:(NSRange) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-            startIntegerValue:(NSInteger) start
-              endIntegerValue:(NSInteger) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+      startIntegerValue:(NSInteger) start
+        endIntegerValue:(NSInteger) end
+                options:(struct CABasicAnimationOptions *) options;
 
-- (id) initWithPropertySetter:(SEL) propertySetter
-               startBOOLValue:(BOOL) start
-                 endBOOLValue:(BOOL) end
-                      options:(struct CABasicAnimationOptions *) options;
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+         startBOOLValue:(BOOL) start
+           endBOOLValue:(BOOL) end
+                options:(struct CABasicAnimationOptions *) options;
+
+//
+// interpolated values aren't SET on the object, but the objects value
+// is read and the change is added to the value and the SET. This makes
+// multiple animations mixable, but will add interpolation errors.
+//
+- (BOOL) isAdditive;  // TODO: move this to options?
 
 @end
+
 

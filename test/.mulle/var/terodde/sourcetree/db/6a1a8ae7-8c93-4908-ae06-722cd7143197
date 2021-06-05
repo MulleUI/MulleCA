@@ -1,4 +1,0 @@
-mulle-objc-runtime;symlink;no-cmake-searchpath,no-header,no-import,no-singlephase;6a1a8ae7-8c93-4908-ae06-722cd7143197;${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_TAG}.tar.gz};${MULLE_OBJC_RUNTIME_BRANCH};${MULLE_OBJC_RUNTIME_TAG:-latest};;
-/stash/MulleObjC/
-/home/src/srcO/MulleCA/test/stash/mulle-objc-runtime
-https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz

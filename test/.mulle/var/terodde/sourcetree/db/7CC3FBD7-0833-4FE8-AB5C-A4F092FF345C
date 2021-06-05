@@ -1,4 +1,0 @@
-mulle-data;symlink;no-all-load,no-cmake-inherit,no-cmake-searchpath,no-import,no-singlephase;7CC3FBD7-0833-4FE8-AB5C-A4F092FF345C;${MULLE_DATA_URL:-https://github.com/mulle-c/mulle-data/archive/${MULLE_TAG}.tar.gz};${MULLE_DATA_BRANCH};${MULLE_DATA_TAG:-latest};;
-/stash/mulle-container/
-/home/src/srcO/MulleCA/test/stash/mulle-data
-https://github.com/mulle-c/mulle-data/archive/latest.tar.gz
