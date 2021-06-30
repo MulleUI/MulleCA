@@ -16,53 +16,38 @@
 // themselves generate their animations. See further below for a bit more
 // detail.
 //
-//          .---------------.
-//          | CATransaction |
-//          '---------------'
+//             .---------------.
+//             | CATransaction |
+//             '---------------'
+//                     |
+//                     v
+//           .------------------.
+//         .-| CAAnimationGroup |
+//         | '------------------'
+//         v           |
+//  .-------------.    |     .-------------.
+//  | CAAnimation |    '---->| CAAnimation |
+//  '-------------'          '-------------'
+//         |                        |
+//         v                        v
+//    .--------.               .---------.
+//    | UIView |               | CALayer |
+//    '--------'               '---------'
 //
-//  -begin
-//          .---------------.    .------------------.
-//          | CATransaction |--->| CAAnimationGroup |
-//          '---------------'    '------------------'
-//
-//  -addAnimatableObject:
-//          .---------------.    .------------------.
-//          | CATransaction |--->| CAAnimationGroup |
-//          '---------------'    '------------------'
-//                  |
-//                  |            .---------.
-//                  '----------->| CALayer |
-//                               '---------'
-//
-//  -commit
-//          .---------------.
-//          | CATransaction |
-//          '---------------'
-//                  |
-//                  |            .---------.
-//                  '----------->| CALayer |
-//                               '---------'
-//                                    |
-//                                    v
-//                             .-------------.    .------------------.
-//                             | CAAnimation |--->| CAAnimationGroup |
-//                             '-------------'    '------------------'
 //
 // Create a CATransaction, then start with -begin.
 // Now layers should add themselves with -addAnimatableObject: on animatable
 // property (observable) changes. This stops when you issue -commit.
 //
-// Now all the animatable objects are sent a
-// -commitImplicitAnimationsWithAnimationGroup: method.
-// A CALayer will then create CABasicAnimations on its own behalf.
-// That's all CATransaction does. The actual animationis done with
-// -animateWithAbsoluteTime: on each CALayer.
-
-
+// Now all the animatable objects are sent a -commitImplicitAnimations: method.
+// An object will then create CABasicAnimations on its own behalf.
+// That's all CATransaction does. When you do a "commit", you get the setup
+// animations back in a animation group.
+//
 
 @protocol CAImplicitlyAnimatableObject
 
-- (void) commitImplicitAnimationsWithAnimationGroup:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
+- (void) commitImplicitAnimations:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
 
 @end
 
@@ -132,8 +117,10 @@ enum CATransactionState
 //
 
 - (void) begin;
-- (void) commit;
-- (void) cancel;
+- (CAAnimationGroup *) commit;
+
+//
+- (void) reset;
 
 @end
 

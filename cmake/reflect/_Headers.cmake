@@ -55,7 +55,9 @@ src/include.h
 #
 set( PUBLIC_HEADERS
 src/CAAnimationGroup.h
+src/CAAnimationStorage.h
 src/CAAnimation.h
+src/CAAnimator.h
 src/CABasicAnimation.h
 src/CAPolarPoint.h
 src/CAQuadratic.h

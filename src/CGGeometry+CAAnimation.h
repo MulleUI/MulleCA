@@ -76,6 +76,9 @@ typedef CGFloat     CAAngleDirectional;
 
 
 
+// MEMO: use CANormalizedFloatToRadians and not CANormalizedFloatAsRadians
+//       because there is a calculation involved. Could also use a Get
+//       but...
 static inline CAAngleRadians   CANormalizedFloatToRadians( CGFloat x)
 {
    assert( x >= 0.0 && x <= 1.0);
@@ -220,21 +223,42 @@ static inline CAAngleRadians   CGPointGetPolarAngle( CGPoint p)
 }
 
 
-// mulle addition
+//
+// mulle addition (neg. size values possible due to OpenGl code) and flipping
+// and the like
+//
 static inline CGPoint  CGPointClampToSize( CGPoint offset, CGSize size)
 {
-   assert( size.width >= 0.0);
-   assert( size.height >= 0.0);
+   if( size.width > 0.0)
+   {
+      if( offset.x < 0.0)
+         offset.x = 0.0;
+      if( offset.x >= size.width)
+         offset.x = size.width;
+   }
+   else
+   {
+      if( offset.x > 0.0)
+         offset.x = 0.0;
+      if( offset.x <= size.width)
+         offset.x = size.width;
+   }
 
-   if( offset.x < 0.0)
-      offset.x = 0.0;
-   if( offset.x >= size.width)
-      offset.x = size.width;
+   if( size.height > 0.0)
+   {
+      if( offset.y < 0.0)
+         offset.y = 0.0;
+      if( offset.y >= size.height)
+         offset.y = size.height;
+   }
+   else
+   {
+      if( offset.y > 0.0)
+         offset.y = 0.0;
+      if( offset.y <= size.height)
+         offset.y = size.height;
+   }
 
-   if( offset.y < 0.0)
-      offset.y = 0.0;
-   if( offset.y >= size.height)
-      offset.y = size.height;
    return( offset);
 }
 

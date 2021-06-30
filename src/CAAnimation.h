@@ -2,38 +2,58 @@
 
 #import "CATime.h"
 
-
+//
+// Usually the CAAnimatableObject is a "CALayer", so there..
+//
 @protocol CAAnimatableObject
 
 // returns YES as long as animation is running
-- (void) animateWithAbsoluteTime:(CAAbsoluteTime) time;
+- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) time;
 
 @end
 
 
-// Usually the CAAnimatableObject is a "CALayer", so there..
+
+// CALayer "private" animations just stick to the CALayer.
 //
-// This is how animations look like  "in flight", they stick to a layer and
-// they share an animation group. The CAAnimationGroup is fairly boring
-// and unimportant though and may even be missing for animations, that are not
-// created during a CATransaction.
 //
-//  .---------.    .-------------.    .------------------.
-//  | CALayer |--->| CAAnimation |--->| CAAnimationGroup |
-//  '---------'    '-------------'    '------------------'
-//       |         .-------------.              ^
-//       '-------->| CAAnimation |--------------'
+//  .---------.    .-------------.
+//  | CALayer |--->| CAAnimation |
+//  '---------'    '-------------'
+//       |         .-------------.
+//       '-------->| CAAnimation |
 //                 '-------------'
 //
-
+// Otherwise CAAnimation are part of a CAAnimator, which is usually a component 
+// of UIWindow. 
+//
+//                          .------------.
+//                    .-----| CAAnimator |-----------------------.
+//                    |     '------------'                       |
+//                    v           |                              v
+//          .------------------.  |    .-------------.  .------------------.
+//        .-| CAAnimationGroup |  '--->| CAAnimation |  | CAAnimationGroup |
+//        | '------------------'       '-------------'  '------------------'
+//        v           |
+// .-------------.    |     .-------------.
+// | CAAnimation |    '---->| CAAnimation |
+// '-------------'          '-------------'
+//        |                        |
+//        v                        v
+//   .--------.               .---------.
+//   | UIView |               | CALayer |
+//   '--------'               '---------'
+//
+//
 enum CAAnimationBits
 {
    // internal state, can't be set
-   CAAnimationStarted     = 0x1,
-   CAAnimationHasReversed = 0x2,
-   CAAnimationEnded       = 0x4,
-   CAAnimationStateless   = 0x8,
-   CAAnimationPreempt     = 0x10,   // signal preemption
+   CAAnimationStarted     = 0x1,    // animation active, but possibly delayed
+   CAAnimationAnimating   = 0x2,    // passed delay, now doing something
+   CAAnimationScrubbing   = 0x4,    // future
+   CAAnimationHasReversed = 0x8,
+   CAAnimationEnded       = 0x10,
+   CAAnimationPreempt     = 0x20,   // signal preemption
 
    // user options
    CAAnimationReverses    = 0x10000,
@@ -65,6 +85,14 @@ static inline struct CAAnimationOptions
 
 @class CALayer;
 @class CAAnimation;
+
+
+static inline CARelativeTime   CAFrameCountToRelativeTime( NSUInteger frames,
+                                                           CGFloat frameRate)
+{
+   return( frames * frameRate);
+}
+
 
 //
 // All animations in one UIView beginAnimations:context: have the
@@ -112,14 +140,26 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 // contrary to Apple CoreAnimation, the delegate is not retained
 @property( assign) id <CAAnimationDelegate>   delegate;
 
-@property( retain) CAAnimationGroup           *animationGroup;
+// if there is an animationGroup it will retain us
 @property( assign) CAAnimationFunction        *animationFunction;
 @property( getter=isRemovedOnCompletion) BOOL removedOnCompletion;
+
+// used, if part of a CAAnimationGroup, not used if animation is a
+// CALayer "private" animation
+@property( retain) id <CAAnimatableObject>    animationObject;
+
+// objects have to be CAAnimatableObjects for this to be used
++ (void) animateObjects:(struct mulle_pointerarray *) objects
+           absoluteTime:(CAAbsoluteTime) renderTime;
+
+
 //
 // You can reuse an existing CAAnimation by calling init again
 // Could/maybe should generalize this with NSValue ?
 //
-- (id) initWithOptions:(struct CAAnimationOptions *) options;
++ (instancetype) animationWithAnimationOptions:(struct CAAnimationOptions *) options;
+- (instancetype) initWithAnimationOptions:(struct CAAnimationOptions *) options;
+
 
 // returns NO if animation ended
 - (BOOL) animateObject:(id) object
@@ -133,9 +173,6 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 normalizedRelativeTime:(double) t
            elapsedTime:(CARelativeTime) time;
 
-// objects have to be CAAnimatableObjects for this to be used
-+ (void) animateObjects:(struct mulle_pointerarray *) objects
-           absoluteTime:(CAAbsoluteTime) renderTime;
 
 // used if options are set to CAAnimationReverses (and CAAnimationRepeats)
 - (void) reverse;

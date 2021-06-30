@@ -9,6 +9,25 @@
 #import "CABasicAnimation.h"
 
 
+#ifdef DEBUG
+//#define DEBUG_VERBOSE
+#endif
+
+
+@interface CAAnimation( Private)
+
+- (void) willStartAnimating;
+- (BOOL) didEnd;
+
+// consider this "private"
+- (void) setAnimationOptions:(struct CAAnimationOptions *) options;
+
+// this is actually in our protocolclass, but compiler don't know it
+- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) time;
+@end
+
+
+
 @implementation CAAnimationGroup
 
 
@@ -16,6 +35,25 @@
 {
    _animationDuration = 2.0;
    return( self);
+}
+
+
+extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
+
+
+
+- (void) dealloc
+{
+   [self removeAllAnimations];
+
+   MulleObjCInstanceDeallocateMemory( self, _animationID);
+   [super dealloc];
+}
+
+
+- (struct CAAnimationStorage *) animationStorage
+{
+   return( &_animationStorage);
 }
 
 
@@ -31,20 +69,12 @@
 }
 
 
-- (void) dealloc
+/*
+ *
+ */
+- (void) willStartAnimating
 {
-   MulleObjCInstanceDeallocateMemory( self, &_animationID);
-   [super dealloc];
-}
-
-
-
-- (void) animationWillStart:(CAAnimation *) animation
-{
-   // if this is the first time we got this, then
-   // send the delegate a message
-   if( _startedCount++)
-      return;
+   [super willStartAnimating];
 
    if( _animationWillStartSelector)
       [_animationDelegate performSelector:_animationWillStartSelector
@@ -53,29 +83,55 @@
 }
 
 
-- (void) animationDidStop:(CAAnimation *) animation
+// returns YES, if really ended (reverse flag is confusing to me)
+- (BOOL) didEnd
 {
-   // if we got #animations messages, then the last one
-   // to finish sends the delegate message (defensively coded, so it
-   // only sends it once
-   if( ++_endedCount != _startedCount)
-   {
-      assert( _endedCount == _startedCount);
-      return;
-   }
+   BOOL   flag;
 
-   if( _animationDidStopSelector)
+   flag = [super didEnd];
+
+   if( flag && _animationDidStopSelector)
       [_animationDelegate performSelector:_animationDidStopSelector
                                withObject:(id) _animationID
                                withObject:_context];
+   return( flag);
 }
+
+
+- (BOOL) animateObject:(id) object
+          absoluteTime:(CAAbsoluteTime) now
+{
+   BOOL   flag;
+
+#ifdef DEBUG_VERBOSE
+   fprintf( stderr, "%.5f: %s %s (%ld)\n",
+               now, __PRETTY_FUNCTION__, [self cStringDescription], n_animations);
+#endif
+   if( ! (_bits & CAAnimationStarted))
+   {
+      [self willStartAnimating];
+   }
+   // animate self to get bits set, otherwise
+
+   if( ! (_bits & CAAnimationEnded))
+   {
+      // run animations of animations in group
+      flag = [super animateWithAbsoluteTime:now];
+      if( ! flag)
+         [self didEnd];
+   }
+
+   return( (_bits & CAAnimationEnded) ? NO : YES);
+}
+
+
 
 @end
 
 
 @implementation CAAnimationGroup( CAAnimation)
 
-static inline void  setAnimationOptions( CAAnimationGroup *self,
+static inline void  setupAnimationOptions( CAAnimationGroup *self,
                                          struct CAAnimationOptions *options)
 {
    options->timeRange   = CARelativeTimeRangeMake( self->_animationDelay, self->_animationDuration);
@@ -85,10 +141,11 @@ static inline void  setAnimationOptions( CAAnimationGroup *self,
 }
 
 
-- (void) setAnimationOptions:(struct CAAnimationOptions *) options
+// rename to something else than set, here
+- (void) setupAnimationOptions:(struct CAAnimationOptions *) options
 {
    memset( options, 0, sizeof( *options));
-   setAnimationOptions( self, options);
+   setupAnimationOptions( self, options);
 }
 
 @end
@@ -96,11 +153,11 @@ static inline void  setAnimationOptions( CAAnimationGroup *self,
 
 @implementation CAAnimationGroup( CABasicAnimation)
 
-- (void) setBasicAnimationOptions:(struct CABasicAnimationOptions *) options
+- (void) setupBasicAnimationOptions:(struct CABasicAnimationOptions *) options
 {
    memset( options, 0, sizeof( *options));
 
-   setAnimationOptions( self, &options->base);
+   setupAnimationOptions( self, &options->base);
    options->tween     = _animationTweenFunction;
    if( ! options->tween)
       options->curve  = _animationCurve;

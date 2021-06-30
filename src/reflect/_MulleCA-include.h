@@ -50,4 +50,16 @@
 //        (use mulle-sourcetree-to-c --unames for known values)
 #include <mulle-time/mulle-time.h>   // mulle-time
 
+// You can tweak the following #include with these commands.
+// (Use 86813062-CCAC-4603-BA8D-A911614ED2CF instead of mulle-buffer if there are duplicate entries)
+//    remove:             `mulle-sourcetree mark mulle-buffer no-header`
+//    rename:             `mulle-sde dependency|library set mulle-buffer include whatever.h`
+//    reorder:            `mulle-sourcetree move mulle-buffer <up|down>`
+//    toggle #include:    `mulle-sourcetree mark mulle-buffer [no-]import`
+//    toggle public:      `mulle-sourcetree mark mulle-buffer [no-]public`
+//    toggle optional:    `mulle-sourcetree mark mulle-buffer [no-]require`
+//    remove for platform:`mulle-sourcetree mark mulle-buffer no-platform-<uname>`
+//        (use mulle-sourcetree-to-c --unames for known values)
+#include <mulle-buffer/mulle-buffer.h>   // mulle-buffer
+
 #endif

@@ -97,16 +97,17 @@ static CGFloat   paperjs_ease_in_out_quint(struct CAQuadratic *quadratic, CGFloa
 #define N_LAYERS     4 + 12
 #define SIZE         CGSizeMake( 10, 10)
 
-static void   setupSceneInView( UIView *contentPlane)
+static void   setupScene( UIWindow *window)
 {
-   CALayer         *layers[ N_LAYERS];
-   CGRect          frame;
-   CGRect          rects[ N_LAYERS];
-   CGRect          rect;
-   NSUInteger      i;
-   CATransaction   *ta;
+   CALayer            *layers[ N_LAYERS];
+   CGRect             frame;
+   CGRect             rects[ N_LAYERS];
+   CGRect             rect;
+   NSUInteger         i;
+   CATransaction      *ta;
+   CAAnimationGroup   *group;
 
-   frame = [contentPlane contentRect];
+   frame = [[window contentPlane] contentRect];
    frame = UIEdgeInsetsInsetRect( frame, UIEdgeInsetsMake( 10, 10, 10, 10));
 
    ta = [CATransaction object];
@@ -114,16 +115,14 @@ static void   setupSceneInView( UIView *contentPlane)
    CGRectPartitionVertically( frame, 0, N_LAYERS, rects);
    for( i = 0; i < N_LAYERS; i++)
    {
-      rect = CGSizeApplyContentModeInRect( SIZE,
-                                           CGContentModeLeft,
-                                           rects[ i]);
+      rect = CGSizePlaceInRect( SIZE, rects[ i], CGContentModeLeft);
       layers[ i] = [CALayer layerWithFrame:rect];
       if( i < 4)
-         [layers[ i] setBackgroundColor:CGColorCreateGenericRGB( 1.0, 0.0, 0.0, 1.0)];
+         [layers[ i] setBackgroundColor:CGColorMakeRGBA( 1.0, 0.0, 0.0, 1.0)];
       else
-         [layers[ i] setBackgroundColor:CGColorCreateGenericRGB( 0.0, 0.0, 1.0, 1.0)];
+         [layers[ i] setBackgroundColor:CGColorMakeRGBA( 0.0, 0.0, 1.0, 1.0)];
 
-      [contentPlane addLayer:layers[ i]];
+      [[window contentPlane] addLayer:layers[ i]];
 
       [ta begin];
       {
@@ -151,12 +150,12 @@ static void   setupSceneInView( UIView *contentPlane)
          case 14 : [ta setAnimationTweenFunction:paperjs_ease_out_quint]; break;
          case 15 : [ta setAnimationTweenFunction:paperjs_ease_in_out_quint]; break;
          }
-         rect = CGSizeApplyContentModeInRect( SIZE,
-                                              CGContentModeRight,
-                                              rects[ i]);
+         rect = CGSizePlaceInRect( SIZE, rects[ i], CGContentModeRight);
          [layers[ i] setFrame:rect];
       }
-      [ta commit];
+      group = [ta commit];
+
+      [[window postLayoutAnimator] addAnimation:group];
       // can now use transaction again
    }
 }
@@ -173,9 +172,9 @@ int   main( int argc, char *argv[])
       window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
       assert( window);
 
-      [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+      [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-      setupSceneInView( [window contentPlane]);
+      setupScene( window);
 
       [app addWindow:window];
       [window renderLoop];
