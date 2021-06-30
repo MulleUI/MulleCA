@@ -9,6 +9,16 @@
 #import "CAAnimationGroup.h"
 
 
+
+
+@interface CAAnimation( Private)
+
+- (void) setAnimationOptions:(struct CAAnimationOptions *) options;
+
+@end
+
+
+
 @implementation CATransaction
 
 static struct
@@ -66,6 +76,8 @@ void   CATransactionSetCurrentTransaction( id p)
    [_animationGroup autorelease];
    _animationGroup = nil;
 
+   _state = CATransactionIdle;
+
    _mulle_pointerarray_reset( &_animatedObjects);
    mulle_thread_tss_set( Self.thread_key, NULL);
 }
@@ -73,6 +85,8 @@ void   CATransactionSetCurrentTransaction( id p)
 
 - (void) begin
 {
+   assert( _state == CATransactionIdle);
+
    _state = CATransactionStarted;
    _animationGroup = [CAAnimationGroup new];
    mulle_thread_tss_set( Self.thread_key, self);
@@ -83,32 +97,36 @@ void   CATransactionSetCurrentTransaction( id p)
 // TODO: Extend this to have chained animation groups, so that you can have
 //       more complex animations.
 //
-- (void) commit
+// During the commit more animated objects may get added. As they are
+// added in the back, this will not impede us. Instead they will be
+// picked up as well.
+//
+- (CAAnimationGroup *) commit
 {
    id <CAImplicitlyAnimatableObject>     obj;
    struct mulle_pointerarrayenumerator   rover;
+   CAAnimationGroup                      *group;
+   struct CAAnimationOptions             options;
 
    assert( _state == CATransactionStarted);
 
+   group = _animationGroup;
    _state = CATransactionCommitting;
    {
       rover = mulle_pointerarray_enumerate( &_animatedObjects);
       while( _mulle_pointerarrayenumerator_next( &rover, (void **) &obj))
       {
-         [obj commitImplicitAnimationsWithAnimationGroup:_animationGroup];
+         [obj commitImplicitAnimations:group];
       }
       mulle_pointerarrayenumerator_done( &rover);
 
+      //
+      [group setupAnimationOptions:&options];
+      [group setAnimationOptions:&options];
       [self reset];
    }
-   _state = CATransactionIdle;
-}
 
-
-- (void) cancel
-{
-   [self reset];
-   _state = CATransactionIdle;
+   return( group);
 }
 
 
@@ -118,19 +136,17 @@ void   CATransactionSetCurrentTransaction( id p)
 }
 
 
-
 //
 //
 //
 - (void) addAnimatableObject:(id <CAImplicitlyAnimatableObject>) obj
 {
    assert( obj);
-   assert( [(NSObject *) obj conformsToProtocol:@protocol( CAImplicitlyAnimatableObject)]);
-
+   assert( [(NSObject *) obj respondsToSelector:@selector( commitImplicitAnimations:)]);
+   assert( _state >= CATransactionStarted && _state <= CATransactionCommitting);
    assert( _mulle_pointerarray_find( &_animatedObjects, obj) == mulle_not_found_e);
    _mulle_pointerarray_add( &_animatedObjects, obj);
 }
-
 
 
 // forward dynamic properties to animationGroup

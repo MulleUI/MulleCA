@@ -2,12 +2,16 @@
 
 #import "CAAnimation.h"
 
-#import "import-private.h"
+#import "CAAnimationGroup.h"
 
+#import "import-private.h"
 #include <assert.h>
 
 
-#import "CAAnimationGroup.h"
+
+#ifdef DEBUG
+//#define DEBUG_VERBOSE
+#endif
 
 
 @interface CAAnimationGroup( Private)
@@ -17,11 +21,69 @@
 
 @end
 
+static char  *CAAnimationBitCString( NSUInteger bit)
+{
+   switch( bit)
+   {
+   case CAAnimationStarted     : return( "CAAnimationStarted");
+   case CAAnimationAnimating   : return( "CAAnimationAnimating");
+   case CAAnimationScrubbing   : return( "CAAnimationScrubbing");
+   case CAAnimationHasReversed : return( "CAAnimationHasReversed");
+   case CAAnimationEnded       : return( "CAAnimationEnded");
+   case CAAnimationPreempt     : return( "CAAnimationPreempt");
+   case CAAnimationReverses    : return( "CAAnimationReverses");
+   case CAAnimationAdditive    : return( "CAAnimationAdditive");
+   }
+   return( "???");
+}
+
+
+static NSUInteger  CAAnimationBits[] =
+{
+   // internal state, can't be set
+   CAAnimationStarted,    // animation active, but possibly delayed
+   CAAnimationAnimating,    // passed delay, now doing something
+   CAAnimationScrubbing,    // future
+   CAAnimationHasReversed,
+   CAAnimationEnded,
+   CAAnimationPreempt,   // signal preemption
+
+   // user options
+   CAAnimationReverses,
+   CAAnimationAdditive
+};
+
+
+static char   *CAAnimationBitsCString( NSUInteger bits)
+{
+   struct mulle_buffer   buffer;
+   char                  *s;
+   NSUInteger            i;
+
+   mulle_buffer_init( &buffer, NULL);
+
+   for( i = 0; i < sizeof( CAAnimationBits) / sizeof( NSUInteger); i++)
+   {
+      if( bits & CAAnimationBits[ i])
+      {
+         mulle_buffer_add_string_if_not_empty( &buffer, "|");
+         mulle_buffer_add_string( &buffer, CAAnimationBitCString( CAAnimationBits[ i]));
+      }
+   }
+
+   mulle_buffer_add_string_if_empty( &buffer, "0");
+
+   s = mulle_buffer_extract_string( &buffer);
+   mulle_buffer_done( &buffer);
+
+   return( s);
+}
+
 
 
 @implementation CAAnimation
 
-static const struct CAAnimationOptions   CAAnimationDefaultOptions =
+const struct CAAnimationOptions   CAAnimationDefaultOptions =
 {
    { 0, 1 },      // 1 second starting immediately
    1.0,
@@ -29,9 +91,7 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 };
 
 
-// separated into two parameters, so animations can live without
-// a group
-- (id) initWithOptions:(struct CAAnimationOptions *) options
+- (void) setAnimationOptions:(struct CAAnimationOptions *) options
 {
    // no need for super coz NSObject based
    if( ! options)
@@ -40,12 +100,6 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
    // reverses is only used if repeats is set
    assert( ! (options->bits & 0xFFFF));
 
-   if( options->timeRange.duration <= 0.0)
-   {
-      [self release];
-      return( nil);
-   }
-
    self->_relative            = options->timeRange;
    self->_bits                = options->bits & ~0xFFFF;  // mask off our internal state bits
 
@@ -53,6 +107,25 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
    // only used for reset
    self->_originalRepeatCount = self->_repeatCount;
    self->_removedOnCompletion = YES;
+}
+
+
++ (instancetype) animationWithAnimationOptions:(struct CAAnimationOptions *) options
+{
+   return( [[[self alloc] initWithAnimationOptions:options] autorelease]);
+}
+
+// separated into two parameters, so animations can live without
+// a group
+- (id) initWithAnimationOptions:(struct CAAnimationOptions *) options
+{
+   if( options && options->timeRange.duration <= 0.0)
+   {
+      [self release];
+      return( nil);
+   }
+
+   [self setAnimationOptions:options];
 
    return( self);
 }
@@ -60,7 +133,7 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
 
 - (id) init
 {
-   return( [self initWithOptions:NULL]);
+   return( [self initWithAnimationOptions:NULL]);
 }
 
 
@@ -69,7 +142,7 @@ static const struct CAAnimationOptions   CAAnimationDefaultOptions =
    CAAnimation  *clone;
 
    clone = NSCopyObject( self, 0, NULL);
-   clone->_animationGroup = nil;
+   clone->_animationObject = nil;  // or what ?
    return( clone);
 }
 
@@ -112,16 +185,36 @@ normalizedRelativeTime:(double) t
    self->_bits |= CAAnimationEnded;
    [_delegate animationDidStop:self
                       finished:NO];
-   [_animationGroup animationDidStop:self];
 }
 
 
-- (void) didEnd
+- (void) willStartAnimating
 {
+   self->_bits |= CAAnimationAnimating;
+#ifdef DEBUG_VERBOSE
+   fprintf( stderr, "%s %s\n",
+               __PRETTY_FUNCTION__, [self cStringDescription]);
+#endif
+}
+
+
+// returns YES, if really ended (reverse flag is confusing to me)
+- (BOOL) didEnd
+{
+   // don't call callbacks if we are "scrubbing" (future)
+   // also don't really end
+   if( self->_bits & CAAnimationScrubbing)
+      return( NO);
+
    self->_bits |= CAAnimationEnded;
    [_delegate animationDidStop:self
                       finished:YES];
-   [_animationGroup animationDidStop:self];
+
+#ifdef DEBUG_VERBOSE
+   fprintf( stderr, "%s %s\n",
+               __PRETTY_FUNCTION__, [self cStringDescription]);
+#endif
+   return( YES);
 }
 
 
@@ -132,6 +225,17 @@ normalizedRelativeTime:(double) t
    double           t;
    double           e;
    CAAbsoluteTime   diff;
+
+#ifdef DEBUG_VERBOSE
+   {
+      char   *s;
+
+      s = CAAnimationBitsCString( self->_bits);
+      fprintf( stderr, "%s %s %s\n",
+                  __PRETTY_FUNCTION__, [self cStringDescription], s);
+      free( s);
+   }
+#endif
 
    if( self->_bits & CAAnimationEnded)
       return( NO);
@@ -158,9 +262,7 @@ normalizedRelativeTime:(double) t
    self->_lastFrame    = self->_currentFrame;
    self->_currentFrame = now;
    if( _frames++ == 0)
-   {
-      [_animationGroup animationWillStart:self];
-   }
+      [self willStartAnimating];
 
    //
    // if time has passed, we don't want to overshoot but we really
@@ -182,14 +284,17 @@ normalizedRelativeTime:(double) t
       }
    }
 
+#ifdef DEBUG_VERBOSE
+   fprintf( stderr, "%.5f: %s %s\n",
+               now, __PRETTY_FUNCTION__, [self cStringDescription]);
+#endif
+
    [self animateObject:object
 normalizedRelativeTime:t
            elapsedTime:now - self->_lastFrame];
 
    if( _frames == 1)
-   {
       [_delegate animationDidStart:self];
-   }
 
    // not yet done ?
    if( now != self->_absolute.end)
@@ -197,20 +302,14 @@ normalizedRelativeTime:t
 
    // not repeating ? done
    if( self->_repeatCount == 0.0)
-   {
-      [self didEnd];
-      return( NO);
-   }
+      return( ! [self didEnd]);
 
    // _self->_repeatCount > 0.0 means repeats a finite number
    if( self->_repeatCount > 0.0)
    {
       self->_repeatCount -= 1.0;
       if( self->_repeatCount <= 0.0)
-      {
-         [self didEnd];
-         return( NO);
-      }
+         return( ! [self didEnd]);
    }
 
    // start with next frame, with a new animation
@@ -234,10 +333,6 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
    struct mulle_pointerarrayenumerator   rover;
    id                                    object;
 
-#ifdef RENDER_DEBUG_VERBOSE
-   fprintf( stderr, "%s %s\n", __PRETTY_FUNCTION__, [self cStringDescription]);
-#endif
-
    rover = mulle_pointerarray_enumerate( objects);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &object))
       MulleObjCObjectPerformSelectorDoubleArgument( object, sel, renderTime);
@@ -248,6 +343,7 @@ static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
 + (void) animateObjects:(struct mulle_pointerarray *) objects
            absoluteTime:(CAAbsoluteTime) renderTime
 {
+
    performSelectorOnObjects( objects,
                              @selector( animateWithAbsoluteTime:),
                              renderTime);

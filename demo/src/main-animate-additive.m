@@ -9,9 +9,10 @@
 // interpolated value from the start and end values, but instead read the
 // current value and add the interpolate change.
 //
-void  setupAnimation( CALayer *layer)
+void  setupAnimation( UIWindow *window, CALayer *layer)
 {
-   CATransaction   *ta;
+   CATransaction      *ta;
+   CAAnimationGroup   *group;
 
    ta = [CATransaction object];
    [ta begin];
@@ -25,7 +26,8 @@ void  setupAnimation( CALayer *layer)
 
       [layer setFrame:CGRectMake( 600, 100, 100, 100)];
    }
-   [ta commit];
+   group = [ta commit];
+   [[window postLayoutAnimator] addAnimation:group];
 
    [ta begin];
    {
@@ -38,20 +40,21 @@ void  setupAnimation( CALayer *layer)
 
       [layer setFrame:CGRectMake( 100, 400, 100, 100)];
    }
-   [ta commit];
+   group = [ta commit];
+   [[window postLayoutAnimator] addAnimation:group];
 }
 
 
-void   setupSceneAndAnimation( UIWindowPlane *contentPlane)
+void   setupSceneAndAnimation( UIWindow *window)
 {
    CALayer   *layer;
 
    layer = [CALayer layerWithFrame:CGRectMake( 100, 100, 100, 100)];
    [layer setBackgroundColor:MulleColorMake( 0xFF0000FF)];
-   [contentPlane addLayer:layer];
+   [[window contentPlane] addLayer:layer];
 
    // UIView -> CAAnimation
-   setupAnimation( layer);
+   setupAnimation( window, layer);
 }
 
 
@@ -66,9 +69,9 @@ int   main( int argc, char *argv[])
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
    assert( window);
 
-   [window setBackgroundColor:CGColorCreateGenericRGB( 1.0, 1.0, 1.0, 1.0)];
+   [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
 
-   setupSceneAndAnimation( [window contentPlane]);
+   setupSceneAndAnimation( window);
 
    [window dump];
 

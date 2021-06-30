@@ -13,7 +13,9 @@ endif()
 #
 set( SOURCES
 src/CAAnimationGroup.m
+src/CAAnimationStorage.m
 src/CAAnimation.m
+src/CAAnimator.m
 src/CABasicAnimation.m
 src/CAPolarPoint.c
 src/CAQuadratic.c

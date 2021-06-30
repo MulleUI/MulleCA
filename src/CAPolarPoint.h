@@ -8,7 +8,31 @@
 #include <math.h>
 
 
-// TODO: make this CGCAPolarPoint ?
+// A polar point is a combination of an angle and a radius. The angle 0 is
+// at 3 o clock. If you keep the radius constant and change the angle you
+// are sweeping along a circle.
+//
+//         . -- ~~~ -- .
+//     .-~           ^   ~-.
+//    /             /       \
+//   /             /         \
+//  |             /           |
+//  |            /            |  --- 0 radians (!)
+//  |                         |
+//   \                       /
+//    \                     /
+//     `-.               .-'
+//         ~- . ___ . -~
+//
+// Notes: negative radius is the same as flipping the angle by 180° deg and
+//        having a postive radius of the same value. 
+//        So a polar point can already have two representations of a CGPoint
+//        there already. A CGPoint is unique. Furthermore you can have negative 
+//        and  positive multiples of the angle, which map to the same point
+//        (e.g. add 360° deg to the angle)
+//
+//        Ergo: conversion back and forth is a slightly lossy operation.
+//              comparing two CAPolarPoints is tricky and error prone.
 
 typedef struct CAPolarPoint
 {
@@ -47,15 +71,16 @@ static CAPolarPoint  CAPolarPointStandardize( CAPolarPoint v)
 }
 
 
+//
+// Attemps to "standardize" and then compare (or to convert to CGPoint and
+// compare) are useless, as the FP error makes it hit and miss, mostly miss.
+//
 static inline int   CAPolarPointEqualToPolarPoint( CAPolarPoint p, CAPolarPoint q)
 {
-   // as angles can wrap around and so do negative radiuses we could convert to
-   // CGPoints which are unique and compare those. Instead we assume that
-   // standardization is a little faster
-   p = CAPolarPointStandardize( p);
-   q = CAPolarPointStandardize( q);
    return( p.radius == q.radius && p.angle == q.angle);
 }
+
+
 
 
 static inline CAPolarPoint  CGPointAsPolarPoint( CGPoint p)

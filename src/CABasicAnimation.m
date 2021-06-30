@@ -38,7 +38,7 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    if( ! options)
       options = (void *) &CABasicAnimationDefaultOptions;
 
-   self = [self initWithOptions:&options->base];
+   self = [self initWithAnimationOptions:&options->base];
    if( ! self)
       return( self);
 
@@ -219,7 +219,10 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    ( (previous) + (x) * ((end) - (start)) )
 
 
-static void   CABasicAnimationSetInterpolatedBOOLAdditive( CABasicAnimation *self, id object, double x, double y)
+static void   CABasicAnimationSetInterpolatedBOOLAdditive( CABasicAnimation *self,
+                                                           id object,
+                                                           double x,
+                                                           double y)
 {
    float   before;
    float   now;
@@ -227,13 +230,20 @@ static void   CABasicAnimationSetInterpolatedBOOLAdditive( CABasicAnimation *sel
 
    before   = interpolate( self->_start.boolValue, self->_end.boolValue, y);
    now      = interpolate( self->_start.boolValue, self->_end.boolValue, x);
-   value    = (BOOL) (intptr_t) mulle_objc_object_call_variablemethodid( object, self->_property->getter, object);
+   value    = (BOOL) (intptr_t) mulle_objc_object_call_variablemethodid( object,
+                                                                         self->_property->getter,
+                                                                         object);
    value    = (value + (now - before) >= 0.5) ? YES : NO;
-   mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) (intptr_t) value);
+   mulle_objc_object_call_variablemethodid( object,
+                                            self->_property->setter,
+                                            (void *) (intptr_t) value);
 }
 
 
-static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *self, id object, double x, double y)
+static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *self,
+                                                              id object,
+                                                              double x,
+                                                              double y)
 {
    double     before;
    double     now;
@@ -241,13 +251,18 @@ static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *
 
    before   = interpolate( self->_start.integerValue, self->_end.integerValue, y);
    now      = interpolate( self->_start.integerValue, self->_end.integerValue, x);
-   value    = (NSInteger) mulle_objc_object_call_variablemethodid( object, self->_property->getter, object);
+   value    = (NSInteger) mulle_objc_object_call_variablemethodid( object,
+                                                                   self->_property->getter,
+                                                                   object);
    value   += (NSInteger) round( now - before);
    mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) value);
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self, id object, double x, double y)
+static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
+                                                            id object,
+                                                            double x,
+                                                            double y)
 {
    CGFloat   before;
    CGFloat   now;
@@ -269,7 +284,10 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self, id object, double x, double y)
+static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
+                                                             id object,
+                                                             double x,
+                                                             double y)
 {
    struct CAAnimationFloat2   before;
    struct CAAnimationFloat2   now;
@@ -298,7 +316,10 @@ static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *s
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self, id object, double x, double y)
+static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
+                                                             id object,
+                                                             double x,
+                                                             double y)
 {
    struct CAAnimationFloat4   before;
    struct CAAnimationFloat4   now;
@@ -405,25 +426,37 @@ static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *s
 }
 
 
-static void   CABasicAnimationSetInterpolatedBOOL( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedBOOL( CABasicAnimation *self,
+                                                   id object,
+                                                   double x)
 {
    BOOL   value;
 
    value = round( interpolate( self->_start.boolValue, self->_end.boolValue, x)) >= 1.0 ? YES : NO;
-   mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) (intptr_t) value);
+   mulle_objc_object_call_variablemethodid( object,
+                                            self->_property->setter,
+                                            (void *) (intptr_t) value);
 }
 
 
-static void   CABasicAnimationSetInterpolatedInteger( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedInteger( CABasicAnimation *self,
+                                                      id object,
+                                                      double x)
 {
    NSInteger   value;
 
-   value = (NSInteger) round( interpolate( self->_start.integerValue, self->_end.integerValue, x));
-   mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) value);
+   value = (NSInteger) round( interpolate( self->_start.integerValue,
+                                           self->_end.integerValue,
+                                           x));
+   mulle_objc_object_call_variablemethodid( object,
+                                            self->_property->setter,
+                                            (void *) value);
 }
 
 
-static void   CABasicAnimationSetInterpolatedRange( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedRange( CABasicAnimation *self,
+                                                    id object,
+                                                    double x)
 {
    NSRange   value;
 
@@ -434,16 +467,20 @@ static void   CABasicAnimationSetInterpolatedRange( CABasicAnimation *self, id o
    //
    if( self->_start.rangeValue.location > self->_end.rangeValue.location)
       value.location = self->_start.rangeValue.location -
-                       (NSUInteger) floor( (self->_start.rangeValue.location - self->_end.rangeValue.location) * x);
+                       (NSUInteger) floor( (self->_start.rangeValue.location -
+                                            self->_end.rangeValue.location) * x);
    else
       value.location = self->_start.rangeValue.location +
-                       (NSUInteger)  floor( (self->_end.rangeValue.location - self->_start.rangeValue.location) * x);
+                       (NSUInteger)  floor( (self->_end.rangeValue.location -
+                                             self->_start.rangeValue.location) * x);
    if( self->_start.rangeValue.length > self->_end.rangeValue.length)
       value.length   = self->_start.rangeValue.length -
-                       (NSUInteger) floor( (self->_start.rangeValue.length - self->_end.rangeValue.length) * x);
+                       (NSUInteger) floor( (self->_start.rangeValue.length -
+                                            self->_end.rangeValue.length) * x);
    else
       value.length   = self->_start.rangeValue.length +
-                       (NSUInteger) floor( (self->_end.rangeValue.length - self->_start.rangeValue.length) * x);
+                       (NSUInteger) floor( (self->_end.rangeValue.length -
+                                            self->_start.rangeValue.length) * x);
    {
       mulle_metaabi_struct_void_return( NSRange)   param;
 
@@ -453,7 +490,9 @@ static void   CABasicAnimationSetInterpolatedRange( CABasicAnimation *self, id o
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedFloat( CABasicAnimation *self,
+                                                    id object,
+                                                    double x)
 {
    CGFloat   value;
 
@@ -467,7 +506,9 @@ static void   CABasicAnimationSetInterpolatedFloat( CABasicAnimation *self, id o
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat2( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedFloat2( CABasicAnimation *self,
+                                                     id object,
+                                                     double x)
 {
    struct CAAnimationFloat2   value;
 
@@ -482,7 +523,9 @@ static void   CABasicAnimationSetInterpolatedFloat2( CABasicAnimation *self, id 
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self, id object, double x)
+static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self,
+                                                     id object,
+                                                     double x)
 {
    struct CAAnimationFloat4   value;
 
@@ -513,8 +556,7 @@ normalizedRelativeTime:(double) t
    assert( t >= 0.0);
    assert( t <= 1.0);
    assert( object);
-
-
+   
    if( _bits & CAAnimationAdditive)
    {
       [self animateAdditiveObject:object
@@ -523,6 +565,11 @@ normalizedRelativeTime:(double) t
       return;
    }
 
+   //
+   // TODO: make this thread local and ask inside accessors, which are 
+   //      providing animations themselves.
+   //
+   isAnimating++;
    x = (_tween)( &self->_quadratic, t);
    switch( self->_valueType)
    {
@@ -556,6 +603,7 @@ normalizedRelativeTime:(double) t
    default :
       abort();
    }
+   isAnimating--;
 }
 
 @end

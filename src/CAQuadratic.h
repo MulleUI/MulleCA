@@ -7,7 +7,9 @@
 #include <assert.h>
 
 
-
+//
+// Quadratic curve / Bezier curve support
+//
 typedef struct CAQuadratic
 {
    CGFloat   value[ 4];

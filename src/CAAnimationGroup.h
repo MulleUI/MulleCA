@@ -6,33 +6,52 @@
 #import "CATime.h"
 #import "CAQuadratic.h"
 
+#import "CAAnimationStorage.h"
+
 @class CAAnimation;
 
-
 //
-//  .---------.          .-------------.    .------------------.
-//  | CALayer |--------->| CAAnimation |--->| CAAnimationGroup |
-//  '---------'          '-------------'    '------------------'
-//       |               .-------------.              ^
-//       '-------------->| CAAnimation |--------------'
-//                       '-------------'
+// During animation a CAAnimationGroup is owned by a CAAnimator.
+//
+//                        .------------.
+//                    .---| CAAnimator |
+//                    |   '------------'                   
+//                    v                 
+//            .------------------.  
+//        .---| CAAnimationGroup |  
+//        |   '------------------' 
+//        v           |
+// .-------------.    |     .-------------.
+// | CAAnimation |    '---->| CAAnimation |
+// '-------------'          '-------------'
+//
 //
 //
 // The CAAnimationGroup is created by a CATransaction during -begin
-// and is used to store some common information for all the animations.
-// The name is not so good,as the CAAnimationGroup doesn't know about its
-// members. Info would be better. As a MulleCA user, you don't create a
-// CAAnimationGroup yourself and you don't have to interact with it.
+// and is used to store the animations created during the transaction.
+// 
+//             .---------------.
+//             | CATransaction |
+//             '---------------'
+//                     |
+//                     v
+//           .------------------.
+//         .-| CAAnimationGroup |
+//         | '------------------'
+//         v           |
+//  .-------------.    |     .-------------.
+//  | CAAnimation |    '---->| CAAnimation |
+//  '-------------'          '-------------'
 //
+// 
 // Each animation in an animation group is separately animated, changing
-// any animation values here post-animation creation will not accomplish
-// anything.
+// any animation values in CAAnimationGroup post-animation creation will not 
+// accomplish anything.
 //
-@interface CAAnimationGroup : NSObject
+@interface CAAnimationGroup : CAAnimation < CAAnimationStorageObject>
 {
-   NSUInteger   _startedCount;
-   NSUInteger   _endedCount;
-   char         *_animationID;
+   struct CAAnimationStorage   _animationStorage;
+   char                        *_animationID;
 }
 
 // properties of the group
@@ -43,6 +62,7 @@
 // will be strcpy
 - (void) setAnimationID:(char *) s;
 - (char *) animationID;
+
 @property( assign) void   *context;
 
 // properties that are used to setup the animations on their creation
@@ -61,7 +81,7 @@ struct CAAnimationOptions;
 
 @interface CAAnimationGroup( CAAnimationOptions)
 
-- (void) setAnimationOptions:(struct CAAnimationOptions *) options;
+- (void) setupAnimationOptions:(struct CAAnimationOptions *) options;
 
 @end
 
@@ -69,6 +89,6 @@ struct CABasicAnimationOptions;
 
 @interface CAAnimationGroup( CABasicAnimationOptions)
 
-- (void) setBasicAnimationOptions:(struct CABasicAnimationOptions *) options;
+- (void) setupBasicAnimationOptions:(struct CABasicAnimationOptions *) options;
 
 @end
