@@ -4,3 +4,9 @@
 export MULLE_SOURCETREE_RESOLVE_TAG="NO"
 
 
+#
+#
+#
+export MULLE_FETCH_SEARCH_PATH="${MULLE_VIRTUAL_ROOT}/../.."
+
+
