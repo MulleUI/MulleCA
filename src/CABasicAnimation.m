@@ -569,7 +569,8 @@ normalizedRelativeTime:(double) t
    // TODO: make this thread local and ask inside accessors, which are 
    //      providing animations themselves.
    //
-   isAnimating++;
+   // isAnimating++;
+
    x = (_tween)( &self->_quadratic, t);
    switch( self->_valueType)
    {
@@ -603,7 +604,7 @@ normalizedRelativeTime:(double) t
    default :
       abort();
    }
-   isAnimating--;
+   // isAnimating--;
 }
 
 @end
