@@ -193,7 +193,7 @@ normalizedRelativeTime:(double) t
    self->_bits |= CAAnimationAnimating;
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%s %s\n",
-               __PRETTY_FUNCTION__, [self cStringDescription]);
+               __PRETTY_FUNCTION__, [self UTF8String]);
 #endif
 }
 
@@ -212,7 +212,7 @@ normalizedRelativeTime:(double) t
 
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%s %s\n",
-               __PRETTY_FUNCTION__, [self cStringDescription]);
+               __PRETTY_FUNCTION__, [self UTF8String]);
 #endif
    return( YES);
 }
@@ -232,7 +232,7 @@ normalizedRelativeTime:(double) t
 
       s = CAAnimationBitsCString( self->_bits);
       fprintf( stderr, "%s %s %s\n",
-                  __PRETTY_FUNCTION__, [self cStringDescription], s);
+                  __PRETTY_FUNCTION__, [self UTF8String], s);
       free( s);
    }
 #endif
@@ -286,7 +286,7 @@ normalizedRelativeTime:(double) t
 
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%.5f: %s %s\n",
-               now, __PRETTY_FUNCTION__, [self cStringDescription]);
+               now, __PRETTY_FUNCTION__, [self UTF8String]);
 #endif
 
    [self animateObject:object
