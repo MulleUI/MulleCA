@@ -62,7 +62,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%s %s receives animation %p\n", __PRETTY_FUNCTION__,
-                        [self cStringDescription], animation);
+                        [self UTF8String], animation);
 #endif
    storage = [self animationStorage];
    assert( _mulle_pointerarray_find( &storage->_animations, animation) == mulle_not_found_e);
@@ -167,7 +167,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%.5f: %s %s (%ld)\n",
-               now, __PRETTY_FUNCTION__, [self cStringDescription], n_animations);
+               now, __PRETTY_FUNCTION__, [self UTF8String], n_animations);
 #endif
 
    // assume deletion is a rare occurrence

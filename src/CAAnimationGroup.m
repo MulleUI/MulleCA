@@ -105,7 +105,7 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 
 #ifdef DEBUG_VERBOSE
    fprintf( stderr, "%.5f: %s %s (%ld)\n",
-               now, __PRETTY_FUNCTION__, [self cStringDescription], n_animations);
+               now, __PRETTY_FUNCTION__, [self UTF8String], n_animations);
 #endif
    if( ! (_bits & CAAnimationStarted))
    {

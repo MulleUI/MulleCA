@@ -18,9 +18,9 @@
 - (void) setFrame:(CGRect) rect
 {
    fprintf( stderr, "%s %s -> %s\n",
-               [self cStringDescription],
-               CGRectCStringDescription( _frame),
-               CGRectCStringDescription( rect));
+               [self UTF8String],
+               CGRectUTF8String( _frame),
+               CGRectUTF8String( rect));
    [super setFrame:rect];
 }
 #endif
