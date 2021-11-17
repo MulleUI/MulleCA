@@ -75,12 +75,12 @@ void   setupSceneAndAnimation( UIWindow *window)
    yellowView = [CustomView viewWithFrame:CGRectZero];
    greenView  = [CustomView viewWithFrame:CGRectZero];
 
-   [view setDebugNameCString:"Container"];
+   [view setDebugNameUTF8String:"Container"];
 
-   [redView setDebugNameCString:"redView"];
-   [blueView setDebugNameCString:"blueView"];
-   [yellowView setDebugNameCString:"yellowView"];
-   [greenView setDebugNameCString:"greenView"];
+   [redView setDebugNameUTF8String:"redView"];
+   [blueView setDebugNameUTF8String:"blueView"];
+   [yellowView setDebugNameUTF8String:"yellowView"];
+   [greenView setDebugNameUTF8String:"greenView"];
 
    [redView setBackgroundColor:[UIColor redColor]];
    [blueView setBackgroundColor:[UIColor blueColor]];

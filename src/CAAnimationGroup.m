@@ -59,7 +59,7 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 
 - (void) setAnimationID:(char *) s
 {
-   MulleObjCObjectSetDuplicatedCString( self, &_animationID, s);
+   MulleObjCObjectSetDuplicatedUTF8String( self, &_animationID, s);
 }
 
 

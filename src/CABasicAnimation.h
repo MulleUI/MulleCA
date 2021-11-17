@@ -79,7 +79,7 @@ union CAAnimationValue
 
    struct CAAnimationFloat2   float2Value;  // a 32 bit float usually
    struct CAAnimationFloat4   float4Value;  // a 32 bit float usually
-//   CGColorRef        color;          // four floats
+//   CGColor        color;          // four floats
 };
 
 

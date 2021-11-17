@@ -49,7 +49,7 @@ void   setupSceneAndAnimation( UIWindow *window)
    CALayer   *layer;
 
    layer = [CALayer layerWithFrame:CGRectMake( 100, 100, 100, 100)];
-   [layer setBackgroundColor:MulleColorMake( 0xFF0000FF)];
+   [layer setBackgroundColor:CGColorMakeWithUnsignedInteger( 0xFF0000FF)];
    [[window contentPlane] addLayer:layer];
 
    // UIView -> CAAnimation

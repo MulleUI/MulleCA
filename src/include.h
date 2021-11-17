@@ -22,6 +22,10 @@
    sourcetree, then you don't need it.
  */
 #include "_MulleCA-include.h"
+#ifndef MULLE_CA_EXTERN_GLOBAL
+# define MULLE_CA_EXTERN_GLOBAL MULLE_C_EXTERN_GLOBAL
+#endif
+
 
 /* You can add some more include statements here */
 
