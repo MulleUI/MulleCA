@@ -7,7 +7,7 @@ export PROJECT_NAME="MulleCA"
 #
 #
 #
-export PROJECT_TYPE="executable"
+export PROJECT_TYPE="library"
 
 
 #
