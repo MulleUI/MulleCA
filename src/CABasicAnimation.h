@@ -82,7 +82,6 @@ union CAAnimationValue
 };
 
 
-
 static inline union CAAnimationValue
    CGAnimationValueMakeWithVector( CGVector vector)
 {
@@ -133,6 +132,20 @@ static inline union CAAnimationValue
 }
 
 
+//
+// i think hsba makes somewhat nicer color interpolations, i could be wrong
+// though
+//
+static inline union CAAnimationValue
+   CGAnimationValueMakeWithCGColor( CGColor color)
+{
+   union CAAnimationValue   value;
+
+   CGColorGetHSBAComponents( color, (float *) &value.float4Value);
+   return( value);
+}
+
+
 
 struct CAAnimationValueRange
 {
@@ -158,7 +171,8 @@ enum CAAnimationValueType
    CAAnimationValueNSRange,
    CAAnimationValueCGFloat,
    CAAnimationValueCGFloat2,
-   CAAnimationValueCGFloat4
+   CAAnimationValueCGFloat4,
+   CAAnimationValueCGColor
 };
 
 
@@ -287,6 +301,12 @@ static inline struct CABasicAnimationOptions
          startBOOLValue:(BOOL) start
            endBOOLValue:(BOOL) end
                 options:(struct CABasicAnimationOptions *) options;
+
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+        startColorValue:(CGColor) start
+          endColorValue:(CGColor) end
+                options:(struct CABasicAnimationOptions *) options;
+
 
 //
 // interpolated values aren't SET on the object, but the objects value
