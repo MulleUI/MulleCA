@@ -16,50 +16,62 @@
 
 // You can tweak the following #include with these commands.
 // (Use FBC789F4-AA07-43CB-A91F-8B63D929F89D instead of m if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark m no-header`
+//    remove:             `mulle-sde dependency mark m no-header`
 //    rename:             `mulle-sde dependency|library set m include whatever.h`
-//    reorder:            `mulle-sourcetree move m <up|down>`
-//    toggle #include:    `mulle-sourcetree mark m [no-]import`
-//    toggle public:      `mulle-sourcetree mark m [no-]public`
-//    toggle optional:    `mulle-sourcetree mark m [no-]require`
-//    remove for platform:`mulle-sourcetree mark m no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move m <up|down>`
+//    toggle #include:    `mulle-sde dependency mark m [no-]import`
+//    toggle public:      `mulle-sde dependency mark m [no-]public`
+//    toggle optional:    `mulle-sde dependency mark m [no-]require`
+//    remove for platform:`mulle-sde dependency mark m no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <math.h>   // m
 
 // You can tweak the following #include with these commands.
-// (Use 7BD7F099-F286-47B8-BF7A-D7152F4D8C1E instead of mulle-layout if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-layout no-header`
-//    rename:             `mulle-sde dependency|library set mulle-layout include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-layout <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-layout [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-layout [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-layout [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-layout no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
-#include <mulle-layout/mulle-layout.h>   // mulle-layout
-
-// You can tweak the following #include with these commands.
 // (Use 24A4681C-0CF2-457D-8BE8-18526E9B5BAE instead of mulle-time if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-time no-header`
+//    remove:             `mulle-sde dependency mark mulle-time no-header`
 //    rename:             `mulle-sde dependency|library set mulle-time include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-time <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-time [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-time [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-time [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-time no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move mulle-time <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-time [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-time [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-time [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-time no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-time/mulle-time.h>   // mulle-time
 
 // You can tweak the following #include with these commands.
 // (Use 86813062-CCAC-4603-BA8D-A911614ED2CF instead of mulle-buffer if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-buffer no-header`
+//    remove:             `mulle-sde dependency mark mulle-buffer no-header`
 //    rename:             `mulle-sde dependency|library set mulle-buffer include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-buffer <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-buffer [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-buffer [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-buffer [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-buffer no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move mulle-buffer <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-buffer [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-buffer [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-buffer [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-buffer no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-buffer/mulle-buffer.h>   // mulle-buffer
+
+// You can tweak the following #include with these commands.
+// (Use 91EA45D1-285C-40CE-9BF5-EB2BB0286554 instead of mulle-geometry if there are duplicate entries)
+//    remove:             `mulle-sde dependency mark mulle-geometry no-header`
+//    rename:             `mulle-sde dependency|library set mulle-geometry include whatever.h`
+//    reorder:            `mulle-sde dependency move mulle-geometry <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-geometry [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-geometry [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-geometry [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-geometry no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-geometry/mulle-geometry.h>   // mulle-geometry
+
+// You can tweak the following #include with these commands.
+// (Use A0F07100-5D89-412E-8C3C-542D002FDCB4 instead of mulle-layout if there are duplicate entries)
+//    remove:             `mulle-sde dependency mark mulle-layout no-header`
+//    rename:             `mulle-sde dependency|library set mulle-layout include whatever.h`
+//    reorder:            `mulle-sde dependency move mulle-layout <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-layout [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-layout [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-layout [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-layout no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-layout/mulle-layout.h>   // mulle-layout
 
 #endif

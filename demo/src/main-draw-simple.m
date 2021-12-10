@@ -1,4 +1,4 @@
-#import <MulleUICore/MulleUICore.h>
+#import "import-private.h"
 
 
 static void   drawStuff1( CALayer *layer, CGContext *context);

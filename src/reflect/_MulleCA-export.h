@@ -14,7 +14,5 @@
 #import "CAAnimation.h"
 #import "CAAnimator.h"
 #import "CABasicAnimation.h"
-#import "CAQuadratic.h"
-#import "CATime.h"
 #import "CATransaction.h"
 #import "MulleObjCLoader+MulleCA.h"
