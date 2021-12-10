@@ -3,9 +3,6 @@
 //
 #import "import.h"
 
-#import "CATime.h"
-#import "CAQuadratic.h"
-
 
 @class CAAnimationGroup;
 

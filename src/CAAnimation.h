@@ -1,7 +1,5 @@
 #import "import.h"
 
-#import "CATime.h"
-
 //
 // Usually the CAAnimatableObject is a "CALayer", so there..
 //

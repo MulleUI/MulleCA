@@ -1,7 +1,6 @@
 #import "CAAnimation.h"
 
 #import "CATransaction.h"  // for tweenfunction
-#import "CAQuadratic.h"  // for tweenfunction
 
 
 // The basic animation has a definitive starting value and and end value
