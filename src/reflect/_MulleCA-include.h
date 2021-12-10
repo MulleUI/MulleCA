@@ -74,4 +74,16 @@
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-layout/mulle-layout.h>   // mulle-layout
 
+// You can tweak the following #include with these commands.
+// (Use C63BE520-B704-4CB1-92FC-77E93CB55CAC instead of mulle-color if there are duplicate entries)
+//    remove:             `mulle-sde dependency mark mulle-color no-header`
+//    rename:             `mulle-sde dependency|library set mulle-color include whatever.h`
+//    reorder:            `mulle-sde dependency move mulle-color <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-color [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-color [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-color [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-color no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-color/mulle-color.h>   // mulle-color
+
 #endif

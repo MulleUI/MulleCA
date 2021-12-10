@@ -373,3 +373,74 @@ if( NOT MULLE_LAYOUT_LIBRARY)
       message( FATAL_ERROR "MULLE_LAYOUT_LIBRARY was not found")
    endif()
 endif()
+
+
+#
+# Generated from sourcetree: C63BE520-B704-4CB1-92FC-77E93CB55CAC;mulle-color;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import;
+# Disable with : `mulle-sourcetree mark mulle-color no-link`
+# Disable for this platform: `mulle-sourcetree mark mulle-color no-cmake-platform-${MULLE_UNAME}`
+#
+if( NOT MULLE_COLOR_LIBRARY)
+   find_library( MULLE_COLOR_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-color${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-color NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   message( STATUS "MULLE_COLOR_LIBRARY is ${MULLE_COLOR_LIBRARY}")
+   #
+   # The order looks ascending, but due to the way this file is read
+   # it ends up being descending, which is what we need.
+   #
+   if( MULLE_COLOR_LIBRARY)
+      #
+      # Add MULLE_COLOR_LIBRARY to DEPENDENCY_LIBRARIES list.
+      # Disable with: `mulle-sourcetree mark mulle-color no-cmake-add`
+      #
+      set( DEPENDENCY_LIBRARIES
+         ${DEPENDENCY_LIBRARIES}
+         ${MULLE_COLOR_LIBRARY}
+         CACHE INTERNAL "need to cache this"
+      )
+      #
+      # Inherit information from dependency.
+      # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
+      # Disable with: `mulle-sourcetree mark mulle-color no-cmake-inherit`
+      #
+      # temporarily expand CMAKE_MODULE_PATH
+      get_filename_component( _TMP_MULLE_COLOR_ROOT "${MULLE_COLOR_LIBRARY}" DIRECTORY)
+      get_filename_component( _TMP_MULLE_COLOR_ROOT "${_TMP_MULLE_COLOR_ROOT}" DIRECTORY)
+      #
+      #
+      # Search for "DependenciesAndLibraries.cmake" to include.
+      # Disable with: `mulle-sourcetree mark mulle-color no-cmake-dependency`
+      #
+      foreach( _TMP_MULLE_COLOR_NAME "mulle-color")
+         set( _TMP_MULLE_COLOR_DIR "${_TMP_MULLE_COLOR_ROOT}/include/${_TMP_MULLE_COLOR_NAME}/cmake")
+         # use explicit path to avoid "surprises"
+         if( EXISTS "${_TMP_MULLE_COLOR_DIR}/DependenciesAndLibraries.cmake")
+            unset( MULLE_COLOR_DEFINITIONS)
+            list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE_COLOR_DIR}")
+            # we only want top level INHERIT_OBJC_LOADERS, so disable them
+            if( NOT NO_INHERIT_OBJC_LOADERS)
+               set( NO_INHERIT_OBJC_LOADERS OFF)
+            endif()
+            list( APPEND _TMP_INHERIT_OBJC_LOADERS ${NO_INHERIT_OBJC_LOADERS})
+            set( NO_INHERIT_OBJC_LOADERS ON)
+            #
+            include( "${_TMP_MULLE_COLOR_DIR}/DependenciesAndLibraries.cmake")
+            #
+            list( GET _TMP_INHERIT_OBJC_LOADERS -1 NO_INHERIT_OBJC_LOADERS)
+            list( REMOVE_AT _TMP_INHERIT_OBJC_LOADERS -1)
+            #
+            list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE_COLOR_DIR}")
+            set( INHERITED_DEFINITIONS
+               ${INHERITED_DEFINITIONS}
+               ${MULLE_COLOR_DEFINITIONS}
+               CACHE INTERNAL "need to cache this"
+            )
+            break()
+         else()
+            message( STATUS "${_TMP_MULLE_COLOR_DIR}/DependenciesAndLibraries.cmake not found")
+         endif()
+      endforeach()
+   else()
+      # Disable with: `mulle-sourcetree mark mulle-color no-require-link`
+      message( FATAL_ERROR "MULLE_COLOR_LIBRARY was not found")
+   endif()
+endif()

@@ -189,6 +189,23 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 }
 
 
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+        startColorValue:(CGColor) start
+          endColorValue:(CGColor) end
+                options:(struct CABasicAnimationOptions *) options
+{
+   struct CAAnimationValueRange  range;
+
+   range.start = CGAnimationValueMakeWithCGColor( start);
+   range.end   = CGAnimationValueMakeWithCGColor( end);
+   return( [self initWithProperty:property
+                        valueType:CAAnimationValueCGColor
+                       valueRange:&range
+                      repeatStart:range.start
+                          options:options]);
+}
+
+
 - (BOOL) isAdditive
 {
    return( _bits & CAAnimationAdditive);
@@ -316,10 +333,11 @@ static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *s
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
-                                                             id object,
-                                                             double x,
-                                                             double y)
+static struct CAAnimationFloat4
+   _CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
+                                                   id object,
+                                                   double x,
+                                                   double y)
 {
    struct CAAnimationFloat4   before;
    struct CAAnimationFloat4   now;
@@ -348,6 +366,21 @@ static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *s
    value.v[ 1] += (now.v[ 1] - before.v[ 1]);
    value.v[ 2] += (now.v[ 2] - before.v[ 2]);
    value.v[ 3] += (now.v[ 3] - before.v[ 3]);
+
+   return( value);
+}
+
+
+static void
+   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
+                                                  id object,
+                                                  double x,
+                                                  double y)
+{
+   struct CAAnimationFloat4   value;
+
+   value = _CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
+
    {
       mulle_metaabi_struct_void_return( struct CAAnimationFloat4)   param;
 
@@ -355,6 +388,26 @@ static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *s
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
+
+
+static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *self,
+                                                             id object,
+                                                             double x,
+                                                             double y)
+{
+   struct CAAnimationFloat4   value;
+   CGColor                    color;
+
+   value = _CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
+   color = CGColorMakeHSBA( value.v[ 0], value.v[ 1], value.v[ 2], value.v[3]);
+   {
+      mulle_metaabi_struct_void_return( CGColor)   param;
+
+      param.p = color;
+      mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
+   }
+}
+
 
 
 - (void) animateAdditiveObject:(id) object
@@ -418,6 +471,10 @@ static void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *s
    // this is all identical, we use CGRect
    case CAAnimationValueCGFloat4 :
       CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
+      break;
+
+   case CAAnimationValueCGColor :
+      CABasicAnimationSetInterpolatedColorAdditive( self, object, x, y);
       break;
 
    default :
@@ -542,6 +599,28 @@ static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self,
 }
 
 
+static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
+                                                    id object,
+                                                    double x)
+{
+   struct CAAnimationFloat4   value;
+   CGColor                    color;
+
+   value.v[ 0] = interpolate( self->_start.float4Value.v[ 0], self->_end.float4Value.v[ 0], x);
+   value.v[ 1] = interpolate( self->_start.float4Value.v[ 1], self->_end.float4Value.v[ 1], x);
+   value.v[ 2] = interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], x);
+   value.v[ 3] = interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], x);
+
+   color = CGColorMakeHSBA( value.v[ 0], value.v[ 1], value.v[ 2], value.v[ 3]);
+   {
+      mulle_metaabi_struct_void_return( CGColor)   param;
+
+      param.p = color;
+      mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
+   }
+}
+
+
 //
 // this is called by the layer (ahem) animatableObject
 // which does the animation now
@@ -599,6 +678,10 @@ normalizedRelativeTime:(double) t
 
    case CAAnimationValueCGFloat4 :
       CABasicAnimationSetInterpolatedFloat4( self, object, x);
+      break;
+
+   case CAAnimationValueCGColor :
+      CABasicAnimationSetInterpolatedColor( self, object, x);
       break;
 
    default :
