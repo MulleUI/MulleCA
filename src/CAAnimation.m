@@ -172,7 +172,7 @@ const struct CAAnimationOptions   CAAnimationDefaultOptions =
 //
 - (void) animateObject:(id) object
 normalizedRelativeTime:(double) t
-           elapsedTime:(CARelativeTime) elapsed
+           elapsedTime:(mulle_relativetime_t) elapsed
 {
    if( _animationFunction)
       (*_animationFunction)( self, object, t, elapsed);
@@ -218,13 +218,13 @@ normalizedRelativeTime:(double) t
 }
 
 
-- (BOOL) animateObject:(id) object
-          absoluteTime:(CAAbsoluteTime) now
+- (NSUInteger) animateObject:(id) object
+                absoluteTime:(mulle_absolutetime_t) now
 {
    CGFloat          x;
    double           t;
    double           e;
-   CAAbsoluteTime   diff;
+   mulle_absolutetime_t   diff;
 
 #ifdef DEBUG_VERBOSE
    {
@@ -238,26 +238,26 @@ normalizedRelativeTime:(double) t
 #endif
 
    if( self->_bits & CAAnimationEnded)
-      return( NO);
+      return( CAAnimationStateDone);
 
    if( self->_bits & CAAnimationPreempt)
    {
       [self wasPreempted];
-      return( NO);
+      return( CAAnimationStateDone);
    }
 
    // turn animation time into absolute
    if( ! (self->_bits & CAAnimationStarted))
    {
-      self->_absolute.start = CATimeAdd( now, self->_relative.delay);
-      self->_absolute.end   = CATimeAdd( self->_absolute.start,
+      self->_absolute.start = mulle_timeinterval_add( now, self->_relative.delay);
+      self->_absolute.end   = mulle_timeinterval_add( self->_absolute.start,
                                          self->_relative.duration);
       self->_currentFrame   = self->_absolute.start; // need this for lastFrame
       self->_bits          |= CAAnimationStarted;
    }
 
    if( now < self->_absolute.start)
-      return( YES);
+      return( CAAnimationStateActive);
 
    self->_lastFrame    = self->_currentFrame;
    self->_currentFrame = now;
@@ -272,7 +272,7 @@ normalizedRelativeTime:(double) t
    if( now >= self->_absolute.end)
       now = self->_absolute.end;
 
-   diff = CATimeSubtract( now, self->_absolute.start);
+   diff = mulle_timeinterval_subtract( now, self->_absolute.start);
    t    = diff / self->_relative.duration;
 
    if( self->_repeatCount > 0.0)
@@ -280,7 +280,7 @@ normalizedRelativeTime:(double) t
       if( t > self->_repeatCount)  // exhausted ? Done!
       {
          self->_repeatCount = 0.0;
-         return( YES);
+         return( CAAnimationStateDone);
       }
    }
 
@@ -298,25 +298,25 @@ normalizedRelativeTime:t
 
    // not yet done ?
    if( now != self->_absolute.end)
-      return( YES);
+      return( CAAnimationAnimating);
 
    // not repeating ? done
    if( self->_repeatCount == 0.0)
-      return( ! [self didEnd]);
+      return( [self didEnd] ? CAAnimationStateDone : CAAnimationStateFinalAnimation);
 
    // _self->_repeatCount > 0.0 means repeats a finite number
    if( self->_repeatCount > 0.0)
    {
       self->_repeatCount -= 1.0;
       if( self->_repeatCount <= 0.0)
-         return( ! [self didEnd]);
+         return( [self didEnd] ? CAAnimationStateDone : CAAnimationStateFinalAnimation);
    }
 
    // start with next frame, with a new animation
    self->_bits &= ~CAAnimationStarted;
    if( self->_bits & CAAnimationReverses)
       [self reverse];
-   return( YES);
+   return( CAAnimationStateAnimating);
 }
 
 
@@ -326,27 +326,35 @@ normalizedRelativeTime:t
 }
 
 
-static void   performSelectorOnObjects( struct mulle_pointerarray *objects,
+static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
                                         SEL sel,
-                                        CAAbsoluteTime renderTime)
+                                        mulle_absolutetime_t renderTime)
 {
    struct mulle_pointerarrayenumerator   rover;
    id                                    object;
+   NSUInteger                            state;
+
+   state = CAAnimationStateDone;
+   assert( ! state);
 
    rover = mulle_pointerarray_enumerate( objects);
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &object))
-      MulleObjCObjectPerformSelectorDoubleArgument( object, sel, renderTime);
+      state |= (NSUInteger) MulleObjCObjectPerformSelectorDoubleArgument( object, sel, renderTime);
    mulle_pointerarrayenumerator_done( &rover);
+
+   return (state != CAAnimationStateDone);
 }
 
 
-+ (void) animateObjects:(struct mulle_pointerarray *) objects
-           absoluteTime:(CAAbsoluteTime) renderTime
++ (BOOL) animateObjects:(struct mulle_pointerarray *) objects
+           absoluteTime:(mulle_absolutetime_t) renderTime
 {
+   BOOL   flag;
 
-   performSelectorOnObjects( objects,
-                             @selector( animateWithAbsoluteTime:),
-                             renderTime);
+   flag = performSelectorOnObjects( objects,
+                                    @selector( animateWithAbsoluteTime:),
+                                    renderTime);
+   return( flag);
 }
 
 @end

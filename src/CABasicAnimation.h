@@ -204,7 +204,7 @@ struct CABasicAnimationOptions
 
 
 static inline struct CABasicAnimationOptions
-   CABasicAnimationOptionsMakeTween( struct CARelativeTimeRange timeRange,
+   CABasicAnimationOptionsMakeTween( struct mulle_relativetimerange timeRange,
                                      CGFloat repeatCount,
                                      NSUInteger bits,
                                      CATweenFunction tween)
@@ -219,7 +219,7 @@ static inline struct CABasicAnimationOptions
 
 
 static inline struct CABasicAnimationOptions
-   CABasicAnimationOptionsMakeCurve( struct CARelativeTimeRange timeRange,
+   CABasicAnimationOptionsMakeCurve( struct mulle_relativetimerange timeRange,
                                      CGFloat repeatCount,
                                      NSUInteger bits,
                                      enum CAAnimationCurve curve)

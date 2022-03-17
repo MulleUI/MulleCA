@@ -31,7 +31,7 @@ int   main( int argc, char *argv[])
    foo = [Foo object];
    [foo setI:-10];
 
-   options   = CABasicAnimationOptionsMakeCurve( CARelativeTimeRangeMake( 0, 1),
+   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
                                                  1.0,
                                                  CAAnimationAdditive,
                                                  CAAnimationCurveLinear);

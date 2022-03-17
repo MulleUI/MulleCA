@@ -30,7 +30,7 @@ int   main( int argc, char *argv[])
    foo = [Foo object];
    [foo setP:CGPointMake( -10.0f, 20.0f)];
 
-   options   = CABasicAnimationOptionsMakeCurve( CARelativeTimeRangeMake( 0, 1),
+   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
                                                  1.0,
                                                  CAAnimationAdditive,
                                                  CAAnimationCurveLinear);

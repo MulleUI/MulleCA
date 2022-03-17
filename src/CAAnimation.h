@@ -6,7 +6,7 @@
 @protocol CAAnimatableObject
 
 // returns YES as long as animation is running
-- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) time;
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) time;
 
 @end
 
@@ -22,8 +22,8 @@
 //       '-------->| CAAnimation |
 //                 '-------------'
 //
-// Otherwise CAAnimation are part of a CAAnimator, which is usually a component 
-// of UIWindow. 
+// Otherwise CAAnimation are part of a CAAnimator, which is usually a component
+// of UIWindow.
 //
 //                          .------------.
 //                    .-----| CAAnimator |-----------------------.
@@ -61,14 +61,14 @@ enum CAAnimationBits
 
 struct CAAnimationOptions
 {
-   struct CARelativeTimeRange    timeRange;
-   CGFloat                       repeatCount;
-   NSUInteger                    bits;  // reverse flag mainly
+   struct mulle_relativetimerange    timeRange;
+   CGFloat                           repeatCount;
+   NSUInteger                        bits;  // reverse flag mainly
 };
 
 
 static inline struct CAAnimationOptions
-   CAAnimationOptionsMake( struct CARelativeTimeRange timeRange,
+   CAAnimationOptionsMake( struct mulle_relativetimerange timeRange,
                            CGFloat repeatCount,
                            NSUInteger bits)
 {
@@ -85,8 +85,8 @@ static inline struct CAAnimationOptions
 @class CAAnimation;
 
 
-static inline CARelativeTime   CAFrameCountToRelativeTime( NSUInteger frames,
-                                                           CGFloat frameRate)
+static inline mulle_relativetime_t   CAFrameCountToRelativeTime( NSUInteger frames,
+                                                                 mulle_relativetime_t frameRate)
 {
    return( frames * frameRate);
 }
@@ -109,11 +109,21 @@ static inline CARelativeTime   CAFrameCountToRelativeTime( NSUInteger frames,
 @class CAAnimation;
 @class CAAnimationGroup;
 
+// return values for animateObject:
+enum CAAnimationState
+{
+   CAAnimationStateDone           = 0x0,   // animation is done
+   CAAnimationStateActive         = 0x1,   // animation is active but waitring
+   CAAnimationStateAnimating      = 0x2,   // animation is animating
+   CAAnimationStateFinalAnimation = 0x4    // animation has just done the final value
+};
+
+
 
 typedef void   CAAnimationFunction( CAAnimation *animation,
                                     id object,
                                     double normalizedRelativeTime,
-                                    CARelativeTime elapsedTime);
+                                    mulle_relativetime_t elapsedTime);
 
 //
 // TODO: interpolating RGB is easy, but not necessarily very nice looking.
@@ -123,16 +133,16 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 //
 @interface CAAnimation : NSObject <NSCopying>
 {
-   struct CARelativeTimeRange   _relative;  // delay, copied from initialRenderdelay
-   CGFloat                      _originalRepeatCount;
+   struct mulle_relativetimerange   _relative;  // delay, copied from initialRenderdelay
+   CGFloat                          _originalRepeatCount;
 
    // mutating state
-   struct CAAbsoluteTimeRange   _absolute;
-   CGFloat                      _repeatCount; // original state will be lost
-   NSUInteger                   _bits;        // options and more
-   NSUInteger                   _frames;
-   CAAbsoluteTime               _lastFrame;
-   CAAbsoluteTime               _currentFrame;
+   struct mulle_absolutetimerange   _absolute;
+   CGFloat                          _repeatCount; // original state will be lost
+   NSUInteger                       _bits;        // options and more
+   NSUInteger                       _frames;
+   mulle_absolutetime_t             _lastFrame;
+   mulle_absolutetime_t             _currentFrame;
 }
 
 // contrary to Apple CoreAnimation, the delegate is not retained
@@ -147,8 +157,8 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 @property( retain) id <CAAnimatableObject>    animationObject;
 
 // objects have to be CAAnimatableObjects for this to be used
-+ (void) animateObjects:(struct mulle_pointerarray *) objects
-           absoluteTime:(CAAbsoluteTime) renderTime;
++ (BOOL) animateObjects:(struct mulle_pointerarray *) objects
+           absoluteTime:(mulle_absolutetime_t) renderTime;
 
 
 //
@@ -159,9 +169,9 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 - (instancetype) initWithAnimationOptions:(struct CAAnimationOptions *) options;
 
 
-// returns NO if animation ended
-- (BOOL) animateObject:(id) object
-          absoluteTime:(CAAbsoluteTime) now;
+// returns enum CAAnimationState
+- (NSUInteger) animateObject:(id) object
+                absoluteTime:(mulle_absolutetime_t) now;
 
 //
 // subclass must override this method, to do their special effect
@@ -169,7 +179,7 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 // time:
 - (void) animateObject:(id) object
 normalizedRelativeTime:(double) t
-           elapsedTime:(CARelativeTime) time;
+           elapsedTime:(mulle_relativetime_t) time;
 
 
 // used if options are set to CAAnimationReverses (and CAAnimationRepeats)

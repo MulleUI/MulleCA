@@ -12,11 +12,11 @@
 //
 //                        .------------.
 //                    .---| CAAnimator |
-//                    |   '------------'                   
-//                    v                 
-//            .------------------.  
-//        .---| CAAnimationGroup |  
-//        |   '------------------' 
+//                    |   '------------'
+//                    v
+//            .------------------.
+//        .---| CAAnimationGroup |
+//        |   '------------------'
 //        v           |
 // .-------------.    |     .-------------.
 // | CAAnimation |    '---->| CAAnimation |
@@ -26,7 +26,7 @@
 //
 // The CAAnimationGroup is created by a CATransaction during -begin
 // and is used to store the animations created during the transaction.
-// 
+//
 //             .---------------.
 //             | CATransaction |
 //             '---------------'
@@ -40,9 +40,9 @@
 //  | CAAnimation |    '---->| CAAnimation |
 //  '-------------'          '-------------'
 //
-// 
+//
 // Each animation in an animation group is separately animated, changing
-// any animation values in CAAnimationGroup post-animation creation will not 
+// any animation values in CAAnimationGroup post-animation creation will not
 // accomplish anything.
 //
 @interface CAAnimationGroup : CAAnimation < CAAnimationStorageObject>
@@ -63,13 +63,13 @@
 @property( assign) void   *context;
 
 // properties that are used to setup the animations on their creation
-@property( assign) CARelativeTime    animationDelay;
-@property( assign) CARelativeTime    animationDuration;
-@property( assign) float             animationRepeatCount;
-@property( assign) NSUInteger        animationCurve; // this is an enum
-@property( assign) CATweenFunction   *animationTweenFunction;
-@property( assign) BOOL              animationAutoreverses;
-@property( assign) BOOL              animationIsAdditive;
+@property( assign) mulle_relativetime_t    animationDelay;
+@property( assign) mulle_relativetime_t    animationDuration;
+@property( assign) float                   animationRepeatCount;
+@property( assign) NSUInteger              animationCurve; // this is an enum
+@property( assign) CATweenFunction         *animationTweenFunction;
+@property( assign) BOOL                    animationAutoreverses;
+@property( assign) BOOL                    animationIsAdditive;
 
 @end
 

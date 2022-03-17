@@ -16,7 +16,10 @@ src/CAAnimationStorage.m
 src/CAAnimation.m
 src/CAAnimator.m
 src/CABasicAnimation.m
+src/CALayer+CAAnimation.m
+src/CALayer.m
 src/CATransaction.m
+src/NSObject+CAAnimation.m
 )
 
 #

@@ -135,9 +135,8 @@ int   main( int argc, char *argv[])
    [window dump];
 
    [app addWindow:window];
-   [window renderLoop];
 
-   return( [app terminate]);
+   return( [app run]);
 }
 
 
