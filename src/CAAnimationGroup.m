@@ -23,7 +23,7 @@
 - (void) setAnimationOptions:(struct CAAnimationOptions *) options;
 
 // this is actually in our protocolclass, but compiler don't know it
-- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) time;
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) time;
 @end
 
 
@@ -98,8 +98,8 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 }
 
 
-- (BOOL) animateObject:(id) object
-          absoluteTime:(CAAbsoluteTime) now
+- (NSUInteger) animateObject:(id) object
+                absoluteTime:(mulle_absolutetime_t) now
 {
    BOOL   flag;
 
@@ -121,7 +121,7 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
          [self didEnd];
    }
 
-   return( (_bits & CAAnimationEnded) ? NO : YES);
+   return( (_bits & CAAnimationEnded) ? CAAnimationStateDone : CAAnimationStateActive);
 }
 
 
@@ -134,7 +134,7 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 static inline void  setupAnimationOptions( CAAnimationGroup *self,
                                          struct CAAnimationOptions *options)
 {
-   options->timeRange   = CARelativeTimeRangeMake( self->_animationDelay, self->_animationDuration);
+   options->timeRange   = mulle_relativetimerange_make( self->_animationDelay, self->_animationDuration);
    options->repeatCount = self->_animationRepeatCount;
    options->bits        = (self->_animationAutoreverses ? CAAnimationReverses : 0) |
                           (self->_animationIsAdditive   ? CAAnimationAdditive : 0);

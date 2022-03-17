@@ -412,7 +412,7 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
 
 - (void) animateAdditiveObject:(id) object
         normalizedRelativeTime:(double) t
-                   elapsedTime:(CARelativeTime) elapsedTime
+                   elapsedTime:(mulle_relativetime_t) elapsedTime
 {
    union CAAnimationValue   value1;
    union CAAnimationValue   value2;
@@ -420,9 +420,9 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
    union CAAnimationValue   value;
    double                   x;
    double                   y;
-   double                   e;
-   double                   t2;
-   CARelativeTime           diff;
+   mulle_relativetime_t     e;
+   mulle_relativetime_t     t2;
+   mulle_relativetime_t     diff;
 
    // x is now
    x = (_tween)( &self->_quadratic, t);
@@ -627,7 +627,7 @@ static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
 //
 - (void) animateObject:(id) object
 normalizedRelativeTime:(double) t
-           elapsedTime:(CARelativeTime) elapsedTime
+           elapsedTime:(mulle_relativetime_t) elapsedTime
 {
    union CAAnimationValue   value;
    double                   x;
@@ -635,7 +635,7 @@ normalizedRelativeTime:(double) t
    assert( t >= 0.0);
    assert( t <= 1.0);
    assert( object);
-   
+
    if( _bits & CAAnimationAdditive)
    {
       [self animateAdditiveObject:object
@@ -645,7 +645,7 @@ normalizedRelativeTime:(double) t
    }
 
    //
-   // TODO: make this thread local and ask inside accessors, which are 
+   // TODO: make this thread local and ask inside accessors, which are
    //      providing animations themselves.
    //
    // isAnimating++;

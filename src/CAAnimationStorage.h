@@ -36,7 +36,7 @@ PROTOCOLCLASS_INTERFACE( CAAnimationStorageObject, CAAnimatableObject)
 
 // this could move to CAAnimator maybe, it's a little weird to have the
 // storage adopt CAAnimatableObject
-- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) renderTime;
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
 
 PROTOCOLCLASS_END()
 

@@ -149,7 +149,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-- (BOOL) animateWithAbsoluteTime:(CAAbsoluteTime) now
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
 {
    CAAnimation                           *animation;
    NSUInteger                            n_animations;
@@ -159,6 +159,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    struct mulle_pointerarrayenumerator   rover;
    id                                    target;
    BOOL                                  flag;
+   enum CAAnimationState                 state;
 
    storage = [self animationStorage];
    n_animations = mulle_pointerarray_get_count( &storage->_animations);
@@ -179,8 +180,9 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
    {
       target = [animation animationObject];
-      if( ! [animation animateObject:target ? target : self
-                        absoluteTime:now])
+      state  = [animation animateObject:target ? target : self
+                        absoluteTime:now];
+      if( ! state)
       {
          if( [animation isRemovedOnCompletion])
             mulle_pointerarray_add( &deletions, animation);

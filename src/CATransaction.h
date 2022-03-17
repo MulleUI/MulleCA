@@ -135,19 +135,19 @@ enum CATransactionState
 @property( assign, dynamic) char     *animationID;
 
 // keep in order of CAAnimationParameters
-@property( assign, dynamic) CARelativeTime     animationDelay;
-@property( assign, dynamic) CARelativeTime     animationDuration;
-@property( assign, dynamic) float              animationRepeatCount;
-@property( assign, dynamic) NSUInteger         animationCurve;
-@property( assign, dynamic) CATweenFunction   *animationTweenFunction;
-@property( assign, dynamic) BOOL               animationAutoreverses;
+@property( assign, dynamic) mulle_relativetime_t     animationDelay;
+@property( assign, dynamic) mulle_relativetime_t     animationDuration;
+@property( assign, dynamic) float                    animationRepeatCount;
+@property( assign, dynamic) NSUInteger               animationCurve;
+@property( assign, dynamic) CATweenFunction         *animationTweenFunction;
+@property( assign, dynamic) BOOL                     animationAutoreverses;
 
 //
 // For CALayer, implicit additive animations are "added" to the layer.
 // If not additive, all animations are removed prior. An addirtive animation
 // does not use "fixed" values, but rather interpolates from the current value.
 //
-@property( assign, dynamic) BOOL               animationIsAdditive;
+@property( assign, dynamic) BOOL                     animationIsAdditive;
 
 // will be strcpy
 - (void) setAnimationID:(char *) s;

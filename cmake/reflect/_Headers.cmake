@@ -58,8 +58,14 @@ src/CAAnimationStorage.h
 src/CAAnimation.h
 src/CAAnimator.h
 src/CABasicAnimation.h
+src/CALayer+CAAnimation.h
+src/CALayer.h
 src/CATransaction.h
+src/CGColor+MulleObjC.h
+src/CGGeometry+MulleObjC.h
 src/MulleCA.h
+src/MulleEdgeInsets+MulleObjC.h
 src/MulleObjCLoader+MulleCA.h
+src/NSObject+CAAnimation.h
 )
 

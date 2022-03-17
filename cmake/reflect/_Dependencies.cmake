@@ -17,7 +17,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark MulleObjC no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_OBJC_LIBRARY)
-   find_library( MULLE_OBJC_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjC${CMAKE_STATIC_LIBRARY_SUFFIX} MulleObjC NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_OBJC_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjC${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}MulleObjC${CMAKE_STATIC_LIBRARY_SUFFIX} MulleObjC NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_OBJC_LIBRARY is ${MULLE_OBJC_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read
@@ -97,7 +97,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark mulle-time no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_TIME_LIBRARY)
-   find_library( MULLE_TIME_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-time${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-time NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_TIME_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-time${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-time${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-time NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_TIME_LIBRARY is ${MULLE_TIME_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read
@@ -168,7 +168,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark mulle-buffer no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_BUFFER_LIBRARY)
-   find_library( MULLE_BUFFER_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-buffer${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-buffer NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_BUFFER_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-buffer${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-buffer${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-buffer NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_BUFFER_LIBRARY is ${MULLE_BUFFER_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read
@@ -239,7 +239,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark mulle-geometry no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_GEOMETRY_LIBRARY)
-   find_library( MULLE_GEOMETRY_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-geometry${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-geometry NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_GEOMETRY_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-geometry${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-geometry${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-geometry NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_GEOMETRY_LIBRARY is ${MULLE_GEOMETRY_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read
@@ -310,7 +310,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark mulle-layout no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_LAYOUT_LIBRARY)
-   find_library( MULLE_LAYOUT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-layout${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-layout NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_LAYOUT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-layout${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-layout${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-layout NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_LAYOUT_LIBRARY is ${MULLE_LAYOUT_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read
@@ -381,7 +381,7 @@ endif()
 # Disable for this platform: `mulle-sourcetree mark mulle-color no-cmake-platform-${MULLE_UNAME}`
 #
 if( NOT MULLE_COLOR_LIBRARY)
-   find_library( MULLE_COLOR_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-color${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-color NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
+   find_library( MULLE_COLOR_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-color${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-color${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-color NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
    message( STATUS "MULLE_COLOR_LIBRARY is ${MULLE_COLOR_LIBRARY}")
    #
    # The order looks ascending, but due to the way this file is read

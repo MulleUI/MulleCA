@@ -1,7 +1,6 @@
 cmake_minimum_required( VERSION 3.15)
 
 project( MulleCA C)
-add_definitions( -DMULLE_CA_EXTERN_GLOBAL=extern)
 
 
 ### mulle-sde environment

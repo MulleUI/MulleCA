@@ -177,9 +177,8 @@ int   main( int argc, char *argv[])
       setupScene( window);
 
       [app addWindow:window];
-      [window renderLoop];
    }
-   return( [app terminate]);
+   return( [app run]);
 }
 
 
