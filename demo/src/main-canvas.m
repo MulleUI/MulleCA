@@ -7,7 +7,7 @@ enum
    odd
 };
 
-static void   drawStuff1( CALayer *layer, CGContext *context)
+static void   drawStuff( CALayer *layer, void *context)
 {
    struct NVGcontext   *vg;
    CGRect              canvas;
@@ -16,7 +16,7 @@ static void   drawStuff1( CALayer *layer, CGContext *context)
    int                 oddEvenLine;
    int                 oddEvenField;
 
-   vg = CGContextGetNVGContext( context);
+   vg = CGContextGetNVGContext( (CGContext *) context);
 
    canvas = [layer canvas];
 
@@ -48,16 +48,9 @@ static void   drawStuff1( CALayer *layer, CGContext *context)
 
 int   main( int argc, char *argv[])
 {
-   UIApplication   *app;
-
-   app = [UIApplication sharedInstance];
-   @autoreleasepool
-   {
-      [app runWindowForDrawCallback:drawStuff1
-                         canvasSize:CGSizeMake( 200, 200)
-                         windowSize:CGSizeZero   // CGSizeMake( 200, 400)
-                    titleUTF8String:NULL
-                        frameRateHz:100.0];
-   }
-   [app terminate];
+   return( [UIApplication runWindowForDrawCallback:drawStuff
+                                        canvasSize:CGSizeMake( 200, 200)
+                                        windowSize:CGSizeZero   // CGSizeMake( 200, 400)
+                                   titleUTF8String:"Demo"
+                                       frameRateHz:100.0]);
 }

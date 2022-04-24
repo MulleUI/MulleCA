@@ -81,7 +81,6 @@ static inline struct CAAnimationOptions
 }
 
 
-@class CALayer;
 @class CAAnimation;
 
 
@@ -154,7 +153,8 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 
 // used, if part of a CAAnimationGroup, not used if animation is a
 // CALayer "private" animation
-@property( retain) id <CAAnimatableObject>    animationObject;
+// This does not need to be a <CAAnimatableObject>, it just needs properties
+@property( retain) id    animationObject;
 
 // objects have to be CAAnimatableObjects for this to be used
 + (BOOL) animateObjects:(struct mulle_pointerarray *) objects

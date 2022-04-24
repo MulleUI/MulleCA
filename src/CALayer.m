@@ -54,10 +54,7 @@
 
 - (void) dealloc
 {
-   struct mulle_allocator   *allocator;
-
-   allocator = MulleObjCInstanceGetAllocator( self);
-   mulle_allocator_free( allocator, _debugNameUTF8String);
+   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
 
    [self removeAllAnimations];
 
@@ -163,14 +160,7 @@ static inline CGRect   getCanvas( CALayer *self)
 
 - (void) setDebugNameUTF8String:(char *) s
 {
-   struct mulle_allocator  *allocator;
-
-   allocator = MulleObjCInstanceGetAllocator( self);
-   if( s)
-      s = mulle_allocator_strdup( allocator, s);
-
-   mulle_allocator_free( allocator, _debugNameUTF8String);
-   _debugNameUTF8String = s;
+   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
 }
 
 
@@ -195,9 +185,7 @@ static inline CGRect   getCanvas( CALayer *self)
    len    += strlen( s) + strlen( buf) + 4; // < "">\0"
    result  = mulle_malloc( len);
    sprintf( result, format, s, buf, _debugNameUTF8String);
-   MulleObjCAutoreleaseAllocation( result, NULL);
-
-   return( result);
+   return( MulleObjCAutoreleaseAllocation( result, NULL));
 }
 
 @end

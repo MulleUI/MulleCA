@@ -32,7 +32,7 @@ PROTOCOLCLASS_INTERFACE( CAAnimationStorageObject, CAAnimatableObject)
 - (void) addAnimation:(CAAnimation *) animation;
 - (void) removeAnimation:(CAAnimation *) animation;
 - (void) removeAllAnimations;
-- (void) removeAnimationsForAnimationObject:(id <CAAnimatableObject>) animationObject;
+- (void) removeAnimationsForAnimationObject:(id) animationObject;
 
 // this could move to CAAnimator maybe, it's a little weird to have the
 // storage adopt CAAnimatableObject

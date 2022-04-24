@@ -27,42 +27,6 @@
 #include <math.h>   // m
 
 // You can tweak the following #include with these commands.
-// (Use 24A4681C-0CF2-457D-8BE8-18526E9B5BAE instead of mulle-time if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-time no-header`
-//    rename:             `mulle-sde dependency|library set mulle-time include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-time <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-time [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-time [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-time [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-time no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-time/mulle-time.h>   // mulle-time
-
-// You can tweak the following #include with these commands.
-// (Use 86813062-CCAC-4603-BA8D-A911614ED2CF instead of mulle-buffer if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-buffer no-header`
-//    rename:             `mulle-sde dependency|library set mulle-buffer include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-buffer <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-buffer [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-buffer [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-buffer [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-buffer no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-buffer/mulle-buffer.h>   // mulle-buffer
-
-// You can tweak the following #include with these commands.
-// (Use 91EA45D1-285C-40CE-9BF5-EB2BB0286554 instead of mulle-geometry if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-geometry no-header`
-//    rename:             `mulle-sde dependency|library set mulle-geometry include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-geometry <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-geometry [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-geometry [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-geometry [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-geometry no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-geometry/mulle-geometry.h>   // mulle-geometry
-
-// You can tweak the following #include with these commands.
 // (Use A0F07100-5D89-412E-8C3C-542D002FDCB4 instead of mulle-layout if there are duplicate entries)
 //    remove:             `mulle-sde dependency mark mulle-layout no-header`
 //    rename:             `mulle-sde dependency|library set mulle-layout include whatever.h`
@@ -73,17 +37,5 @@
 //    remove for platform:`mulle-sde dependency mark mulle-layout no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-layout/mulle-layout.h>   // mulle-layout
-
-// You can tweak the following #include with these commands.
-// (Use C63BE520-B704-4CB1-92FC-77E93CB55CAC instead of mulle-color if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-color no-header`
-//    rename:             `mulle-sde dependency|library set mulle-color include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-color <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-color [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-color [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-color [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-color no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-color/mulle-color.h>   // mulle-color
 
 #endif
