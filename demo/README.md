@@ -1,14 +1,25 @@
 # demos
 
-#### 🙄 demos does something
+## draw-simple
 
-The demos actually require MulleUICore to run. It's to tedious to set
-everything up again for linking with glfw and basically that's what
-MulleUICore is there for anyway.
+This demo changes between two pieces of drawing code after some
+time for the crudest form of animation.
 
-![](curves.png)
+![](draw-simple-1.png)
+![](draw-simple-2.png)
 
-[source](src/main-animationcurves.m)
+[source](src/main-draw-simple.m)
+
+## canvas
+
+This demo shows how to setup a window quickly and attach some drawing code
+to it.
+
+![](canvas.png)
+
+[source](src/main-canvas.m)
+
+
 
 ## Build
 

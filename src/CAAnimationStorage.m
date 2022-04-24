@@ -92,7 +92,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    }
 }
 
-- (void) removeAnimationsForAnimationObject:(id <CAAnimatableObject>) animationObject
+- (void) removeAnimationsForAnimationObject:(id) animationObject
 {
    struct mulle_pointerarrayenumerator   rover;
    CAAnimation                           *animation;
@@ -181,7 +181,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    {
       target = [animation animationObject];
       state  = [animation animateObject:target ? target : self
-                        absoluteTime:now];
+                          absoluteTime:now];
       if( ! state)
       {
          if( [animation isRemovedOnCompletion])

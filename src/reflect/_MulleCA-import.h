@@ -12,16 +12,16 @@
  */
 
 // You can tweak the following #import with these commands.
-// (Use 11D05CA8-18C1-4BBA-A322-C0618082AABE instead of MulleObjC if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark MulleObjC no-header`
-//    rename:             `mulle-sde dependency|library set MulleObjC include whatever.h`
-//    reorder:            `mulle-sde dependency move MulleObjC <up|down>`
-//    toggle #import:     `mulle-sde dependency mark MulleObjC [no-]import`
-//    toggle public:      `mulle-sde dependency mark MulleObjC [no-]public`
-//    toggle optional:    `mulle-sde dependency mark MulleObjC [no-]require`
-//    remove for platform:`mulle-sde dependency mark MulleObjC no-platform-<uname>`
+// (Use BF9E9D75-1855-43AD-835E-9D27AE13998E instead of MulleUIBase if there are duplicate entries)
+//    remove:             `mulle-sde dependency mark MulleUIBase no-header`
+//    rename:             `mulle-sde dependency|library set MulleUIBase include whatever.h`
+//    reorder:            `mulle-sde dependency move MulleUIBase <up|down>`
+//    toggle #import:     `mulle-sde dependency mark MulleUIBase [no-]import`
+//    toggle public:      `mulle-sde dependency mark MulleUIBase [no-]public`
+//    toggle optional:    `mulle-sde dependency mark MulleUIBase [no-]require`
+//    remove for platform:`mulle-sde dependency mark MulleUIBase no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
-#import <MulleObjC/MulleObjC.h>   // MulleObjC
+#import <MulleUIBase/MulleUIBase.h>   // MulleUIBase
 
 #ifdef __has_include
 # if __has_include( "_MulleCA-include.h")

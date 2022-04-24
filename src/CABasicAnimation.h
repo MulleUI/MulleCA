@@ -203,6 +203,7 @@ struct CABasicAnimationOptions
 };
 
 
+
 static inline struct CABasicAnimationOptions
    CABasicAnimationOptionsMakeTween( struct mulle_relativetimerange timeRange,
                                      CGFloat repeatCount,
@@ -231,6 +232,68 @@ static inline struct CABasicAnimationOptions
               .tween = 0
             });
 }
+
+// conveniences
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeLinear( struct mulle_relativetimerange timeRange,
+                                      CGFloat repeatCount,
+                                      BOOL reverses)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, 
+                                               repeatCount, 
+                                               reverses ? CAAnimationReverses : 0),
+              .curve = CAAnimationCurveLinear,
+              .tween = 0
+            });
+}
+
+
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeEaseInOut( struct mulle_relativetimerange timeRange,
+                                         CGFloat repeatCount,
+                                         BOOL reverses)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, 
+                                               repeatCount, 
+                                               reverses ? CAAnimationReverses : 0),
+              .curve = CAAnimationCurveEaseInOut,
+              .tween = 0
+            });
+}
+
+
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeEaseIn( struct mulle_relativetimerange timeRange)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, 
+                                               0.0, 
+                                               0),
+              .curve = CAAnimationCurveEaseIn,
+              .tween = 0
+            });
+}
+
+
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeEaseOut( struct mulle_relativetimerange timeRange)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, 
+                                               0.0, 
+                                               0),
+              .curve = CAAnimationCurveEaseOut,
+              .tween = 0
+            });
+}
+
+
 
 
 

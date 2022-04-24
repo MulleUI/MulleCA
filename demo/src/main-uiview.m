@@ -65,6 +65,7 @@ void   setupSceneAndAnimation( UIWindow *window)
    CATransaction     *ta;
    UIWindowPlane     *contentPlane;
    CAAnimationGroup  *group;
+   CAAnimator        *animator;
 
 
    view       = [CustomView viewWithFrame:CGRectMake( 100, 100, 200, 200)];
@@ -113,7 +114,9 @@ void   setupSceneAndAnimation( UIWindow *window)
    }
    group = [ta commit];
 
-   [[window postLayoutAnimator] addAnimation:group];
+   animator = [window postLayoutAnimator];
+   assert( animator);
+   [animator addAnimation:group];
 }
 
 
@@ -121,11 +124,21 @@ int   main( int argc, char *argv[])
 {
    UIWindow        *window;
    UIApplication   *app;
+   NSUInteger      styleMask;
+
    /*
     * window and app
     */
    app    = [UIApplication sharedInstance];
-   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
+
+   /*
+    * window and app
+    */
+   styleMask = UIWindowStyleMaskDefault;
+//   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleRetained, NO);
+   window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)
+                      titleUTF8String:"Demo"
+                            styleMask:styleMask];
    assert( window);
 
    [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];

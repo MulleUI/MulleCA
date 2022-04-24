@@ -35,7 +35,7 @@ static void   drawStuff1( CALayer *layer, CGContext *context)
                 canvas.origin.y,
                 canvas.size.width,
                 canvas.size.height);
-   nvgFillColor( vg, nvgRGBAf( 0.95, 0.0, 0.0, 1.0));
+   nvgFillColor( vg, nvgRGBAf( 0.0, 0.95, 0.0, 1.0));
    nvgFill( vg);
 
    // white stripe
@@ -44,7 +44,7 @@ static void   drawStuff1( CALayer *layer, CGContext *context)
                 canvas.origin.y + canvas.size.height * 1,
                 canvas.size.width,
                 canvas.size.height);
-   nvgFillColor( vg, nvgRGBAf( 1.0, 1.0, 1.0, 1.0));
+   nvgFillColor( vg, nvgRGBAf( 0.0, 0.66, 0.0, 1.0));
    nvgFill( vg);
 
    // blue stripe
@@ -53,7 +53,7 @@ static void   drawStuff1( CALayer *layer, CGContext *context)
                 canvas.origin.y + canvas.size.height * 2,
                 canvas.size.width,
                 canvas.size.height);
-   nvgFillColor( vg, nvgRGBAf( 0.0, 0.0, 1.0, 1.0));
+   nvgFillColor( vg, nvgRGBAf( 0.0, 0.3, 0.0, 1.0));
    nvgFill( vg);
 
    flipDraw( layer, context);
@@ -86,19 +86,11 @@ static void   drawStuff2( CALayer *layer, CGContext *context)
 }
 
 
-
 int   main( int argc, char *argv[])
 {
-   UIApplication   *app;
-
-   app = [UIApplication sharedInstance];
-   @autoreleasepool
-   {
-      [app runWindowForDrawCallback:drawStuff1
-                         canvasSize:CGSizeMake( 200, 200)
-                         windowSize:CGSizeZero   // CGSizeMake( 200, 400)
-                    titleUTF8String:NULL
-                        frameRateHz:100.0];
-   }
-   [app terminate];
+   return( [UIApplication runWindowForDrawCallback:drawStuff1
+                                        canvasSize:CGSizeMake( 200, 200)
+                                        windowSize:CGSizeZero   // CGSizeMake( 200, 400)
+                                   titleUTF8String:"Demo"
+                                       frameRateHz:100.0]);
 }

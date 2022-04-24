@@ -308,13 +308,12 @@ static void   animate_insets_property( struct _mulle_objc_property *property,
 }
 
 
-
 static void   animate_color_property( struct _mulle_objc_property *property,
                                       struct property_animation_context *ctx)
 {
    CAAnimation   *animation;
-   CGColor    startColor;
-   CGColor    endColor;
+   CGColor       startColor;
+   CGColor       endColor;
    SEL           getter;
    SEL           setter;
 

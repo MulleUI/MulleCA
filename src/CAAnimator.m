@@ -10,8 +10,6 @@
 // everything is done by CAAnimationStorageObject for us
 @implementation CAAnimator
 
-
-
 - (struct CAAnimationStorage *) animationStorage
 {
    return( &_animationStorage);
