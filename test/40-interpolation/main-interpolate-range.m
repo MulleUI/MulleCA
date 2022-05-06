@@ -37,7 +37,8 @@ int   main( int argc, char *argv[])
    {
       printf( "%ld: ", i);
       [animation animateObject:foo
-                  absoluteTime:i / 5.0];
+                  absoluteTime:i / 5.0
+                 animationRate:0.0];
    }
 
    return( 0);

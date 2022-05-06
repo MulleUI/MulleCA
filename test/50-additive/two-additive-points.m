@@ -5,51 +5,57 @@
 
 @interface Foo : NSObject
 
-@property( assign) CGFloat   f;
+@property( assign) CGPoint   p;
 
 @end
 
 @implementation Foo
 
-- (void) setF:(CGFloat) f
+- (void) setP:(CGPoint) p
 {
-   _f = f;  // don't need to store it for non additive
-   printf( "%.3f\n", f);
+   _p = p;  // don't need to store it for non additive
+   printf( "%.2f %.2f\n", p.x, p.y);
 }
 
 @end
 
 
-
 int   main( int argc, char *argv[])
 {
    Foo                              *foo;
-   CABasicAnimation                 *animation;
+   CABasicAnimation                 *animation[ 2];
    NSInteger                        i;
    struct CABasicAnimationOptions   options;
 
    foo = [Foo object];
-   [foo setF:-10.0f];
+   [foo setP:CGPointMake( -10.0f, 20.0f)];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
                                                  1.0,
                                                  CAAnimationAdditive,
                                                  CAAnimationCurveLinear);
-   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))
-                                           startFloatValue:-10.0f
-                                             endFloatValue:+10.0f
+   animation[ 0] = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
+                                               startPointValue:CGPointMake( -10.0f, 20.0f)
+                                                 endPointValue:CGPointMake( 10.0f, 10.0f)
+                                                       options:&options] autorelease];
+   animation[ 1] = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
+                                               startPointValue:CGPointMake( -10.0f, 20.0f)
+                                                 endPointValue:CGPointMake( 20.0f, 0.0f)
                                                    options:&options] autorelease];
 
    for( i = 0; i <= 5; i++)
    {
       printf( "%ld: ", i);
-      [animation animateObject:foo
-                  absoluteTime:i / 5.0];
+      [animation[ 0] animateObject:foo
+                      absoluteTime:i / 5.0
+                     animationRate:0.0];
+      [animation[ 1] animateObject:foo
+                      absoluteTime:i / 5.0
+                     animationRate:0.0];
    }
 
    return( 0);
 }
-
 
 
 //

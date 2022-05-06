@@ -5,17 +5,15 @@
 
 @interface Foo : NSObject
 
-@property( assign) NSInteger   i;
+@property( assign) CGFloat   v;
 
 @end
 
-
 @implementation Foo
 
-- (void) setI:(NSInteger) i
+- (void) setV:(CGFloat) v
 {
-   _i = i;  // don't need to store it for non additive
-   printf( "%ld\n", i);
+   printf( "%.1f", v);
 }
 
 @end
@@ -26,25 +24,30 @@ int   main( int argc, char *argv[])
    Foo                              *foo;
    CABasicAnimation                 *animation;
    NSInteger                        i;
+   mulle_absolutetime_t             now;
    struct CABasicAnimationOptions   options;
+   NSUInteger                       state;
 
-   foo = [Foo object];
-   [foo setI:-10];
+   foo       = [Foo object];
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
-   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
-                                         startIntegerValue:-10
-                                           endIntegerValue:+10
+   // basic animation duration by default is 1
+   options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.2, 1), 2.0, YES);
+   fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
+
+   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( v))
+                                         startFloatValue:-10.0
+                                           endFloatValue:+10.0
                                                    options:&options] autorelease];
 
-   for( i = 0; i <= 5; i++)
+   for( now = 0.0, i = 0;; i++, now += 1/ 3.0)
    {
-      printf( "%ld: ", i);
-      [animation animateObject:foo
-                  absoluteTime:i / 5.0];
+      printf( "%td: %g ", i, now);
+      state = [animation animateObject:foo
+                      absoluteTime:now
+                     animationRate:0.3]; // small error in animation rate
+      printf( "\n");
+      if( state == CAAnimationStateDone)
+         break;
    }
 
    return( 0);

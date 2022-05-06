@@ -24,7 +24,6 @@
 //                 '------------------'
 //
 
-
 enum CAAnimationCurve
 {
    CAAnimationCurveEaseInOut,
@@ -34,27 +33,77 @@ enum CAAnimationCurve
 };
 
 
-static inline CAQuadratic
-   CAQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
+static inline char  *CAAnimationCurveUTF8String(enum CAAnimationCurve curve)
 {
-   CAQuadratic   quadratic;
-
-   switch( curvetype)
+   switch( curve)
    {
-   case CAAnimationCurveEaseInOut:
-      return( CAQuadraticEaseInOut);
-
-   case CAAnimationCurveEaseOut:
-      return( CAQuadraticEaseOut);
-
-   case CAAnimationCurveEaseIn:
-      return( CAQuadraticEaseIn);
-
-   default :
-      return( CAQuadraticLinear);
+   case CAAnimationCurveEaseInOut : return( "CAAnimationCurveEaseInOut");
+   case CAAnimationCurveEaseIn    : return( "CAAnimationCurveEaseIn");
+   case CAAnimationCurveEaseOut   : return( "CAAnimationCurveEaseOut");
+   case CAAnimationCurveLinear    : return( "CAAnimationCurveLinear");
    }
 }
 
+
+static inline CAQuadratic
+   CAQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
+{
+   switch( curvetype)
+   {
+   case CAAnimationCurveEaseInOut : return( CAQuadraticEaseInOut);
+   case CAAnimationCurveEaseOut   : return( CAQuadraticEaseOut);
+   case CAAnimationCurveEaseIn    : return( CAQuadraticEaseIn);
+   default                        : return( CAQuadraticLinear);
+   }
+}
+
+
+enum CAAnimationValueType
+{
+   CAAnimationValueUndefined,
+
+   CAAnimationValueBOOL,
+   CAAnimationValueNSInteger,
+   CAAnimationValueNSRange,
+   CAAnimationValueCGFloat,
+   CAAnimationValueCGFloat2,
+   CAAnimationValueCGFloat4,
+   CAAnimationValueCGColor
+};
+
+
+enum
+{
+   CAAnimationValueCGPoint = CAAnimationValueCGFloat2
+};
+enum
+{
+   CAAnimationValueCGSize = CAAnimationValueCGFloat2
+};
+enum
+{
+   CAAnimationValueCGRect = CAAnimationValueCGFloat4
+};
+enum
+{
+   CAAnimationValueEdgeInsets = CAAnimationValueCGFloat4
+};
+
+
+static char  *CAAnimationValueTypeUTF8String( enum CAAnimationValueType type)
+{
+   switch( type)
+   {
+   case CAAnimationValueUndefined : return( "CAAnimationValueUndefined");
+   case CAAnimationValueBOOL      : return( "CAAnimationValueBOOL");
+   case CAAnimationValueNSInteger : return( "CAAnimationValueNSInteger");
+   case CAAnimationValueNSRange   : return( "CAAnimationValueNSRange");
+   case CAAnimationValueCGFloat   : return( "CAAnimationValueCGFloat");
+   case CAAnimationValueCGFloat2  : return( "CAAnimationValueCGFloat2");
+   case CAAnimationValueCGFloat4  : return( "CAAnimationValueCGFloat4");
+   case CAAnimationValueCGColor   : return( "CAAnimationValueCGColor");
+   }
+}
 
 
 struct CAAnimationFloat2
@@ -62,11 +111,26 @@ struct CAAnimationFloat2
    CGFloat   v[ 2];
 };
 
+static inline char  *CAAnimationFloat2UTF8String( struct CAAnimationFloat2 value)
+{
+   return( MulleObjC_asprintf( "[%g %g]", value.v[ 0],
+                                          value.v[ 1]));
+}
+
 
 struct CAAnimationFloat4
 {
    CGFloat   v[ 4];
 };
+
+
+static inline char  *CAAnimationFloat4UTF8String( struct CAAnimationFloat4 value)
+{
+   return( MulleObjC_asprintf( "[%g %g %g %g]", value.v[ 0],
+                                                value.v[ 1],
+                                                value.v[ 2],
+                                                value.v[ 3]));
+}
 
 
 union CAAnimationValue
@@ -146,6 +210,9 @@ static inline union CAAnimationValue
 }
 
 
+char  *CAAnimationValueUTF8String( union CAAnimationValue value,
+                                   enum CAAnimationValueType type);
+
 
 struct CAAnimationValueRange
 {
@@ -162,37 +229,8 @@ static inline struct CAAnimationValueRange
 }
 
 
-enum CAAnimationValueType
-{
-   CAAnimationValueUndefined,
-
-   CAAnimationValueBOOL,
-   CAAnimationValueNSInteger,
-   CAAnimationValueNSRange,
-   CAAnimationValueCGFloat,
-   CAAnimationValueCGFloat2,
-   CAAnimationValueCGFloat4,
-   CAAnimationValueCGColor
-};
-
-
-enum
-{
-   CAAnimationValueCGPoint = CAAnimationValueCGFloat2
-};
-enum
-{
-   CAAnimationValueCGSize = CAAnimationValueCGFloat2
-};
-enum
-{
-   CAAnimationValueCGRect = CAAnimationValueCGFloat4
-};
-enum
-{
-   CAAnimationValueEdgeInsets = CAAnimationValueCGFloat4
-};
-
+char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
+                                        enum CAAnimationValueType type);
 
 
 struct CABasicAnimationOptions
@@ -239,10 +277,12 @@ static inline struct CABasicAnimationOptions
                                       CGFloat repeatCount,
                                       BOOL reverses)
 {
+   if( reverses && repeatCount == 0.0)
+      repeatCount = INFINITY;
    return( (struct CABasicAnimationOptions)
            {
-              .base  = CAAnimationOptionsMake( timeRange, 
-                                               repeatCount, 
+              .base  = CAAnimationOptionsMake( timeRange,
+                                               repeatCount,
                                                reverses ? CAAnimationReverses : 0),
               .curve = CAAnimationCurveLinear,
               .tween = 0
@@ -255,10 +295,12 @@ static inline struct CABasicAnimationOptions
                                          CGFloat repeatCount,
                                          BOOL reverses)
 {
+   if( reverses && repeatCount == 0.0)
+      repeatCount = INFINITY;
    return( (struct CABasicAnimationOptions)
            {
-              .base  = CAAnimationOptionsMake( timeRange, 
-                                               repeatCount, 
+              .base  = CAAnimationOptionsMake( timeRange,
+                                               repeatCount,
                                                reverses ? CAAnimationReverses : 0),
               .curve = CAAnimationCurveEaseInOut,
               .tween = 0
@@ -271,8 +313,8 @@ static inline struct CABasicAnimationOptions
 {
    return( (struct CABasicAnimationOptions)
            {
-              .base  = CAAnimationOptionsMake( timeRange, 
-                                               0.0, 
+              .base  = CAAnimationOptionsMake( timeRange,
+                                               0.0,
                                                0),
               .curve = CAAnimationCurveEaseIn,
               .tween = 0
@@ -285,8 +327,8 @@ static inline struct CABasicAnimationOptions
 {
    return( (struct CABasicAnimationOptions)
            {
-              .base  = CAAnimationOptionsMake( timeRange, 
-                                               0.0, 
+              .base  = CAAnimationOptionsMake( timeRange,
+                                               0.0,
                                                0),
               .curve = CAAnimationCurveEaseOut,
               .tween = 0
@@ -294,21 +336,14 @@ static inline struct CABasicAnimationOptions
 }
 
 
+char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *options);
 
 
-
-//
-// TODO: interpolating RGB is easy, but not necessarily very nice looking.
-//       Possibly implement http://labs.adamluptak.com/javascript-color-blending/
-//       though it is costly
-//       HSV seems like a cheaper and probably more gainly looking alternative
-//
 @interface CABasicAnimation : CAAnimation
 {
    enum CAAnimationValueType     _valueType;
    union CAAnimationValue        _start;
    union CAAnimationValue        _end;
-   union CAAnimationValue        _repeatStart;
 
    CAQuadratic                   _quadratic;
    CATweenFunction               *_tween;
@@ -322,7 +357,6 @@ static inline struct CABasicAnimationOptions
 - (id) initWithProperty:(struct _mulle_objc_property *) property
               valueType:(enum CAAnimationValueType) type
              valueRange:(struct CAAnimationValueRange *) range
-            repeatStart:(union CAAnimationValue) repeatStart
                 options:(struct CABasicAnimationOptions *) options;
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
@@ -376,7 +410,8 @@ static inline struct CABasicAnimationOptions
 // is read and the change is added to the value and the SET. This makes
 // multiple animations mixable, but will add interpolation errors.
 //
-- (BOOL) isAdditive;  // TODO: move this to options?
+- (BOOL) isAdditive;
+- (BOOL) isCumulative;
 
 @end
 

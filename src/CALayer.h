@@ -136,6 +136,9 @@ typedef void  CALayerDrawCallback_t( CALayer *layer, void *ctxt);
 
 - (struct CAAnimationStorage *) animationStorage;
 
+// returns 0 by default, only used for convenience window creation
+- (NSUInteger) windowStyleMaskBits;
+
 @end
 
 

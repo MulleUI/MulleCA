@@ -9,9 +9,8 @@
 #import "CABasicAnimation.h"
 
 
-#ifdef DEBUG
-//#define DEBUG_VERBOSE
-#endif
+
+#define ANIMATION_DEBUG
 
 
 @interface CAAnimation( Private)
@@ -23,30 +22,19 @@
 - (void) setAnimationOptions:(struct CAAnimationOptions *) options;
 
 // this is actually in our protocolclass, but compiler don't know it
-- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) time;
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) time
+                   animationRate:(mulle_relativetime_t) animationRate;
 @end
 
 
 
 @implementation CAAnimationGroup
 
-
-- (id) init
-{
-   _animationDuration = 2.0;
-   return( self);
-}
-
-
-extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
-
-
-
 - (void) dealloc
 {
    [self removeAllAnimations];
 
-   MulleObjCInstanceDeallocateMemory( self, _animationID);
+   MulleObjCObjectSetDuplicatedUTF8String( self, &_animationID, NULL);
    [super dealloc];
 }
 
@@ -83,48 +71,52 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 }
 
 
-// returns YES, if really ended (reverse flag is confusing to me)
-- (BOOL) didEnd
+- (void) animateObject:(id) object
+normalizedRelativeTime:(mulle_relativetime_t) t
+           elapsedTime:(mulle_relativetime_t) elapsedTime
 {
-   BOOL   flag;
-
-   flag = [super didEnd];
-
-   if( flag && _animationDidStopSelector)
-      [_animationDelegate performSelector:_animationDidStopSelector
-                               withObject:(id) _animationID
-                               withObject:_context];
-   return( flag);
+   // do nothing here
 }
 
 
 - (NSUInteger) animateObject:(id) object
                 absoluteTime:(mulle_absolutetime_t) now
+               animationRate:(mulle_relativetime_t) animationRate
 {
-   BOOL   flag;
+   NSUInteger   state;
+   NSUInteger   bits;
 
-#ifdef DEBUG_VERBOSE
-   fprintf( stderr, "%.5f: %s %s (%ld)\n",
-               now, __PRETTY_FUNCTION__, [self UTF8String], n_animations);
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "object=%#@ now=%.6f (animations=%td)",
+                  object, now, [self numberOfAnimations]);
 #endif
-   if( ! (_bits & CAAnimationStarted))
-   {
-      [self willStartAnimating];
-   }
-   // animate self to get bits set, otherwise
+   bits  = _state.bits;
+   state = [super animateObject:nil
+                   absoluteTime:now
+                  animationRate:animationRate];
 
-   if( ! (_bits & CAAnimationEnded))
-   {
-      // run animations of animations in group
-      flag = [super animateWithAbsoluteTime:now];
-      if( ! flag)
-         [self didEnd];
-   }
+   // CAAnimationStorage animator
+   [self animateWithAbsoluteTime:now
+                   animationRate:animationRate];
 
-   return( (_bits & CAAnimationEnded) ? CAAnimationStateDone : CAAnimationStateActive);
+   // we like to call this after the constituent animations have run,
+   // so use a separate logic here than -didEnd
+   if( ((bits ^ _state.bits) & CAAnimationEnded) == CAAnimationEnded)
+   {
+      if( _animationDidStopSelector)
+         [_animationDelegate performSelector:_animationDidStopSelector
+                                  withObject:(id) _animationID
+                                  withObject:_context];
+   }
+   return( state);
 }
 
 
+- (void) reset
+{
+   [self resetAllAnimations];
+   [super reset];
+}
 
 @end
 
@@ -132,7 +124,7 @@ extern const struct CAAnimationOptions   CAAnimationDefaultOptions;
 @implementation CAAnimationGroup( CAAnimation)
 
 static inline void  setupAnimationOptions( CAAnimationGroup *self,
-                                         struct CAAnimationOptions *options)
+                                           struct CAAnimationOptions *options)
 {
    options->timeRange   = mulle_relativetimerange_make( self->_animationDelay, self->_animationDuration);
    options->repeatCount = self->_animationRepeatCount;

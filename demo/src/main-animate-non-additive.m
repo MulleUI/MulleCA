@@ -12,20 +12,21 @@ void   setupAnimation( UIWindow *window, CALayer *layer)
    CATransaction      *ta;
    CAAnimationGroup   *group;
 
-   ta = [CATransaction object];
-   [ta begin];
-   {
-      [ta setAnimationCurve:UIViewAnimationCurveEaseInOut];
-      [ta setAnimationDelay:2];
-      [ta setAnimationDuration:2];
-      [ta setAnimationRepeatCount:20];
-      [ta setAnimationAutoreverses:YES];
-      [ta setAnimationIsAdditive:YES];  // YES doesn't help protect it,
+     ta = [CATransaction object];
 
-      [layer setFrame:CGRectMake( 600, 100, 100, 100)];
-   }
-   group = [ta commit];
-   [[window postLayoutAnimator] addAnimation:group];
+    [ta begin];
+    {
+       [ta setAnimationCurve:UIViewAnimationCurveEaseInOut];
+       [ta setAnimationDelay:2];
+       [ta setAnimationDuration:1];
+       [ta setAnimationRepeatCount:20];
+       [ta setAnimationAutoreverses:YES];
+       [ta setAnimationIsAdditive:YES];  // YES doesn't help protect it,
+ 
+       [layer setFrame:CGRectMake( 600, 100, 100, 100)];
+    }
+    group = [ta commit];
+    [[window postLayoutAnimator] addAnimation:group];
 
    [ta begin];
    {
