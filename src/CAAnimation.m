@@ -371,6 +371,16 @@ static inline double   normalizedAnimationTime( double d)
                          : CAAnimationStateFinalAnimation);
 }
 
+- (void) animationIndexWillChange
+{
+   // do nuthin
+}
+
+- (void) animationIndexDidChange
+{
+   // do nuthin
+}
+
 
 - (NSUInteger) animateObject:(id) object
                 absoluteTime:(mulle_absolutetime_t) now
@@ -421,6 +431,8 @@ static inline double   normalizedAnimationTime( double d)
    {
       if( animationIndex > self->_state.previousAnimationIndex)
       {
+         [self animationIndexWillChange];
+
          if( self->_state.bits & CAAnimationReverses)
          {
             [self reverse];
@@ -443,6 +455,9 @@ static inline double   normalizedAnimationTime( double d)
    [self animateObject:object
 normalizedRelativeTime:t // must be 0.0 to 1.0
            elapsedTime:elapsedTime];
+
+   if( animationIndex > self->_state.previousAnimationIndex)
+      [self animationIndexDidChange];
 
    self->_state.previousFrameTimestamp         = now;
    self->_state.previousAnimationIndex         = animationIndex;

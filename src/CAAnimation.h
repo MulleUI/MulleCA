@@ -242,6 +242,10 @@ normalizedRelativeTime:(double) t
 // animation will start again with values as given
 - (void) reset;
 
+// animation has passed a duration boundary
+- (void) animationIndexWillChange;
+- (void) animationIndexDidChange;
+
 - (BOOL) hasEnded;
 
 @end

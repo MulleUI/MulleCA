@@ -32,15 +32,17 @@ int   main( int argc, char *argv[])
    [foo setF:-10.0f];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
+                                                 2.0,
                                                  CAAnimationAdditive,
                                                  CAAnimationCurveLinear);
+   fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
+
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))
                                            startFloatValue:-10.0f
                                              endFloatValue:+10.0f
                                                    options:&options] autorelease];
 
-   for( i = 0; i <= 5; i++)
+   for( i = 0; i <= 10; i++)
    {
       printf( "%ld: ", i);
       [animation animateObject:foo

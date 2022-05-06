@@ -255,81 +255,72 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 }
 
 
+- (void) reset
+{
+   [super reset];
+   memset( &_previous, 0, sizeof( union CAAnimationValue));
+}
+
+
+- (void) animationIndexDidChange
+{
+   if( _state.bits & CAAnimationCumulative)
+   {
+      assert( _state.bits & CAAnimationAdditive);
+
+      // do what now ?
+      memset( &_previous, 0, sizeof( union CAAnimationValue));
+   }
+}
+
+
+
+#define additive_interpolate( start, end, x) \
+   ( (x) * ((end) - (start)) )
+
 
 #define interpolate( start, end, x)  \
-   ( (start) + (x) * ((end) - (start)) )
+   ( (start) + additive_interpolate( start, end, x) )
 
-#define additive_interpolate( previous, start, end, x) \
-   ( (previous) + (x) * ((end) - (start)) )
-
-
-static void   CABasicAnimationSetInterpolatedBOOLAdditive( CABasicAnimation *self,
-                                                           id object,
-                                                           double x,
-                                                           double y)
-{
-   float   before;
-   float   now;
-   BOOL    value;
-
-   before   = interpolate( self->_start.boolValue, self->_end.boolValue, y);
-   now      = interpolate( self->_start.boolValue, self->_end.boolValue, x);
-   value    = (BOOL) (intptr_t) mulle_objc_object_call_variablemethodid( object,
-                                                                         self->_property->getter,
-                                                                         object);
-   value    = (value + (now - before) >= 0.5) ? YES : NO;
-
-#ifdef ANIMATION_DEBUG
-   MulleUILog( "%#@ %s -> %btd", object,
-                                 mulle_objc_property_get_name( self->_property),
-                                 value);
-#endif
-   mulle_objc_object_call_variablemethodid( object,
-                                            self->_property->setter,
-                                            (void *) (intptr_t) value);
-}
 
 
 static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *self,
                                                               id object,
-                                                              double x,
-                                                              double y)
+                                                              double x)
 {
-   double     before;
-   double     now;
+   NSInteger  diff;
    NSInteger  value;
+   NSInteger  newValue;
 
-   before   = interpolate( self->_start.integerValue, self->_end.integerValue, y);
-   now      = interpolate( self->_start.integerValue, self->_end.integerValue, x);
+   diff     = (NSInteger) round( additive_interpolate( self->_start.integerValue, self->_end.integerValue, x));
    value    = (NSInteger) mulle_objc_object_call_variablemethodid( object,
                                                                    self->_property->getter,
                                                                    object);
-   value   += (NSInteger) round( now - before);
+
+   newValue                     = value -  self->_previous.integerValue + diff;
+   self->_previous.integerValue = diff;
+
 #ifdef ANIMATION_DEBUG
    MulleUILog( "%#@ %s -> %td", object,
                                  mulle_objc_property_get_name( self->_property),
-                                 value);
+                                 newValue);
 #endif
 
-   mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) value);
+   mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) newValue);
 }
 
 
 static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
                                                             id object,
-                                                            double x,
-                                                            double y)
+                                                            double x)
 {
-   CGFloat   before;
-   CGFloat   now;
+   CGFloat   diff;
    CGFloat   value;
    CGFloat   newValue;
 
    assert( x >= 0.0 && x <= 1.0);
-   assert( y >= 0.0 && y <= 1.0);
 
-   before = interpolate( self->_start.floatValue, self->_end.floatValue, y);
-   now    = interpolate( self->_start.floatValue, self->_end.floatValue, x);
+   diff = additive_interpolate( self->_start.floatValue, self->_end.floatValue, x);
    {
       mulle_metaabi_struct_void_parameter( CGFloat)   param;
 
@@ -337,16 +328,17 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
       value = param.r;
    }
 
-   newValue = value + (now - before);
+   newValue                   = value - self->_previous.floatValue + diff;
 #ifdef ANIMATION_DEBUG
-   MulleUILog( "%#@ %s :: %g + (%g - %g) -> %g",
+   MulleUILog( "%#@ %s :: %g - %g + %g -> %g",
                               object,
                               mulle_objc_property_get_name( self->_property),
                               value,
-                              now,
-                              before,
+                              self->_previous.floatValue,
+                              diff,
                               newValue);
 #endif
+   self->_previous.floatValue = diff;
 
    {
       mulle_metaabi_struct_void_return( CGFloat)   param;
@@ -360,18 +352,14 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
 
 static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
                                                              id object,
-                                                             double x,
-                                                             double y)
+                                                             double x)
 {
-   struct CAAnimationFloat2   before;
-   struct CAAnimationFloat2   now;
+   struct CAAnimationFloat2   diff;
    struct CAAnimationFloat2   value;
+   struct CAAnimationFloat2   newValue;
 
-   before.v[ 0] = interpolate( self->_start.float2Value.v[ 0], self->_end.float2Value.v[ 0], y);
-   before.v[ 1] = interpolate( self->_start.float2Value.v[ 1], self->_end.float2Value.v[ 1], y);
-
-   now.v[ 0]    = interpolate( self->_start.float2Value.v[ 0], self->_end.float2Value.v[ 0], x);
-   now.v[ 1]    = interpolate( self->_start.float2Value.v[ 1], self->_end.float2Value.v[ 1], x);
+   diff.v[ 0] = additive_interpolate( self->_start.float2Value.v[ 0], self->_end.float2Value.v[ 0], x);
+   diff.v[ 1] = additive_interpolate( self->_start.float2Value.v[ 1], self->_end.float2Value.v[ 1], x);
 
    {
       mulle_metaabi_struct_void_parameter( struct CAAnimationFloat2)   param;
@@ -379,43 +367,41 @@ static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *s
       mulle_objc_object_call_variablemethodid( object, self->_property->getter, &param);
       value = param.r;
    }
-   value.v[ 0] += (now.v[ 0] - before.v[ 0]);
-   value.v[ 1] += (now.v[ 1] - before.v[ 1]);
+
+   newValue.v[ 0] = value.v[ 0] - self->_previous.float2Value.v[ 0] + diff.v[ 0];
+   newValue.v[ 1] = value.v[ 1] - self->_previous.float2Value.v[ 1] + diff.v[ 1];
+
+   self->_previous.float2Value.v[ 0] = diff.v[ 0];
+   self->_previous.float2Value.v[ 1] = diff.v[ 1];
+
    {
       mulle_metaabi_struct_void_return( struct CAAnimationFloat2)   param;
 
 #ifdef ANIMATION_DEBUG
-   MulleUILog( "%#@ %s -> %s", object,
+      MulleUILog( "%#@ %s -> %s", object,
                                mulle_objc_property_get_name( self->_property),
-                               CAAnimationFloat2UTF8String( value));
+                               CAAnimationFloat2UTF8String( newValue));
 #endif
-      param.p = value;
+      param.p = newValue;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
 
 
-static struct CAAnimationFloat4
-   _CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
-                                                   id object,
-                                                   double x,
-                                                   double y)
+static void
+   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
+                                                  id object,
+                                                  double x)
 {
-   struct CAAnimationFloat4   before;
-   struct CAAnimationFloat4   now;
+   struct CAAnimationFloat4   diff;
    struct CAAnimationFloat4   value;
-
-   // before
-   before.v[ 0] = interpolate( self->_start.float4Value.v[ 0], self->_end.float4Value.v[ 0], y);
-   before.v[ 1] = interpolate( self->_start.float4Value.v[ 1], self->_end.float4Value.v[ 1], y);
-   before.v[ 2] = interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], y);
-   before.v[ 3] = interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], y);
+   struct CAAnimationFloat4   newValue;
 
    // now
-   now.v[ 0]    = interpolate( self->_start.float4Value.v[ 0], self->_end.float4Value.v[ 0], x);
-   now.v[ 1]    = interpolate( self->_start.float4Value.v[ 1], self->_end.float4Value.v[ 1], x);
-   now.v[ 2]    = interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], x);
-   now.v[ 3]    = interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], x);
+   diff.v[ 0] = additive_interpolate( self->_start.float4Value.v[ 0], self->_end.float4Value.v[ 0], x);
+   diff.v[ 1] = additive_interpolate( self->_start.float4Value.v[ 1], self->_end.float4Value.v[ 1], x);
+   diff.v[ 2] = additive_interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], x);
+   diff.v[ 3] = additive_interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], x);
 
    {
       mulle_metaabi_struct_void_parameter( struct CAAnimationFloat4)   param;
@@ -424,24 +410,15 @@ static struct CAAnimationFloat4
       value = param.r;
    }
 
-   value.v[ 0] += (now.v[ 0] - before.v[ 0]);
-   value.v[ 1] += (now.v[ 1] - before.v[ 1]);
-   value.v[ 2] += (now.v[ 2] - before.v[ 2]);
-   value.v[ 3] += (now.v[ 3] - before.v[ 3]);
+   newValue.v[ 0] = value.v[ 0] - self->_previous.float4Value.v[ 0] + diff.v[ 0];
+   newValue.v[ 1] = value.v[ 1] - self->_previous.float4Value.v[ 1] + diff.v[ 1];
+   newValue.v[ 2] = value.v[ 2] - self->_previous.float4Value.v[ 2] + diff.v[ 2];
+   newValue.v[ 3] = value.v[ 3] - self->_previous.float4Value.v[ 3] + diff.v[ 3];
 
-   return( value);
-}
-
-
-static void
-   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
-                                                  id object,
-                                                  double x,
-                                                  double y)
-{
-   struct CAAnimationFloat4   value;
-
-   value = _CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
+   self->_previous.float4Value.v[ 0] = diff.v[ 0];
+   self->_previous.float4Value.v[ 1] = diff.v[ 1];
+   self->_previous.float4Value.v[ 2] = diff.v[ 2];
+   self->_previous.float4Value.v[ 3] = diff.v[ 3];
 
    {
       mulle_metaabi_struct_void_return( struct CAAnimationFloat4)   param;
@@ -449,41 +426,64 @@ static void
 #ifdef ANIMATION_DEBUG
    MulleUILog( "%#@ %s -> %s", object,
                                mulle_objc_property_get_name( self->_property),
-                               CAAnimationFloat4UTF8String( value));
+                               CAAnimationFloat4UTF8String( newValue));
 #endif
 
-      param.p = value;
+      param.p = newValue;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
 
 
-// Interpolating RGB is easy, but not necessarily very nice looking.
-// Possibly implement http://labs.adamluptak.com/javascript-color-blending/
-// though it is costly.
+// Interpolating non-additive is nicer, as we can keep values as internally
+// as HSBA
 //
-// HSV seems like a cheaper and probably more gainly looking alternative
-//
-static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *self,
-                                                             id object,
-                                                             double x,
-                                                             double y)
-{
-   struct CAAnimationFloat4   value;
-   CGColor                    color;
 
-   value = _CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
-   color = CGColorMakeHSBA( value.v[ 0], value.v[ 1], value.v[ 2], value.v[3]);
+static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *self,
+                                                            id object,
+                                                            double x)
+{
+   CGColor                    newColor;
+   float                      hsva[ 4];
+   CGColor                    color;
+   struct CAAnimationFloat4   diff;
+
+   diff.v[ 0] = additive_interpolate( self->_start.float4Value.v[ 0], self->_end.float4Value.v[ 0], x);
+   diff.v[ 1] = additive_interpolate( self->_start.float4Value.v[ 1], self->_end.float4Value.v[ 1], x);
+   diff.v[ 2] = additive_interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], x);
+   diff.v[ 3] = additive_interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], x);
+
+   {
+      mulle_metaabi_struct_void_parameter( CGColor)   param;
+
+      mulle_objc_object_call_variablemethodid( object, self->_property->getter, &param);
+      color = param.r;
+   }
+
+   CGColorGetHSVAComponents( color, hsva);
+
+   hsva[ 0] = fmod( hsva[ 0] - self->_previous.float4Value.v[ 0] + diff.v[ 0], 1.0);    // hue can wrap for sure
+   hsva[ 1] = fmod( hsva[ 1] - self->_previous.float4Value.v[ 1] + diff.v[ 1], 1.0);    // saturation clamp ?
+   hsva[ 2] = fmod( hsva[ 2] - self->_previous.float4Value.v[ 2] + diff.v[ 2], 1.0);    // value clamp ?
+   hsva[ 3] = fmod( hsva[ 3] - self->_previous.float4Value.v[ 3] + diff.v[ 3], 1.0);
+
+   newColor = CGColorMakeHSVAComponents( hsva);
+
+   self->_previous.float4Value.v[ 0] = diff.v[ 0];
+   self->_previous.float4Value.v[ 1] = diff.v[ 1];
+   self->_previous.float4Value.v[ 2] = diff.v[ 2];
+   self->_previous.float4Value.v[ 3] = diff.v[ 3];
+
    {
       mulle_metaabi_struct_void_return( CGColor)   param;
 
 #ifdef ANIMATION_DEBUG
    MulleUILog( "%#@ %s -> %s", object,
                                mulle_objc_property_get_name( self->_property),
-                               CGColorUTF8String( color));
+                               CGColorUTF8String( newColor));
 #endif
 
-      param.p = color;
+      param.p = newColor;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
@@ -496,31 +496,10 @@ static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, 
         normalizedRelativeTime:(double) t
                    elapsedTime:(mulle_relativetime_t) elapsedTime
 {
-   union CAAnimationValue   value1;
-   union CAAnimationValue   value2;
-   union CAAnimationValue   previous;
-   union CAAnimationValue   value;
-   double                   x;
-   double                   y;
-   double                   tmp;
-   mulle_relativetime_t     e;
-   mulle_relativetime_t     t2;
-   mulle_relativetime_t     diff;
-   BOOL                     isReverse;
-
-//  // very first animation is not additive ???
-//  // makes no real sense
-//  if( elapsedTime == 0.0 && ! (self->_state.bits & CAAnimationCumulative))
-//  {
-//     CABasicAnimationAnimateObject( self, object, t);
-//     return;
-//  }
+   double   x;
 
    // x is now
    x = (_tween)( &self->_quadratic, t);
-
-   // y is last frame
-   y = (_tween)( &self->_quadratic, self->_state.previousNormalizedRelativeTime);
 
    // the amount of change from last time
    switch( self->_valueType)
@@ -535,7 +514,7 @@ static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, 
       break;
 
    case CAAnimationValueNSInteger :
-      CABasicAnimationSetInterpolatedIntegerAdditive( self, object, x, y);
+      CABasicAnimationSetInterpolatedIntegerAdditive( self, object, x);
       break;
 
    case CAAnimationValueNSRange :
@@ -545,21 +524,21 @@ static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, 
       break;
 
    case CAAnimationValueCGFloat :
-      CABasicAnimationSetInterpolatedFloatAdditive( self, object, x, y);
+      CABasicAnimationSetInterpolatedFloatAdditive( self, object, x);
       break;
 
    // this is all identical, we use point
    case CAAnimationValueCGFloat2 :
-      CABasicAnimationSetInterpolatedFloat2Additive( self, object, x, y);
+      CABasicAnimationSetInterpolatedFloat2Additive( self, object, x);
       break;
 
    // this is all identical, we use CGRect
    case CAAnimationValueCGFloat4 :
-      CABasicAnimationSetInterpolatedFloat4Additive( self, object, x, y);
+      CABasicAnimationSetInterpolatedFloat4Additive( self, object, x);
       break;
 
    case CAAnimationValueCGColor :
-      CABasicAnimationSetInterpolatedColorAdditive( self, object, x, y);
+      CABasicAnimationSetInterpolatedColorAdditive( self, object, x);
       break;
 
    default :
