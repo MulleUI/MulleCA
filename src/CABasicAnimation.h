@@ -348,6 +348,8 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
    CAQuadratic                   _quadratic;
    CATweenFunction               *_tween;
    struct _mulle_objc_property   *_property;
+   // for additive that's the previous difference we added
+   union CAAnimationValue        _previous;
 }
 
 //
