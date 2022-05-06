@@ -123,6 +123,7 @@ void   CATransactionSetCurrentTransaction( id p)
       //
       [group setupAnimationOptions:&options];
       [group setAnimationOptions:&options];
+
       [self reset];
    }
 

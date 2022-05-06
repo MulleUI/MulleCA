@@ -41,6 +41,9 @@
 // That's all CATransaction does. When you do a "commit", you get the setup
 // animations back in a animation group.
 //
+// A problem of this setup is, the inheritance of values in a CAAnimationGroup
+// to constituent CAAnimations. Example: is the delay additive ?
+//
 
 @protocol CAImplicitlyAnimatableObject
 

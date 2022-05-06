@@ -31,12 +31,15 @@ PROTOCOLCLASS_INTERFACE( CAAnimationStorageObject, CAAnimatableObject)
 - (BOOL) hasRunningAnimations;
 - (void) addAnimation:(CAAnimation *) animation;
 - (void) removeAnimation:(CAAnimation *) animation;
+- (void) resetAllAnimations;
 - (void) removeAllAnimations;
+- (void) resetAnimationsForAnimationObject:(id) animationObject;
 - (void) removeAnimationsForAnimationObject:(id) animationObject;
 
 // this could move to CAAnimator maybe, it's a little weird to have the
 // storage adopt CAAnimatableObject
-- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime;
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime
+                   animationRate:(mulle_relativetime_t) animationRate;
 
 PROTOCOLCLASS_END()
 

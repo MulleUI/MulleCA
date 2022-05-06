@@ -1,22 +1,22 @@
 #import <MulleCA/MulleCA.h>
 
-// the object class with a property we want to animate 
-@interface Foo : NSObject 
+// the object class with a property we want to animate
+@interface Foo : NSObject
 
 @property NSUInteger   someIntegerValue;
 
-@end 
+@end
 
 
-@implementation Foo 
+@implementation Foo
 
-- (void) setSomeIntegerValue:(NSUInteger) value 
+- (void) setSomeIntegerValue:(NSUInteger) value
 {
    printf( "%td\n", value);
    _someIntegerValue = value;
 }
 
-@end 
+@end
 
 
 int   main( void)
@@ -28,7 +28,7 @@ int   main( void)
    struct _mulle_objc_property      *property;
    struct CABasicAnimationOptions   options;
 
-   // create object, get property, create an animation for this property 
+   // create object, get property, create an animation for this property
 
    foo      = [Foo object];
    property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
@@ -49,6 +49,7 @@ int   main( void)
    [animator addAnimation:animation];
 
    for( timestamp = 0.0; timestamp <= 1.2; timestamp += 0.2)
-      [animator animateWithAbsoluteTime:timestamp];
+      [animator animateWithAbsoluteTime:timestamp
+                          animationRate:0.0];
    return( 0);
 }

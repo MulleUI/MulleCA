@@ -5,55 +5,54 @@
 
 @interface Foo : NSObject
 
-@property( assign) CGPoint   p;
+@property( assign) CGFloat   f;
 
 @end
 
 @implementation Foo
 
-- (void) setP:(CGPoint) p
+- (void) setF:(CGFloat) f
 {
-   _p = p;  // don't need to store it for non additive
-   printf( "%.2f %.2f\n", p.x, p.y);
+   _f = f;  // don't need to store it for non additive
+   printf( "%.3f\n", f);
 }
 
 @end
 
 
+
 int   main( int argc, char *argv[])
 {
    Foo                              *foo;
-   CABasicAnimation                 *animation[ 2];
+   CABasicAnimation                 *animation;
    NSInteger                        i;
    struct CABasicAnimationOptions   options;
 
    foo = [Foo object];
-   [foo setP:CGPointMake( -10.0f, 20.0f)];
+   [foo setF:-10.0f];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
-                                                 CAAnimationAdditive,
+                                                 2.0,
+                                                 CAAnimationAdditive|CAAnimationReverses,
                                                  CAAnimationCurveLinear);
-   animation[ 0] = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
-                                               startPointValue:CGPointMake( -10.0f, 20.0f)
-                                                 endPointValue:CGPointMake( 10.0f, 10.0f)
-                                                       options:&options] autorelease];
-   animation[ 1] = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
-                                               startPointValue:CGPointMake( -10.0f, 20.0f)
-                                                 endPointValue:CGPointMake( 20.0f, 0.0f)
+   fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
+
+   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))
+                                           startFloatValue:-10.0f
+                                             endFloatValue:+10.0f
                                                    options:&options] autorelease];
 
-   for( i = 0; i <= 5; i++)
+   for( i = 0; i <= 10; i++)
    {
       printf( "%ld: ", i);
-      [animation[ 0] animateObject:foo
-                      absoluteTime:i / 5.0];
-      [animation[ 1] animateObject:foo
-                      absoluteTime:i / 5.0];
+      [animation animateObject:foo
+                  absoluteTime:i / 5.0
+                  animationRate:0.0];
    }
 
    return( 0);
 }
+
 
 
 //

@@ -5,9 +5,52 @@
 #include <assert.h>
 
 
+#define ANIMATION_DEBUG
+
+
+char  *CAAnimationValueUTF8String( union CAAnimationValue value,
+                                   enum CAAnimationValueType type)
+{
+   switch( type)
+   {
+   case CAAnimationValueUndefined : return( "???");
+   case CAAnimationValueBOOL      : return( MulleObjC_asprintf( "%btd", value.boolValue));
+   case CAAnimationValueNSInteger : return( MulleObjC_asprintf( "%td", value.integerValue));
+   case CAAnimationValueNSRange   : return( MulleObjC_asprintf( "%td-%td", value.rangeValue.location, value.rangeValue.length));
+   case CAAnimationValueCGFloat   : return( MulleObjC_asprintf( "%g", value.floatValue));
+   case CAAnimationValueCGFloat2  : return( CAAnimationFloat2UTF8String( value.float2Value));
+   case CAAnimationValueCGColor   :
+   case CAAnimationValueCGFloat4  : return( CAAnimationFloat4UTF8String( value.float4Value));
+   }
+}
+
+
+char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
+                                        enum CAAnimationValueType type)
+{
+   char   *s[ 2];
+
+   if( ! range)
+      return( "NULL");
+   s[ 0] = CAAnimationValueUTF8String( range->start, type);
+   s[ 1] = CAAnimationValueUTF8String( range->end, type);
+
+   return( MulleObjC_asprintf( "%s -> %s", s[ 0], s[ 1]));
+}
+
+
+char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *options)
+{
+   if( ! options)
+      return( "NULL");
+
+   return( MulleObjC_asprintf( "{ base: %s; curve: %s;  }",
+               CAAnimationOptionsUTF8String( &options->base),
+               options->tween ? "custom" : CAAnimationCurveUTF8String( options->curve)));
+}
+
 
 @implementation CABasicAnimation
-
 
 static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 {
@@ -26,7 +69,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 - (id) initWithProperty:(struct _mulle_objc_property *) property
               valueType:(enum CAAnimationValueType) type
              valueRange:(struct CAAnimationValueRange *) range
-            repeatStart:(union CAAnimationValue) repeatStart
                 options:(struct CABasicAnimationOptions *) options
 {
    if( ! property ||  ! range)
@@ -42,13 +84,18 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    if( ! self)
       return( self);
 
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%s %s %s",
+                        mulle_objc_property_get_name( property),
+                        CAAnimationValueTypeUTF8String( type),
+                        CAAnimationValueRangeUTF8String( range, type));
+#endif
    self->_property    = property;
    self->_quadratic   = CAQuadraticForAnimationCurve( options->curve);
    self->_tween       = options->tween ? options->tween : CAQuadraticGetValue;
    self->_valueType   = type;
    self->_start       = range->start;
    self->_end         = range->end;
-   self->_repeatStart = repeatStart;
 
    return( self);
 }
@@ -66,7 +113,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat4
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -83,7 +129,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat4
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -100,7 +145,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat2
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -117,7 +161,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat2
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -133,7 +176,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -151,7 +193,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueNSRange
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -168,7 +209,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueNSInteger
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -184,7 +224,6 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueBOOL
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
@@ -201,32 +240,20 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGColor
                        valueRange:&range
-                      repeatStart:range.start
                           options:options]);
 }
 
 
 - (BOOL) isAdditive
 {
-   return( _bits & CAAnimationAdditive);
+   return( _state.bits & CAAnimationAdditive);
 }
 
-
-
-- (void) reverse
+- (BOOL) isCumulative
 {
-   union CAAnimationValue     tmp;
-
-   tmp          = self->_start;
-   self->_start = self->_end;
-   self->_end   = tmp;
-   if( self->_bits & CAAnimationHasReversed)
-      self->_end = tmp;
-   else
-      self->_end = self->_repeatStart;
-
-   [super reverse];
+   return( _state.bits & CAAnimationCumulative);
 }
+
 
 
 #define interpolate( start, end, x)  \
@@ -251,6 +278,12 @@ static void   CABasicAnimationSetInterpolatedBOOLAdditive( CABasicAnimation *sel
                                                                          self->_property->getter,
                                                                          object);
    value    = (value + (now - before) >= 0.5) ? YES : NO;
+
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %btd", object,
+                                 mulle_objc_property_get_name( self->_property),
+                                 value);
+#endif
    mulle_objc_object_call_variablemethodid( object,
                                             self->_property->setter,
                                             (void *) (intptr_t) value);
@@ -272,6 +305,12 @@ static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *
                                                                    self->_property->getter,
                                                                    object);
    value   += (NSInteger) round( now - before);
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %td", object,
+                                 mulle_objc_property_get_name( self->_property),
+                                 value);
+#endif
+
    mulle_objc_object_call_variablemethodid( object, self->_property->setter, (void *) value);
 }
 
@@ -284,18 +323,36 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
    CGFloat   before;
    CGFloat   now;
    CGFloat   value;
+   CGFloat   newValue;
+
+   assert( x >= 0.0 && x <= 1.0);
+   assert( y >= 0.0 && y <= 1.0);
 
    before = interpolate( self->_start.floatValue, self->_end.floatValue, y);
    now    = interpolate( self->_start.floatValue, self->_end.floatValue, x);
    {
       mulle_metaabi_struct_void_parameter( CGFloat)   param;
+
       mulle_objc_object_call_variablemethodid( object, self->_property->getter, &param);
       value = param.r;
    }
-   value += (now - before);
+
+   newValue = value + (now - before);
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s :: %g + (%g - %g) -> %g",
+                              object,
+                              mulle_objc_property_get_name( self->_property),
+                              value,
+                              now,
+                              before,
+                              newValue);
+#endif
+
    {
       mulle_metaabi_struct_void_return( CGFloat)   param;
-      param.p = value;
+
+      param.p = newValue;
+
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
@@ -327,6 +384,11 @@ static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *s
    {
       mulle_metaabi_struct_void_return( struct CAAnimationFloat2)   param;
 
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %s", object,
+                               mulle_objc_property_get_name( self->_property),
+                               CAAnimationFloat2UTF8String( value));
+#endif
       param.p = value;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
@@ -384,12 +446,24 @@ static void
    {
       mulle_metaabi_struct_void_return( struct CAAnimationFloat4)   param;
 
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %s", object,
+                               mulle_objc_property_get_name( self->_property),
+                               CAAnimationFloat4UTF8String( value));
+#endif
+
       param.p = value;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
 
 
+// Interpolating RGB is easy, but not necessarily very nice looking.
+// Possibly implement http://labs.adamluptak.com/javascript-color-blending/
+// though it is costly.
+//
+// HSV seems like a cheaper and probably more gainly looking alternative
+//
 static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *self,
                                                              id object,
                                                              double x,
@@ -403,11 +477,19 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
    {
       mulle_metaabi_struct_void_return( CGColor)   param;
 
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %s", object,
+                               mulle_objc_property_get_name( self->_property),
+                               CGColorUTF8String( color));
+#endif
+
       param.p = color;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
 }
 
+
+static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double t);
 
 
 - (void) animateAdditiveObject:(id) object
@@ -420,20 +502,25 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
    union CAAnimationValue   value;
    double                   x;
    double                   y;
+   double                   tmp;
    mulle_relativetime_t     e;
    mulle_relativetime_t     t2;
    mulle_relativetime_t     diff;
+   BOOL                     isReverse;
+
+//  // very first animation is not additive ???
+//  // makes no real sense
+//  if( elapsedTime == 0.0 && ! (self->_state.bits & CAAnimationCumulative))
+//  {
+//     CABasicAnimationAnimateObject( self, object, t);
+//     return;
+//  }
 
    // x is now
    x = (_tween)( &self->_quadratic, t);
 
-   e    = elapsedTime / self->_relative.duration;
-   t2   = t - e;
-   if( t2 < 0.0)
-      t2 = 0.0;
-
    // y is last frame
-   y = (_tween)( &self->_quadratic, t2);
+   y = (_tween)( &self->_quadratic, self->_state.previousNormalizedRelativeTime);
 
    // the amount of change from last time
    switch( self->_valueType)
@@ -461,12 +548,10 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
       CABasicAnimationSetInterpolatedFloatAdditive( self, object, x, y);
       break;
 
-
    // this is all identical, we use point
    case CAAnimationValueCGFloat2 :
       CABasicAnimationSetInterpolatedFloat2Additive( self, object, x, y);
       break;
-
 
    // this is all identical, we use CGRect
    case CAAnimationValueCGFloat4 :
@@ -621,28 +706,9 @@ static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
 }
 
 
-//
-// this is called by the layer (ahem) animatableObject
-// which does the animation now
-//
-- (void) animateObject:(id) object
-normalizedRelativeTime:(double) t
-           elapsedTime:(mulle_relativetime_t) elapsedTime
+static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double t)
 {
-   union CAAnimationValue   value;
-   double                   x;
-
-   assert( t >= 0.0);
-   assert( t <= 1.0);
-   assert( object);
-
-   if( _bits & CAAnimationAdditive)
-   {
-      [self animateAdditiveObject:object
-           normalizedRelativeTime:t
-                      elapsedTime:elapsedTime];
-      return;
-   }
+   double   x;
 
    //
    // TODO: make this thread local and ask inside accessors, which are
@@ -650,7 +716,7 @@ normalizedRelativeTime:(double) t
    //
    // isAnimating++;
 
-   x = (_tween)( &self->_quadratic, t);
+   x = (self->_tween)( &self->_quadratic, t);
    switch( self->_valueType)
    {
    case CAAnimationValueUndefined :
@@ -689,6 +755,44 @@ normalizedRelativeTime:(double) t
    }
    // isAnimating--;
 }
+
+//
+// this is called by the layer (ahem) animatableObject
+// which does the animation now
+//
+- (void) animateObject:(id) object
+normalizedRelativeTime:(double) t
+           elapsedTime:(mulle_relativetime_t) elapsedTime
+{
+   union CAAnimationValue   value;
+   double                   x;
+
+   assert( t >= 0.0);
+   assert( t <= 1.0);
+   assert( object);
+
+   if( _state.bits & CAAnimationAdditive)
+   {
+      [self animateAdditiveObject:object
+           normalizedRelativeTime:t
+                      elapsedTime:elapsedTime];
+      return;
+   }
+
+   CABasicAnimationAnimateObject( self, object, t);
+}
+
+
+#ifdef ANIMATION_DEBUG
+- (NSUInteger) animateObject:(id) object
+                absoluteTime:(mulle_absolutetime_t) now
+               animationRate:(mulle_relativetime_t) animationRate
+{
+   return( [super animateObject:object
+                   absoluteTime:now
+                  animationRate:animationRate]);
+}
+#endif
 
 @end
 

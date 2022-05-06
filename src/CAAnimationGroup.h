@@ -42,34 +42,42 @@
 //
 //
 // Each animation in an animation group is separately animated, changing
-// any animation values in CAAnimationGroup post-animation creation will not
+// any animation values in a CAAnimationGroup post-creation will not
 // accomplish anything.
+//
+// Animations are not clipped to the duration of the animation group.
 //
 @interface CAAnimationGroup : CAAnimation < CAAnimationStorageObject>
 {
    struct CAAnimationStorage   _animationStorage;
    char                        *_animationID;
+   BOOL                        _hasStarted;
 }
 
 // properties of the group
-@property( assign) id     animationDelegate;
-@property( assign) SEL    animationWillStartSelector;
-@property( assign) SEL    animationDidStopSelector;
+@property( assign) id                      animationDelegate;
+@property( assign) SEL                     animationWillStartSelector;
+@property( assign) SEL                     animationDidStopSelector;
 
-// will be strcpy
-- (void) setAnimationID:(char *) s;
-- (char *) animationID;
+@property( assign) void                    *context;
 
-@property( assign) void   *context;
-
-// properties that are used to setup the animations on their creation
+// ...
 @property( assign) mulle_relativetime_t    animationDelay;
 @property( assign) mulle_relativetime_t    animationDuration;
+
+//
+// Properties that are used to setup the animations on their creation
+// they are not used on the animation group as an object itself.
+//
 @property( assign) float                   animationRepeatCount;
 @property( assign) NSUInteger              animationCurve; // this is an enum
 @property( assign) CATweenFunction         *animationTweenFunction;
 @property( assign) BOOL                    animationAutoreverses;
 @property( assign) BOOL                    animationIsAdditive;
+
+// will be strcpy
+- (void) setAnimationID:(char *) s;
+- (char *) animationID;
 
 @end
 

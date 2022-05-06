@@ -5,19 +5,30 @@
 
 @interface Foo : NSObject
 
-@property( assign) CGPoint   p;
+@property( assign) NSInteger   i;
 
 @end
 
 @implementation Foo
 
-- (void) setP:(CGPoint) p
+- (void) setI:(NSInteger) i
 {
-   _p = p;  // don't need to store it for non additive
-   printf( "%.2f %.2f\n", p.x, p.y);
+   _i = i;  // don't need to store it for non additive
+   printf( "%ld", i);
 }
 
 @end
+
+
+static mulle_absolutetime_t   timestamps[] =
+{
+   0.0,
+   0.3,
+   0.6,
+   0.9,
+   1.2,
+   1.5
+};
 
 
 int   main( int argc, char *argv[])
@@ -25,25 +36,28 @@ int   main( int argc, char *argv[])
    Foo                              *foo;
    CABasicAnimation                 *animation;
    NSInteger                        i;
+   mulle_absolutetime_t             now;
    struct CABasicAnimationOptions   options;
 
-   foo = [Foo object];
-   [foo setP:CGPointMake( -10.0f, 20.0f)];
+   foo       = [Foo object];
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
-   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
-                                           startPointValue:CGPointMake( -10.0f, 20.0f)
-                                             endPointValue:CGPointMake( 10.0f, 0.0f)
+   // basic animation duration by default is 1
+   options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.1, 1), 0.0, NO);
+   fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
+
+   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
+                                         startIntegerValue:-10
+                                           endIntegerValue:+10
                                                    options:&options] autorelease];
 
-   for( i = 0; i <= 5; i++)
+   for( i = 0; i < sizeof( timestamps) / sizeof( timestamps[ 0]); i++)
    {
-      printf( "%ld: ", i);
+      now = timestamps[ i];
+      printf( "%td: %g ", i, now);
       [animation animateObject:foo
-                  absoluteTime:i / 5.0];
+                  absoluteTime:now
+                 animationRate:0.3];
+      printf( "\n");
    }
 
    return( 0);

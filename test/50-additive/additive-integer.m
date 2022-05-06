@@ -3,29 +3,22 @@
 #import <stdio.h>
 
 
-
 @interface Foo : NSObject
 
-@property( assign) CGRect   r;
+@property( assign) NSInteger   i;
 
 @end
+
 
 @implementation Foo
 
-- (CGRect) r
+- (void) setI:(NSInteger) i
 {
-   printf( "%.2f %.2f %.2f %.2f\n", _r.origin.x, _r.origin.y, _r.size.width, _r.size.height);
-   return( _r);
-}
-
-- (void) setR:(CGRect) r
-{
-   _r = r;  // don't need to store it for non additive
-   printf( "%.2f %.2f %.2f %.2f\n", r.origin.x, r.origin.y, r.size.width, r.size.height);
+   _i = i;  // don't need to store it for non additive
+   printf( "%ld\n", i);
 }
 
 @end
-
 
 
 int   main( int argc, char *argv[])
@@ -36,22 +29,23 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
 
    foo = [Foo object];
-   [foo setR:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)];
+   [foo setI:-10];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
                                                  1.0,
                                                  CAAnimationAdditive,
                                                  CAAnimationCurveLinear);
-   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( r))
-                                            startRectValue:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)
-                                              endRectValue:CGRectMake( 10.0f, 0.0f, 20.0f, -10.0f)
+   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
+                                         startIntegerValue:-10
+                                           endIntegerValue:+10
                                                    options:&options] autorelease];
 
    for( i = 0; i <= 5; i++)
    {
       printf( "%ld: ", i);
       [animation animateObject:foo
-                  absoluteTime:i / 5.0];
+                  absoluteTime:i / 5.0
+                  animationRate:0.0];
    }
 
    return( 0);

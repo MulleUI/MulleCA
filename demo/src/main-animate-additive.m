@@ -29,6 +29,7 @@ void  setupAnimation( UIWindow *window, CALayer *layer)
    group = [ta commit];
    [[window postLayoutAnimator] addAnimation:group];
 
+#if 0
    [ta begin];
    {
       [ta setAnimationCurve:UIViewAnimationCurveEaseInOut];
@@ -42,6 +43,7 @@ void  setupAnimation( UIWindow *window, CALayer *layer)
    }
    group = [ta commit];
    [[window postLayoutAnimator] addAnimation:group];
+#endif   
 }
 
 

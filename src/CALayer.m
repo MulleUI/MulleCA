@@ -188,5 +188,11 @@ static inline CGRect   getCanvas( CALayer *self)
    return( MulleObjCAutoreleaseAllocation( result, NULL));
 }
 
+
+- (NSUInteger) windowStyleMaskBits
+{
+   return( 0);
+}
+
 @end
 

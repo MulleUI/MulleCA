@@ -92,6 +92,40 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    }
 }
 
+- (void) resetAnimationsForAnimationObject:(id) animationObject
+{
+   struct mulle_pointerarrayenumerator   rover;
+   CAAnimation                           *animation;
+   struct CAAnimationStorage             *storage;
+   struct mulle_allocator                *allocator;
+
+   storage = [self animationStorage];
+
+   rover = mulle_pointerarray_enumerate( &storage->_animations);
+   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   {
+      if( [animation animationObject] == animationObject)
+         [animation reset];
+   }
+   mulle_pointerarrayenumerator_done( &rover);
+}
+
+
+- (void) resetAllAnimations
+{
+   struct mulle_pointerarrayenumerator   rover;
+   CAAnimation                           *animation;
+   struct CAAnimationStorage             *storage;
+
+   storage = [self animationStorage];
+
+   rover = mulle_pointerarray_enumerate( &storage->_animations);
+   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+      [animation reset];
+   mulle_pointerarrayenumerator_done( &rover);
+}
+
+
 - (void) removeAnimationsForAnimationObject:(id) animationObject
 {
    struct mulle_pointerarrayenumerator   rover;
@@ -126,7 +160,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    }
 }
 
-
 - (void) removeAllAnimations
 {
    struct mulle_pointerarrayenumerator   rover;
@@ -149,7 +182,9 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
+
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
+                   animationRate:(mulle_relativetime_t) animationRate
 {
    CAAnimation                           *animation;
    NSUInteger                            n_animations;
@@ -181,8 +216,9 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    {
       target = [animation animationObject];
       state  = [animation animateObject:target ? target : self
-                          absoluteTime:now];
-      if( ! state)
+                           absoluteTime:now
+                          animationRate:animationRate];
+      if( state == CAAnimationStateDone)
       {
          if( [animation isRemovedOnCompletion])
             mulle_pointerarray_add( &deletions, animation);
