@@ -11,31 +11,4 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-#
-# Generated from sourcetree: FBC789F4-AA07-43CB-A91F-8B63D929F89D;m;no-all-load,no-build,no-cmake-inherit,no-cmake-searchpath,no-delete,no-dependency,no-fs,no-import,no-share,no-update;
-# Disable with : `mulle-sourcetree mark m `
-# Disable for this platform: `mulle-sourcetree mark m no-cmake-platform-${MULLE_UNAME}`
-#
-if( NOT M_LIBRARY)
-   find_library( M_LIBRARY NAMES m)
-   message( STATUS "M_LIBRARY is ${M_LIBRARY}")
-   #
-   # The order looks ascending, but due to the way this file is read
-   # it ends up being descending, which is what we need.
-   #
-   if( M_LIBRARY)
-      #
-      # Add M_LIBRARY to OS_SPECIFIC_LIBRARIES list.
-      # Disable with: `mulle-sourcetree mark m no-cmake-add`
-      #
-      set( OS_SPECIFIC_LIBRARIES
-         ${OS_SPECIFIC_LIBRARIES}
-         ${M_LIBRARY}
-         CACHE INTERNAL "need to cache this"
-      )
-      # intentionally left blank
-   else()
-      # Disable with: `mulle-sourcetree mark m no-require-link`
-      message( FATAL_ERROR "M_LIBRARY was not found")
-   endif()
-endif()
+# there are no libraries in the sourcetree

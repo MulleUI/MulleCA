@@ -10,7 +10,7 @@ static void    flipDraw( CALayer *layer, CGContext *context)
    NSUInteger              frames;
    CALayerDrawCallback_t   *callback;
 
-   frames = [context numberOfRenderedFrames];
+   frames = [context numberOfFrames];
    if( (frames % (100 * 3)) == 299)
    {
       callback = ([layer drawCallback] == drawStuff1) ? drawStuff2 : drawStuff1;
@@ -88,9 +88,8 @@ static void   drawStuff2( CALayer *layer, CGContext *context)
 
 int   main( int argc, char *argv[])
 {
-   return( [UIApplication runWindowForDrawCallback:drawStuff1
-                                        canvasSize:CGSizeMake( 200, 200)
-                                        windowSize:CGSizeZero   // CGSizeMake( 200, 400)
-                                   titleUTF8String:"Demo"
-                                       frameRateHz:100.0]);
+   return( UIApplicationRunDrawCallbackHz( (CALayerDrawCallback_t *) drawStuff,
+                                           CGSizeMake( 200, 200),
+                                           NULL, 
+                                           100.f));     
 }

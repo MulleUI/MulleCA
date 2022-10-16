@@ -45,14 +45,15 @@
 // to constituent CAAnimations. Example: is the delay additive ?
 //
 
-@protocol CAImplicitlyAnimatableObject
+@protocol CAImplicitlyAnimatableObject < NSObject, MullePropertyObserving>
 
+- (void) willChange; // MullePropertyObserving
 - (void) commitImplicitAnimations:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
 
 @end
 
 
-enum CATransactionState
+typedef NS_ENUM( NSUInteger, CATransactionState)
 {
    CATransactionIdle,
    CATransactionStarted,
@@ -98,7 +99,7 @@ enum CATransactionState
 // same time).
 //
 // Note: this mechanism doesn't work just with layers but can work with all
-//       objects that implement CAImplicitlyAnimatableObject.
+//       classes that implement CAImplicitlyAnimatableObject.
 //
 @interface CATransaction : NSObject
 {
@@ -107,7 +108,7 @@ enum CATransactionState
    CAAnimationGroup            *_animationGroup;
 }
 
-@property( assign, readonly) enum CATransactionState  state;
+@property( assign, readonly) CATransactionState  state;
 
 - (BOOL) areAnimationsEnabled;
 - (void) addAnimatableObject:(id <CAImplicitlyAnimatableObject>) object;

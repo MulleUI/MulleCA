@@ -1,9 +1,18 @@
-#import "CALayer.h"
+//
+// Copyright (c) 2022 Nat!, Mulle kybernetiK
+//
+#ifdef __has_include
+# if __has_include( "NSObject.h")
+#  import "NSObject.h"
+# endif
+#endif
 
+#import "import.h"
 
 #import "CATransaction.h"
+#import "CAAnimationStorage.h"
 
-@class CAAnimationGroup;
+// this class might soon die though and be replaced by a protocolclass
 
 
 // A simplified sketch of a simple animation of a CALayer moving from
@@ -36,14 +45,16 @@
 //                                  '---------------| -setFrame:     |
 //                                                  '----------------'
 //
-@interface CALayer( CAAnimation) <CAImplicitlyAnimatableObject>
 
-//
-// called by UIView to create implicit animations from snapshotted values
-// the snapshot will be gone afterwards. Also cancels all other
-// animations. (?)
-//
+
+// if you can subclass from this you have it easier, otherwise copy the code
+// into your class.
+
+@interface CAImplicitlyAnimatableObject : NSObject < NSCopying, CAImplicitlyAnimatableObject>
+{
+   id   _snapshot;
+}
+
 - (void) commitImplicitAnimations:(CAAnimationGroup *) group; // either UIView class or CATransaction
 
 @end
-

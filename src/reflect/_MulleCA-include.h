@@ -15,26 +15,14 @@
 #define _mulle_ca_include_h__
 
 // You can tweak the following #include with these commands.
-// (Use FBC789F4-AA07-43CB-A91F-8B63D929F89D instead of m if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark m no-header`
-//    rename:             `mulle-sde dependency|library set m include whatever.h`
-//    reorder:            `mulle-sde dependency move m <up|down>`
-//    toggle #include:    `mulle-sde dependency mark m [no-]import`
-//    toggle public:      `mulle-sde dependency mark m [no-]public`
-//    toggle optional:    `mulle-sde dependency mark m [no-]require`
-//    remove for platform:`mulle-sde dependency mark m no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <math.h>   // m
-
-// You can tweak the following #include with these commands.
 // (Use A0F07100-5D89-412E-8C3C-542D002FDCB4 instead of mulle-layout if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-layout no-header`
-//    rename:             `mulle-sde dependency|library set mulle-layout include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-layout <up|down>`
+//    remove #include:: `mulle-sde dependency mark mulle-layout no-header`
+//    rename:              `mulle-sde dependency|library set mulle-layout include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-layout <up|down>`
 //    toggle #include:    `mulle-sde dependency mark mulle-layout [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-layout [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-layout [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-layout no-platform-<uname>`
+//    toggle public:       `mulle-sde dependency mark mulle-layout [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-layout [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-layout no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-layout/mulle-layout.h>   // mulle-layout
 

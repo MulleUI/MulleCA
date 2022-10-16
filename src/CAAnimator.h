@@ -37,4 +37,7 @@
 {
    struct CAAnimationStorage   _animationStorage;
 }
+
+- (struct CAAnimationStorage *) animationStorage;
+
 @end

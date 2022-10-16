@@ -18,6 +18,24 @@
 
 @end
 
+// conveniences
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeLinearWithLateReverse( struct mulle_relativetimerange timeRange,
+                                                     CGFloat repeatCount)
+{
+   if( reverses && repeatCount == 0.0)
+      repeatCount = INFINITY;
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange,
+                                               repeatCount,
+                                               CAAnimationReverses|CAAnimationReversesLate),
+              .curve = CAAnimationCurveLinear,
+              .tween = 0
+            });
+}
+
+
 
 int   main( int argc, char *argv[])
 {
@@ -31,7 +49,7 @@ int   main( int argc, char *argv[])
    foo       = [Foo object];
 
    // basic animation duration by default is 1
-   options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.2, 1), 2.0, YES);
+   options = CABasicAnimationOptionsMakeLinearEarly( mulle_relativetimerange_make( 0.2, 1), 2.0, YES);
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( v))

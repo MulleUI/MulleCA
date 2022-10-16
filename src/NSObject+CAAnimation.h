@@ -6,7 +6,7 @@
 
 @interface NSObject( CAAnimation)
 
-- (void) animatePropertiesWithSnapshot:(id) snapshot
+- (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
                         animationGroup:(CAAnimationGroup *) group;
 
 @end

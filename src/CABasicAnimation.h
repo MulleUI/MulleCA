@@ -3,6 +3,11 @@
 #import "CATransaction.h"  // for tweenfunction
 
 
+//
+//       Moving to NSValue could be cleaner, but is problematic for CGColor.
+//       There are really no operations on NSValue which help.
+
+
 // The basic animation has a definitive starting value and and end value
 // and it interpolates from start to the end. The end value is set at the
 // end "as is", so there is no accumulated interpolation error.
@@ -24,7 +29,7 @@
 //                 '------------------'
 //
 
-enum CAAnimationCurve
+typedef NS_ENUM( NSUInteger, CAAnimationCurve)
 {
    CAAnimationCurveEaseInOut,
    CAAnimationCurveEaseIn,
@@ -33,7 +38,7 @@ enum CAAnimationCurve
 };
 
 
-static inline char  *CAAnimationCurveUTF8String(enum CAAnimationCurve curve)
+static inline char  *CAAnimationCurveUTF8String(CAAnimationCurve curve)
 {
    switch( curve)
    {
@@ -41,12 +46,13 @@ static inline char  *CAAnimationCurveUTF8String(enum CAAnimationCurve curve)
    case CAAnimationCurveEaseIn    : return( "CAAnimationCurveEaseIn");
    case CAAnimationCurveEaseOut   : return( "CAAnimationCurveEaseOut");
    case CAAnimationCurveLinear    : return( "CAAnimationCurveLinear");
+   default                        : return( "???");
    }
 }
 
 
 static inline CAQuadratic
-   CAQuadraticForAnimationCurve( enum CAAnimationCurve curvetype)
+   CAQuadraticForAnimationCurve( CAAnimationCurve curvetype)
 {
    switch( curvetype)
    {
@@ -58,7 +64,7 @@ static inline CAQuadratic
 }
 
 
-enum CAAnimationValueType
+typedef NS_ENUM( NSInteger, CAAnimationValueType)
 {
    CAAnimationValueUndefined,
 
@@ -68,29 +74,16 @@ enum CAAnimationValueType
    CAAnimationValueCGFloat,
    CAAnimationValueCGFloat2,
    CAAnimationValueCGFloat4,
-   CAAnimationValueCGColor
-};
-
-
-enum
-{
-   CAAnimationValueCGPoint = CAAnimationValueCGFloat2
-};
-enum
-{
-   CAAnimationValueCGSize = CAAnimationValueCGFloat2
-};
-enum
-{
-   CAAnimationValueCGRect = CAAnimationValueCGFloat4
-};
-enum
-{
+   CAAnimationValueCGColor,
+// just some aliases
+   CAAnimationValueCGPoint    = CAAnimationValueCGFloat2,
+   CAAnimationValueCGSize     = CAAnimationValueCGFloat2,
+   CAAnimationValueCGRect     = CAAnimationValueCGFloat4,
    CAAnimationValueEdgeInsets = CAAnimationValueCGFloat4
 };
 
 
-static char  *CAAnimationValueTypeUTF8String( enum CAAnimationValueType type)
+static char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 {
    switch( type)
    {
@@ -102,6 +95,7 @@ static char  *CAAnimationValueTypeUTF8String( enum CAAnimationValueType type)
    case CAAnimationValueCGFloat2  : return( "CAAnimationValueCGFloat2");
    case CAAnimationValueCGFloat4  : return( "CAAnimationValueCGFloat4");
    case CAAnimationValueCGColor   : return( "CAAnimationValueCGColor");
+   default                        : return( "???");
    }
 }
 
@@ -211,7 +205,7 @@ static inline union CAAnimationValue
 
 
 char  *CAAnimationValueUTF8String( union CAAnimationValue value,
-                                   enum CAAnimationValueType type);
+                                   CAAnimationValueType type);
 
 
 struct CAAnimationValueRange
@@ -230,13 +224,13 @@ static inline struct CAAnimationValueRange
 
 
 char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
-                                        enum CAAnimationValueType type);
+                                        CAAnimationValueType type);
 
 
 struct CABasicAnimationOptions
 {
    struct CAAnimationOptions   base;
-   enum CAAnimationCurve       curve;
+   CAAnimationCurve       curve;
    CATweenFunction             *tween;
 };
 
@@ -261,7 +255,7 @@ static inline struct CABasicAnimationOptions
    CABasicAnimationOptionsMakeCurve( struct mulle_relativetimerange timeRange,
                                      CGFloat repeatCount,
                                      NSUInteger bits,
-                                     enum CAAnimationCurve curve)
+                                     CAAnimationCurve curve)
 {
    return( (struct CABasicAnimationOptions)
            {
@@ -339,17 +333,20 @@ static inline struct CABasicAnimationOptions
 char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *options);
 
 
+// TODO: This animation is tied to MulleUIBase/MulleGraphics.
+// Split into an abstract classm that doesn't know about
+
 @interface CABasicAnimation : CAAnimation
 {
-   enum CAAnimationValueType     _valueType;
+   CAAnimationValueType     _valueType;
    union CAAnimationValue        _start;
    union CAAnimationValue        _end;
+   // for additive that's the previous difference we added
+   union CAAnimationValue        _previous;
 
    CAQuadratic                   _quadratic;
    CATweenFunction               *_tween;
    struct _mulle_objc_property   *_property;
-   // for additive that's the previous difference we added
-   union CAAnimationValue        _previous;
 }
 
 //
@@ -357,7 +354,7 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
 // Could/maybe should generalize this with NSValue ?
 //
 - (id) initWithProperty:(struct _mulle_objc_property *) property
-              valueType:(enum CAAnimationValueType) type
+              valueType:(CAAnimationValueType) type
              valueRange:(struct CAAnimationValueRange *) range
                 options:(struct CABasicAnimationOptions *) options;
 

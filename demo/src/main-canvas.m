@@ -48,9 +48,8 @@ static void   drawStuff( CALayer *layer, void *context)
 
 int   main( int argc, char *argv[])
 {
-   return( [UIApplication runWindowForDrawCallback:drawStuff
-                                        canvasSize:CGSizeMake( 200, 200)
-                                        windowSize:CGSizeZero   // CGSizeMake( 200, 400)
-                                   titleUTF8String:"Demo"
-                                       frameRateHz:100.0]);
+   return( UIApplicationRunDrawCallbackHz( (CALayerDrawCallback_t *) drawStuff,
+                                           CGSizeMake( 200, 200),
+                                           NULL, 
+                                           100.f));      
 }

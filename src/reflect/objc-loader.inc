@@ -6,7 +6,6 @@
       { @selector( CAAnimationStorageObject), MULLE_OBJC_NO_CATEGORYID },      // 51463a1c;CAAnimationStorageObject;;
       { @selector( CAAnimator), MULLE_OBJC_NO_CATEGORYID },      // dfaf788f;CAAnimator;;
       { @selector( CABasicAnimation), MULLE_OBJC_NO_CATEGORYID },      // 1462ac1b;CABasicAnimation;;
-      { @selector( CALayer), @selector( CAAnimation) },      // 55df8726;CALayer;c85bd814;CAAnimation
-      { @selector( CALayer), MULLE_OBJC_NO_CATEGORYID },      // 55df8726;CALayer;;
+      { @selector( CAImplicitlyAnimatableObject), MULLE_OBJC_NO_CATEGORYID },      // 539e0feb;CAImplicitlyAnimatableObject;;
       { @selector( CATransaction), MULLE_OBJC_NO_CATEGORYID },      // acf47d79;CATransaction;;
       { @selector( NSObject), @selector( CAAnimation) },      // b3a66256;NSObject;c85bd814;CAAnimation
