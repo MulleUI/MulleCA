@@ -29,7 +29,7 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
 
    foo = [Foo object];
-   [foo setF:-10.0f];
+   [foo setF:0.0f];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
                                                  2.0,
@@ -38,8 +38,8 @@ int   main( int argc, char *argv[])
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))
-                                           startFloatValue:-10.0f
-                                             endFloatValue:+10.0f
+                                           startFloatValue:0.0f
+                                             endFloatValue:10.0f
                                                    options:&options] autorelease];
 
    for( i = 0; i <= 10; i++)

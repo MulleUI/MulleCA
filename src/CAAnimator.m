@@ -16,9 +16,23 @@
 }
 
 
+- (id) init
+{
+   self = [self initAnimationStorage];
+   return( self);
+}
+
+// - (void) finalize
+// {
+//    [self removeAllAnimations];
+//    [super finalize];
+// }
+
+
 - (void) dealloc
 {
    [self removeAllAnimations];
+   [self deallocAnimationStorage];
    [super dealloc];
 }
 

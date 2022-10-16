@@ -26,7 +26,6 @@
 #endif
 
 
-
 //
 // if there are subviews, layout in 2x2 rectangular fashion
 //
@@ -66,6 +65,13 @@ void   setupSceneAndAnimation( UIWindow *window)
    UIWindowPlane     *contentPlane;
    CAAnimationGroup  *group;
    CAAnimator        *animator;
+
+
+   // target view
+   view       = [CustomView viewWithFrame:CGRectMake( 150, 150, 300, 300)];
+   [view setDebugNameUTF8String:"Target"];
+   [view setBackgroundColor:[UIColor grayColor]];
+   [[window contentPlane] addSubview:view];
 
 
    view       = [CustomView viewWithFrame:CGRectMake( 100, 100, 200, 200)];
@@ -141,7 +147,7 @@ int   main( int argc, char *argv[])
                             styleMask:styleMask];
    assert( window);
 
-   [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
+   [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
    [window setFrameRateHz:5.0f];
    setupSceneAndAnimation( window);
 

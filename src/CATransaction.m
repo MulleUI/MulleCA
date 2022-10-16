@@ -87,7 +87,7 @@ void   CATransactionSetCurrentTransaction( id p)
 {
    assert( _state == CATransactionIdle);
 
-   _state = CATransactionStarted;
+   _state          = CATransactionStarted;
    _animationGroup = [CAAnimationGroup new];
    mulle_thread_tss_set( Self.thread_key, self);
 }

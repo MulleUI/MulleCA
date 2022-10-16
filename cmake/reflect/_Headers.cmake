@@ -58,8 +58,7 @@ src/CAAnimationStorage.h
 src/CAAnimation.h
 src/CAAnimator.h
 src/CABasicAnimation.h
-src/CALayer+CAAnimation.h
-src/CALayer.h
+src/CAImplicitlyAnimatableObject.h
 src/CATransaction.h
 src/CGColor+MulleObjC.h
 src/CGGeometry+MulleObjC.h

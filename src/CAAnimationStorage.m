@@ -13,6 +13,30 @@
 
 PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
+
+- (id) initAnimationStorage
+{
+   struct mulle_allocator     *allocator;
+   struct CAAnimationStorage  *storage;
+
+   storage = [self animationStorage];
+
+   allocator = MulleObjCInstanceGetAllocator( self);
+   _mulle_pointerarray_init( &storage->_animations, 0, allocator);
+
+   return( self);
+}
+
+
+- (void) deallocAnimationStorage
+{
+   struct CAAnimationStorage  *storage;
+
+   storage = [self animationStorage];
+   _mulle_pointerarray_done( &storage->_animations);
+}
+
+
 /*
  * Animations storage and management
  */
@@ -54,7 +78,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-- (void) addAnimation:(CAAnimation *) animation
+- (void) addAnimation:(id <CAAnimation>) animation
 {
    struct CAAnimationStorage   *storage;
 
@@ -71,7 +95,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-- (void) removeAnimation:(CAAnimation *) animation
+- (void) removeAnimation:(id <CAAnimation>) animation
 {
    struct CAAnimationStorage   *storage;
    struct mulle_pointerarray   tmp;
@@ -95,7 +119,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 - (void) resetAnimationsForAnimationObject:(id) animationObject
 {
    struct mulle_pointerarrayenumerator   rover;
-   CAAnimation                           *animation;
+   id <CAAnimation>                      animation;
    struct CAAnimationStorage             *storage;
    struct mulle_allocator                *allocator;
 
@@ -114,7 +138,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 - (void) resetAllAnimations
 {
    struct mulle_pointerarrayenumerator   rover;
-   CAAnimation                           *animation;
+   id <CAAnimation>                      animation;
    struct CAAnimationStorage             *storage;
 
    storage = [self animationStorage];
@@ -129,7 +153,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 - (void) removeAnimationsForAnimationObject:(id) animationObject
 {
    struct mulle_pointerarrayenumerator   rover;
-   CAAnimation                           *animation;
+   id <CAAnimation>                      animation;
    struct CAAnimationStorage             *storage;
    struct mulle_allocator                *allocator;
    NSUInteger                            index;
@@ -182,7 +206,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
                    animationRate:(mulle_relativetime_t) animationRate
 {
@@ -194,7 +217,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    struct mulle_pointerarrayenumerator   rover;
    id                                    target;
    BOOL                                  flag;
-   enum CAAnimationState                 state;
+   CAAnimationState                      state;
 
    storage = [self animationStorage];
    n_animations = mulle_pointerarray_get_count( &storage->_animations);

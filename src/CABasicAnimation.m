@@ -9,7 +9,7 @@
 
 
 char  *CAAnimationValueUTF8String( union CAAnimationValue value,
-                                   enum CAAnimationValueType type)
+                                   CAAnimationValueType type)
 {
    switch( type)
    {
@@ -21,12 +21,13 @@ char  *CAAnimationValueUTF8String( union CAAnimationValue value,
    case CAAnimationValueCGFloat2  : return( CAAnimationFloat2UTF8String( value.float2Value));
    case CAAnimationValueCGColor   :
    case CAAnimationValueCGFloat4  : return( CAAnimationFloat4UTF8String( value.float4Value));
+   default                        : return( "???");
    }
 }
 
 
 char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
-                                        enum CAAnimationValueType type)
+                                        CAAnimationValueType type)
 {
    char   *s[ 2];
 
@@ -67,7 +68,7 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
-              valueType:(enum CAAnimationValueType) type
+              valueType:(CAAnimationValueType) type
              valueRange:(struct CAAnimationValueRange *) range
                 options:(struct CABasicAnimationOptions *) options
 {
@@ -243,6 +244,8 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
                           options:options]);
 }
 
+#pragma mark - Petty accessors
+
 
 - (BOOL) isAdditive
 {
@@ -255,24 +258,7 @@ static const struct CABasicAnimationOptions   CABasicAnimationDefaultOptions =
 }
 
 
-- (void) reset
-{
-   [super reset];
-   memset( &_previous, 0, sizeof( union CAAnimationValue));
-}
-
-
-- (void) animationIndexDidChange
-{
-   if( _state.bits & CAAnimationCumulative)
-   {
-      assert( _state.bits & CAAnimationAdditive);
-
-      // do what now ?
-      memset( &_previous, 0, sizeof( union CAAnimationValue));
-   }
-}
-
+#pragma mark - Interpolation code
 
 
 #define additive_interpolate( start, end, x) \
@@ -317,8 +303,6 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
    CGFloat   diff;
    CGFloat   value;
    CGFloat   newValue;
-
-   assert( x >= 0.0 && x <= 1.0);
 
    diff = additive_interpolate( self->_start.floatValue, self->_end.floatValue, x);
    {
@@ -467,7 +451,7 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
    hsva[ 2] = fmod( hsva[ 2] - self->_previous.float4Value.v[ 2] + diff.v[ 2], 1.0);    // value clamp ?
    hsva[ 3] = fmod( hsva[ 3] - self->_previous.float4Value.v[ 3] + diff.v[ 3], 1.0);
 
-   newColor = CGColorMakeHSVAComponents( hsva);
+   newColor = CGColorMakeWithHSVAComponents( hsva);
 
    self->_previous.float4Value.v[ 0] = diff.v[ 0];
    self->_previous.float4Value.v[ 1] = diff.v[ 1];
@@ -492,59 +476,6 @@ static void   CABasicAnimationSetInterpolatedColorAdditive( CABasicAnimation *se
 static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double t);
 
 
-- (void) animateAdditiveObject:(id) object
-        normalizedRelativeTime:(double) t
-                   elapsedTime:(mulle_relativetime_t) elapsedTime
-{
-   double   x;
-
-   // x is now
-   x = (_tween)( &self->_quadratic, t);
-
-   // the amount of change from last time
-   switch( self->_valueType)
-   {
-   case CAAnimationValueUndefined :
-      abort();
-
-   case CAAnimationValueBOOL :
-      // this doesn't work additively it will stick to NO or YES
-      if( t == 0.0)
-         fprintf( stderr, "BOOL animation can not be done additively\n");
-      break;
-
-   case CAAnimationValueNSInteger :
-      CABasicAnimationSetInterpolatedIntegerAdditive( self, object, x);
-      break;
-
-   case CAAnimationValueNSRange :
-      // we just can't do this additively (or I can't)
-      if( t == 0.0)
-         fprintf( stderr, "NSRange animation can not be done additively\n");
-      break;
-
-   case CAAnimationValueCGFloat :
-      CABasicAnimationSetInterpolatedFloatAdditive( self, object, x);
-      break;
-
-   // this is all identical, we use point
-   case CAAnimationValueCGFloat2 :
-      CABasicAnimationSetInterpolatedFloat2Additive( self, object, x);
-      break;
-
-   // this is all identical, we use CGRect
-   case CAAnimationValueCGFloat4 :
-      CABasicAnimationSetInterpolatedFloat4Additive( self, object, x);
-      break;
-
-   case CAAnimationValueCGColor :
-      CABasicAnimationSetInterpolatedColorAdditive( self, object, x);
-      break;
-
-   default :
-      abort();
-   }
-}
 
 
 static void   CABasicAnimationSetInterpolatedBOOL( CABasicAnimation *self,
@@ -663,6 +594,18 @@ static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self,
 }
 
 
+static inline double   mulle_clamp_0_1( double x)
+{
+   return( (x < 0.0) ? 0.0 : (x > 1.0 ? 1.0 : x));
+}
+
+
+static inline double   mulle_fmod_1( double x)
+{
+   return( x == 1.0 ? x : fmod( x, 1.0));
+}
+
+
 static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
                                                     id object,
                                                     double x)
@@ -675,7 +618,12 @@ static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
    value.v[ 2] = interpolate( self->_start.float4Value.v[ 2], self->_end.float4Value.v[ 2], x);
    value.v[ 3] = interpolate( self->_start.float4Value.v[ 3], self->_end.float4Value.v[ 3], x);
 
-   color = CGColorMakeHSBA( value.v[ 0], value.v[ 1], value.v[ 2], value.v[ 3]);
+   value.v[ 0] = mulle_fmod_1( value.v[ 0]);
+   value.v[ 1] = mulle_clamp_0_1( value.v[ 1]);
+   value.v[ 2] = mulle_clamp_0_1( value.v[ 2]);
+   value.v[ 3] = mulle_clamp_0_1( value.v[ 3]);
+
+   color = CGColorMakeWithHSBA( value.v[ 0], value.v[ 1], value.v[ 2], value.v[ 3]);
    {
       mulle_metaabi_struct_void_return( CGColor)   param;
 
@@ -685,17 +633,15 @@ static void   CABasicAnimationSetInterpolatedColor( CABasicAnimation *self,
 }
 
 
-static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double t)
+// x can be < 0  and > 1 here
+static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double x)
 {
-   double   x;
-
    //
    // TODO: make this thread local and ask inside accessors, which are
    //      providing animations themselves.
    //
    // isAnimating++;
 
-   x = (self->_tween)( &self->_quadratic, t);
    switch( self->_valueType)
    {
    case CAAnimationValueUndefined :
@@ -735,6 +681,55 @@ static void   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, 
    // isAnimating--;
 }
 
+
+static void   CABasicAnimationAnimateObjectAdditive( CABasicAnimation *self, id object, double x)
+{
+   // the amount of change from last time
+   switch( self->_valueType)
+   {
+   case CAAnimationValueUndefined :
+      abort();
+
+   case CAAnimationValueBOOL :
+      // this doesn't work additively it will stick to NO or YES
+      if( x == 0.0)
+         fprintf( stderr, "BOOL animation can not be done additively\n");
+      break;
+
+   case CAAnimationValueNSInteger :
+      CABasicAnimationSetInterpolatedIntegerAdditive( self, object, x);
+      break;
+
+   case CAAnimationValueNSRange :
+      // we just can't do this additively (or I can't)
+      if( x == 0.0)
+         fprintf( stderr, "NSRange animation can not be done additively\n");
+      break;
+
+   case CAAnimationValueCGFloat :
+      CABasicAnimationSetInterpolatedFloatAdditive( self, object, x);
+      break;
+
+   // this is all identical, we use point
+   case CAAnimationValueCGFloat2 :
+      CABasicAnimationSetInterpolatedFloat2Additive( self, object, x);
+      break;
+
+   // this is all identical, we use CGRect
+   case CAAnimationValueCGFloat4 :
+      CABasicAnimationSetInterpolatedFloat4Additive( self, object, x);
+      break;
+
+   case CAAnimationValueCGColor :
+      CABasicAnimationSetInterpolatedColorAdditive( self, object, x);
+      break;
+
+   default :
+      abort();
+   }
+}
+
+
 //
 // this is called by the layer (ahem) animatableObject
 // which does the animation now
@@ -750,15 +745,30 @@ normalizedRelativeTime:(double) t
    assert( t <= 1.0);
    assert( object);
 
+   x = (self->_tween)( &self->_quadratic, t);
+   // x can be <0.0 > 1.0 though!
    if( _state.bits & CAAnimationAdditive)
-   {
-      [self animateAdditiveObject:object
-           normalizedRelativeTime:t
-                      elapsedTime:elapsedTime];
-      return;
-   }
+      CABasicAnimationAnimateObjectAdditive( self, object, x);
+   else
+      CABasicAnimationAnimateObject( self, object, x);
+}
 
-   CABasicAnimationAnimateObject( self, object, t);
+
+- (void) reset
+{
+   [super reset];
+   memset( &_previous, 0, sizeof( union CAAnimationValue));
+}
+
+
+- (void) animationIndexDidChange
+{
+   if( _state.bits & CAAnimationCumulative)
+   {
+      assert( _state.bits & CAAnimationAdditive);
+
+      memset( &_previous, 0, sizeof( union CAAnimationValue));
+   }
 }
 
 

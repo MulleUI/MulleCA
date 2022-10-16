@@ -118,9 +118,9 @@ static void   setupScene( UIWindow *window)
       rect = CGSizePlaceInRect( SIZE, rects[ i], CGContentModeLeft);
       layers[ i] = [CALayer layerWithFrame:rect];
       if( i < 4)
-         [layers[ i] setBackgroundColor:CGColorMakeRGBA( 1.0, 0.0, 0.0, 1.0)];
+         [layers[ i] setBackgroundColor:CGColorMakeWithRGBA( 1.0, 0.0, 0.0, 1.0)];
       else
-         [layers[ i] setBackgroundColor:CGColorMakeRGBA( 0.0, 0.0, 1.0, 1.0)];
+         [layers[ i] setBackgroundColor:CGColorMakeWithRGBA( 0.0, 0.0, 1.0, 1.0)];
 
       [[window contentPlane] addLayer:layers[ i]];
 
@@ -172,7 +172,7 @@ int   main( int argc, char *argv[])
       window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
       assert( window);
 
-      [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
+      [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
       setupScene( window);
 

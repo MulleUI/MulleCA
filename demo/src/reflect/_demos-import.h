@@ -35,6 +35,18 @@
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #import <MulleUIPerf/MulleUIPerf.h>   // MulleUIPerf
 
+// You can tweak the following #import with these commands.
+// (Use 695F5D73-83B6-474F-8076-88652CCC4466 instead of MulleGraphics if there are duplicate entries)
+//    remove:             `mulle-sde dependency mark MulleGraphics no-header`
+//    rename:             `mulle-sde dependency|library set MulleGraphics include whatever.h`
+//    reorder:            `mulle-sde dependency move MulleGraphics <up|down>`
+//    toggle #import:     `mulle-sde dependency mark MulleGraphics [no-]import`
+//    toggle public:      `mulle-sde dependency mark MulleGraphics [no-]public`
+//    toggle optional:    `mulle-sde dependency mark MulleGraphics [no-]require`
+//    remove for platform:`mulle-sde dependency mark MulleGraphics no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#import <MulleGraphics/MulleGraphics.h>   // MulleGraphics
+
 #ifdef __has_include
 # if __has_include( "_demos-include.h")
 #  include "_demos-include.h"

@@ -41,7 +41,6 @@ int   main( int argc, char *argv[])
 
    foo       = [Foo object];
 
-   // basic animation duration by default is 1
    options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.1, 1), 0.0, NO);
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 

@@ -69,7 +69,7 @@ int   main( int argc, char *argv[])
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)];
    assert( window);
 
-   [window setBackgroundColor:CGColorMakeRGBA( 1.0, 1.0, 1.0, 1.0)];
+   [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
 
    setupSceneAndAnimation( window);
 

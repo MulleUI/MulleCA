@@ -433,8 +433,8 @@ static mulle_objc_walkcommand_t
 }
 
 
-- (void) animatePropertiesWithSnapshot:(id) snapshot
-                        animationGroup:(CAAnimationGroup *) animationGroup
+- (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
+                                      animationGroup:(CAAnimationGroup *) animationGroup
 {
    struct property_animation_context   ctxt;
    struct _mulle_objc_infraclass       *infra;
@@ -449,7 +449,7 @@ static mulle_objc_walkcommand_t
    ctxt.self           = self;
 
    [animationGroup setupBasicAnimationOptions:&ctxt.animationOptions];
-   [animationGroup setAnimationObject:(id <CAAnimatableObject>) self];
+   [animationGroup setAnimationObject:self];
 	_mulle_objc_infraclass_walk_properties( infra,
                                            _mulle_objc_infraclass_get_inheritance( infra),
                                            walkproperties_callback,
