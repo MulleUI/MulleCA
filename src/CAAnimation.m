@@ -26,8 +26,10 @@ NS_OPTIONS_TABLE( CAAnimationBits, 15) =
    NS_OPTIONS_ITEM( CAAnimationScrubbing),
    NS_OPTIONS_ITEM( CAAnimationHasReversed),
    NS_OPTIONS_ITEM( CAAnimationIsReverse),
+   NS_OPTIONS_ITEM( CAAnimationFinalized),
    NS_OPTIONS_ITEM( CAAnimationEnded),
    NS_OPTIONS_ITEM( CAAnimationPreempt),
+
    NS_OPTIONS_ITEM( CAAnimationDelegateDidStartNotified),
 
    NS_OPTIONS_ITEM( CAAnimationReverses),
