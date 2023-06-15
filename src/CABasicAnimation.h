@@ -3,10 +3,20 @@
 #import "CATransaction.h"  // for tweenfunction
 
 
+
+
+#define CAInterpolateAdditive( start, end, x) \
+   ( (x) * ((end) - (start)) )
+
+
+#define CAInterpolate( start, end, x)  \
+   ( (start) + CAInterpolateAdditive( start, end, x) )
+
 //
 //       Moving to NSValue could be cleaner, but is problematic for CGColor.
 //       There are really no operations on NSValue which help.
-
+//
+// Actual CGColor code is in MulleGraphics for dependency reasons
 
 // The basic animation has a definitive starting value and and end value
 // and it interpolates from start to the end. The end value is set at the
@@ -74,7 +84,7 @@ typedef NS_ENUM( NSInteger, CAAnimationValueType)
    CAAnimationValueCGFloat,
    CAAnimationValueCGFloat2,
    CAAnimationValueCGFloat4,
-   CAAnimationValueCGColor,
+   CAAnimationValueFloatArray,
 // just some aliases
    CAAnimationValueCGPoint    = CAAnimationValueCGFloat2,
    CAAnimationValueCGSize     = CAAnimationValueCGFloat2,
@@ -83,27 +93,11 @@ typedef NS_ENUM( NSInteger, CAAnimationValueType)
 };
 
 
-static char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
-{
-   switch( type)
-   {
-   case CAAnimationValueUndefined : return( "CAAnimationValueUndefined");
-   case CAAnimationValueBOOL      : return( "CAAnimationValueBOOL");
-   case CAAnimationValueNSInteger : return( "CAAnimationValueNSInteger");
-   case CAAnimationValueNSRange   : return( "CAAnimationValueNSRange");
-   case CAAnimationValueCGFloat   : return( "CAAnimationValueCGFloat");
-   case CAAnimationValueCGFloat2  : return( "CAAnimationValueCGFloat2");
-   case CAAnimationValueCGFloat4  : return( "CAAnimationValueCGFloat4");
-   case CAAnimationValueCGColor   : return( "CAAnimationValueCGColor");
-   default                        : return( "???");
-   }
-}
-
-
 struct CAAnimationFloat2
 {
    CGFloat   v[ 2];
 };
+
 
 static inline char  *CAAnimationFloat2UTF8String( struct CAAnimationFloat2 value)
 {
@@ -126,6 +120,9 @@ static inline char  *CAAnimationFloat4UTF8String( struct CAAnimationFloat4 value
                                                 value.v[ 3]));
 }
 
+MULLE_CA_EXTERN_GLOBAL
+char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value);
+
 
 union CAAnimationValue
 {
@@ -136,6 +133,7 @@ union CAAnimationValue
 
    struct CAAnimationFloat2   float2Value;  // a 32 bit float usually
    struct CAAnimationFloat4   float4Value;  // a 32 bit float usually
+   struct mulle__floatarray   floatArray;
 //   CGColor        color;          // four floats
 };
 
@@ -190,19 +188,6 @@ static inline union CAAnimationValue
 }
 
 
-//
-// i think hsba makes somewhat nicer color interpolations, i could be wrong
-// though
-//
-static inline union CAAnimationValue
-   CGAnimationValueMakeWithCGColor( CGColor color)
-{
-   union CAAnimationValue   value;
-
-   CGColorGetHSBAComponents( color, (float *) &value.float4Value);
-   return( value);
-}
-
 
 char  *CAAnimationValueUTF8String( union CAAnimationValue value,
                                    CAAnimationValueType type);
@@ -230,10 +215,25 @@ char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
 struct CABasicAnimationOptions
 {
    struct CAAnimationOptions   base;
-   CAAnimationCurve       curve;
+   CAAnimationCurve            curve;
    CATweenFunction             *tween;
 };
 
+
+// the "default" constructor
+static inline struct CABasicAnimationOptions
+   CABasicAnimationOptionsMakeCurve( struct mulle_relativetimerange timeRange,
+                                     CGFloat repeatCount,
+                                     NSUInteger bits,
+                                     CAAnimationCurve curve)
+{
+   return( (struct CABasicAnimationOptions)
+           {
+              .base  = CAAnimationOptionsMake( timeRange, repeatCount, bits),
+              .curve = curve,
+              .tween = 0
+            });
+}
 
 
 static inline struct CABasicAnimationOptions
@@ -251,19 +251,6 @@ static inline struct CABasicAnimationOptions
 }
 
 
-static inline struct CABasicAnimationOptions
-   CABasicAnimationOptionsMakeCurve( struct mulle_relativetimerange timeRange,
-                                     CGFloat repeatCount,
-                                     NSUInteger bits,
-                                     CAAnimationCurve curve)
-{
-   return( (struct CABasicAnimationOptions)
-           {
-              .base  = CAAnimationOptionsMake( timeRange, repeatCount, bits),
-              .curve = curve,
-              .tween = 0
-            });
-}
 
 // conveniences
 static inline struct CABasicAnimationOptions
@@ -330,15 +317,71 @@ static inline struct CABasicAnimationOptions
 }
 
 
+
+#define CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( vdelay, vduration, vrepeat, vbits, vcurve) \
+   ((struct CABasicAnimationOptions)                                                      \
+   {                                                                                      \
+      /* base */                                                                          \
+      .base = CA_ANIMATION_OPTIONS_INIT( (vdelay), (vduration), (vrepeat), (vbits)),      \
+      /* curve */                                                                         \
+      .curve = (vcurve),                                                                  \
+      .tween = 0                                                                          \
+   })                                                                                  
+
+
+#define CA_BASIC_ANIMATION_OPTIONS_INIT_TWEEN( vdelay, vduration, vrepeat, vbits, vtween) \
+   ((struct CABasicAnimationOptions)                                                      \
+   {                                                                                      \
+      /* base */                                                                          \
+      .base = CA_ANIMATION_OPTIONS_INIT( (vdelay), (vduration), (vrepeat), (vbits)),      \
+      /* curve */                                                                         \
+      .curve = 0,                                                                         \
+      .tween = (vtween)                                                                   \
+   })                                                                                  
+
 char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *options);
 
 
-// TODO: This animation is tied to MulleUIBase/MulleGraphics.
-// Split into an abstract classm that doesn't know about
+@class CABasicAnimation;
+
+
+typedef void  CABasicAnimationInterpolator( CABasicAnimation *, id, double);
+typedef char  *CAAnimationValueUTF8Printer( union CAAnimationValue);
+
+//
+// this is a simple extension interface to add more definitions.
+// you have to invent a type integer that doesn't conflict with the others
+// CAAnimationValueType and other extensions
+//
+struct CABasicAnimationTypeDefinition
+{
+   NSUInteger                     type;
+   char                           *name;
+   CABasicAnimationInterpolator   *interpolate;
+   CABasicAnimationInterpolator   *interpolateAdditive;
+   CAAnimationValueUTF8Printer    *valueUTF8String;
+};
+
+// run this during +initialize or +load
+void  CABasicAnimationTypeDefinitionRegister( struct CABasicAnimationTypeDefinition *definition);
+
+MULLE_C_CONST_NONNULL_RETURN
+struct CABasicAnimationTypeDefinition
+      *CABasicAnimationTypeDefinitionGet( CAAnimationValueType type);
+
+
+static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
+{
+   return( CABasicAnimationTypeDefinitionGet( type)->name);
+}
+
+
 
 @interface CABasicAnimation : CAAnimation
 {
-   CAAnimationValueType     _valueType;
+   CABasicAnimationInterpolator  *_interpolate;
+   CABasicAnimationInterpolator  *_interpolateAdditive;
+   CAAnimationValueType          _valueType;
    union CAAnimationValue        _start;
    union CAAnimationValue        _end;
    // for additive that's the previous difference we added
@@ -379,6 +422,11 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
                 options:(struct CABasicAnimationOptions *) options;
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
+   startFloatArrayValue:(struct mulle__floatarray) start
+     endFloatArrayValue:(struct mulle__floatarray) end
+                options:(struct CABasicAnimationOptions *) options;
+
+- (id) initWithProperty:(struct _mulle_objc_property *) property
         startFloatValue:(CGFloat) start
           endFloatValue:(CGFloat) end
                 options:(struct CABasicAnimationOptions *) options;
@@ -396,11 +444,6 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
 - (id) initWithProperty:(struct _mulle_objc_property *) property
          startBOOLValue:(BOOL) start
            endBOOLValue:(BOOL) end
-                options:(struct CABasicAnimationOptions *) options;
-
-- (id) initWithProperty:(struct _mulle_objc_property *) property
-        startColorValue:(CGColor) start
-          endColorValue:(CGColor) end
                 options:(struct CABasicAnimationOptions *) options;
 
 

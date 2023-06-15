@@ -14,6 +14,16 @@
 #ifndef _demos_include_h__
 #define _demos_include_h__
 
-/* no headers */
+// You can tweak the following #include with these commands.
+// (Use 226C7B69-57B8-4A6C-ADF4-42714353651B instead of mulle-testallocator if there are duplicate entries)
+//    remove #include:: `mulle-sde dependency mark mulle-testallocator no-header`
+//    rename:              `mulle-sde dependency|library set mulle-testallocator include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-testallocator <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-testallocator [no-]import`
+//    toggle public:       `mulle-sde dependency mark mulle-testallocator [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-testallocator [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-testallocator no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-testallocator/mulle-testallocator.h>   // mulle-testallocator
 
 #endif

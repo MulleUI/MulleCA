@@ -1,0 +1,19 @@
+## CAAnimationStorage
+
+`CAAnimator` implements the `CAAnimationStorage` protocolclass. The
+protocolclass provides methods for the storage of `CAAnimation` objects.
+
+To implement the protocol, `CAAnimator` has to provide an instance variable
+for storage and an accessor method for this instance variable:
+
+``` objc
+@interface CAAnimator : NSObject < CAAnimationStorageObject>
+{
+   struct CAAnimationStorage   _animationStorage;
+}
+
+- (struct CAAnimationStorage *) animationStorage;
+
+@end
+```
+

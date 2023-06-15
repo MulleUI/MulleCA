@@ -113,6 +113,9 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 - (BOOL) areAnimationsEnabled;
 - (void) addAnimatableObject:(id <CAImplicitlyAnimatableObject>) object;
 
+// used by -forgetImplicitAnimations (use this as it cleans the snapshot)
+- (void) removeAnimatableObject:(id <CAImplicitlyAnimatableObject>) object;
+
 //
 // Transactions are short lived things, don't retain or copy them
 //
@@ -162,5 +165,34 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //
 // on a per-thread basis
 //
-id     CATransactionGetCurrentTransaction( void);
-void   CATransactionSetCurrentTransaction( id);
+static inline id   CATransactionGetCurrentTransaction( void)
+{
+   extern mulle_thread_tss_t   CATransactionThreadKey;
+
+   return( mulle_thread_tss_get( CATransactionThreadKey));
+}
+
+
+static inline void   CATransactionSetCurrentTransaction( id p)
+{
+   extern mulle_thread_tss_t   CATransactionThreadKey;
+
+   mulle_thread_tss_set( CATransactionThreadKey, p);
+}
+
+
+//
+// block of this macro executes, while the current CATransaction is
+// suspended. Afterwards the previous state is reset.
+// Don't "return" from within the block
+//
+#define CATransactionSuspendedDo( name)                                                   \
+   for( CATransaction * name ## __suspend__  = CATransactionGetCurrentTransaction(),      \
+                      * name ## __once__     = (CATransactionSetCurrentTransaction( NULL),\
+                                                NULL);                                    \
+        ! name ## __once__;                                                               \
+        CATransactionSetCurrentTransaction( name ## __suspend__),                         \
+        name ## __once__ = (CATransaction *) 0x1)                                         \
+      for( int name ## __break_protect__ = 0;                                             \
+           ! name ## __break_protect__;                                                   \
+           name ## __break_protect__ = 1) 

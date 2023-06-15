@@ -46,7 +46,7 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
    NSUInteger                       state;
 
-   foo       = [Foo object];
+   foo     = [Foo object];
 
    // basic animation duration by default is 1
    options = CABasicAnimationOptionsMakeLinearWithLateReverse( mulle_relativetimerange_make( 0.2, 1), 2.0);

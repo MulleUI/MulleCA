@@ -1,0 +1,28 @@
+## CAAnimator
+
+A `CAAnimator` is used to store and then run `CAAnimation` objects, or rather
+objects that conform to the `CAAnimation` protocol.
+
+Simplified, the `CAAnimator` animation loop looks like this:
+
+``` objc
+- (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
+                   animationRate:(mulle_relativetime_t) animationRate
+{
+   for( animation in [self animations])
+   {
+      [animation animateObject:[animation animationObject]
+                  absoluteTime:now
+                 animationRate:animationRate];
+   }
+}
+```
+
+In a graphics scenario you would call this method before drawing your graphics,
+and you would pass in the current time `now` and the expected `animationRate`
+(say 1.0/60.0 for 60Hz). The animationRate is used for quantizing the animation.
+If you pass in 0.0, the values will be continuous. Quantizing the animation
+ensures, that an accurate final value of the animation is stored in the
+property.
+
+
