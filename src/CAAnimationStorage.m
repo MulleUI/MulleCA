@@ -98,7 +98,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 - (void) removeAnimation:(id <CAAnimation>) animation
 {
    struct CAAnimationStorage   *storage;
-   struct mulle_pointerarray   tmp;
    uintptr_t                   index;
 
    storage = [self animationStorage];
@@ -121,7 +120,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    struct mulle_pointerarrayenumerator   rover;
    id <CAAnimation>                      animation;
    struct CAAnimationStorage             *storage;
-   struct mulle_allocator                *allocator;
 
    storage = [self animationStorage];
 

@@ -2,6 +2,8 @@
 
 #### 💥 demos of MulleCA
 
+Run conveniently with [mulle-project-run-demos](//github.com/mulle-nat/mulle-project),
+after building with `mulle-sde craft`.
 
 ## CALayer
 

@@ -60,7 +60,6 @@ src/CAAnimator.h
 src/CABasicAnimation.h
 src/CAImplicitlyAnimatableObject.h
 src/CATransaction.h
-src/CGColor+MulleObjC.h
 src/CGGeometry+MulleObjC.h
 src/MulleCA.h
 src/MulleEdgeInsets+MulleObjC.h

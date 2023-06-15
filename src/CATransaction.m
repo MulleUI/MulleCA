@@ -21,10 +21,8 @@
 
 @implementation CATransaction
 
-static struct
-{
-   mulle_thread_tss_t   thread_key;
-} Self;
+mulle_thread_tss_t   CATransactionThreadKey;
+
 
 
 //
@@ -33,26 +31,14 @@ static struct
 //
 + (void) load
 {
-   if( mulle_thread_tss_create( 0, &Self.thread_key))
+   if( mulle_thread_tss_create( 0, &CATransactionThreadKey))
       abort();
 }
 
 
 + (void) unload
 {
-   mulle_thread_tss_free( Self.thread_key);
-}
-
-
-id   CATransactionGetCurrentTransaction( void)
-{
-   return( mulle_thread_tss_get( Self.thread_key));
-}
-
-
-void   CATransactionSetCurrentTransaction( id p)
-{
-   mulle_thread_tss_set( Self.thread_key, p);
+   mulle_thread_tss_free( CATransactionThreadKey);
 }
 
 
@@ -79,7 +65,7 @@ void   CATransactionSetCurrentTransaction( id p)
    _state = CATransactionIdle;
 
    _mulle_pointerarray_reset( &_animatedObjects);
-   mulle_thread_tss_set( Self.thread_key, NULL);
+   CATransactionSetCurrentTransaction( NULL);
 }
 
 
@@ -89,7 +75,7 @@ void   CATransactionSetCurrentTransaction( id p)
 
    _state          = CATransactionStarted;
    _animationGroup = [CAAnimationGroup new];
-   mulle_thread_tss_set( Self.thread_key, self);
+   CATransactionSetCurrentTransaction( self);
 }
 
 
@@ -104,7 +90,6 @@ void   CATransactionSetCurrentTransaction( id p)
 - (CAAnimationGroup *) commit
 {
    id <CAImplicitlyAnimatableObject>     obj;
-   struct mulle_pointerarrayenumerator   rover;
    CAAnimationGroup                      *group;
    struct CAAnimationOptions             options;
 
@@ -113,14 +98,11 @@ void   CATransactionSetCurrentTransaction( id p)
    group = _animationGroup;
    _state = CATransactionCommitting;
    {
-      rover = mulle_pointerarray_enumerate( &_animatedObjects);
-      while( _mulle_pointerarrayenumerator_next( &rover, (void **) &obj))
+      mulle_pointerarray_for( &_animatedObjects, obj)
       {
          [obj commitImplicitAnimations:group];
       }
-      mulle_pointerarrayenumerator_done( &rover);
 
-      //
       [group setupAnimationOptions:&options];
       [group setAnimationOptions:&options];
 
@@ -150,6 +132,19 @@ void   CATransactionSetCurrentTransaction( id p)
 }
 
 
+- (void) removeAnimatableObject:(id <CAImplicitlyAnimatableObject>) obj
+{
+   uintptr_t   i;
+
+   assert( _state >= CATransactionStarted && _state <= CATransactionCommitting);
+
+   i = _mulle_pointerarray_find( &_animatedObjects, obj);
+   if( i != mulle_not_found_e)
+      _mulle_pointerarray_remove_in_range( &_animatedObjects, mulle_range_make( i, 1));
+}
+
+
+
 // forward dynamic properties to animationGroup
 - (void *) forward:(void *) param
 {
@@ -158,6 +153,5 @@ void   CATransactionSetCurrentTransaction( id p)
                                                           (mulle_objc_methodid_t) _cmd,
                                                           param));
 }
-
 
 @end

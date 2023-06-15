@@ -56,5 +56,6 @@
 }
 
 - (void) commitImplicitAnimations:(CAAnimationGroup *) group; // either UIView class or CATransaction
+- (void) forgetImplicitAnimations;
 
 @end

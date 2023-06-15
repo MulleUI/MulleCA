@@ -16,7 +16,6 @@
 #import "CABasicAnimation.h"
 #import "CAImplicitlyAnimatableObject.h"
 #import "CATransaction.h"
-#import "CGColor+MulleObjC.h"
 #import "CGGeometry+MulleObjC.h"
 #import "MulleEdgeInsets+MulleObjC.h"
 #import "MulleObjCLoader+MulleCA.h"

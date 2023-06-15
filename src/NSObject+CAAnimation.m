@@ -5,7 +5,6 @@
 #import "CAAnimationStorage.h"
 #import "CAAnimationGroup.h"
 #import "CABasicAnimation.h"
-#import "CGColor+MulleObjC.h"
 #import "CGGeometry+MulleObjC.h"
 #import "MulleEdgeInsets+MulleObjC.h"
 
@@ -17,18 +16,41 @@ enum
 };
 
 
-struct property_animation_context
+
+static struct CAAnimationPropertyDefinition   extensions[ 8];
+static unsigned int                           n_extensions;
+
+
+struct CAAnimationPropertyDefinition
+   *CAAnimationPropertyDefinitionSearchExtension( char *s, NSUInteger length)
 {
-   id                               self;
-   id                               snapshot;
-   CAAnimationGroup                 *animationGroup;
-   struct CABasicAnimationOptions   animationOptions;
-   NSUInteger                       flags;
-};
+   struct CAAnimationPropertyDefinition  *p;
+   struct CAAnimationPropertyDefinition  *sentinel;
+
+   p        = extensions;
+   sentinel = &p[ n_extensions];
+   while( p < sentinel)
+      if( (*p->matchRuntimeStructName)( s, length))
+         return( p);
+   return( NULL);
+}
 
 
-static void  animation_add( struct property_animation_context *ctx,
-                            CAAnimation *animation)
+void  CAAnimationPropertyDefinitionRegister( struct CAAnimationPropertyDefinition *p)
+{
+   if( n_extensions >= 8)
+      abort();
+
+   assert( p);
+   assert( p->matchRuntimeStructName);
+   assert( p->animateProperty);
+
+   extensions[ n_extensions++] = *p;
+}
+
+
+void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext *ctx,
+                                             CAAnimation *animation)
 {
    if( ctx->flags & add_to_self)
       [(id <CAAnimationStorageObject>) ctx->self addAnimation:animation];
@@ -50,7 +72,7 @@ static inline int   string_matcher( char *s, char *other, size_t other_len)
 
 
 static void   animate_bool_property( struct _mulle_objc_property *property,
-                                     struct property_animation_context  *ctx)
+                                     struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation   *animation;
    NSInteger     startValue;
@@ -71,7 +93,7 @@ static void   animate_bool_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
       // reset to start position
       MulleObjectSetBOOL( ctx->self, setter, startValue);
    }
@@ -79,7 +101,7 @@ static void   animate_bool_property( struct _mulle_objc_property *property,
 
 
 static void   animate_integer_property( struct _mulle_objc_property *property,
-                                        struct property_animation_context  *ctx)
+                                        struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation   *animation;
    NSInteger     startValue;
@@ -100,7 +122,7 @@ static void   animate_integer_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       MulleObjectSetNSInteger( ctx->self, setter, startValue);
@@ -109,7 +131,7 @@ static void   animate_integer_property( struct _mulle_objc_property *property,
 
 
 static void   animate_range_property( struct _mulle_objc_property *property,
-                                      struct property_animation_context *ctx)
+                                      struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation  *animation;
    NSRange      startRange;
@@ -131,7 +153,7 @@ static void   animate_range_property( struct _mulle_objc_property *property,
    if( animation)
    {
       // can not be additive
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       // this should work and not trigger another willChange action, as willChange
@@ -144,7 +166,7 @@ static void   animate_range_property( struct _mulle_objc_property *property,
 
 
 static void   animate_float_property( struct _mulle_objc_property *property,
-                                      struct property_animation_context  *ctx)
+                                      struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation   *animation;
    CGFloat       startValue;
@@ -165,15 +187,16 @@ static void   animate_float_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       MulleObjectSetCGFloat( ctx->self, setter, startValue);
    }
 }
 
+
 static void   animate_point_property( struct _mulle_objc_property *property,
-                                      struct property_animation_context  *ctx)
+                                      struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation   *animation;
    CGPoint       startPoint;
@@ -194,7 +217,7 @@ static void   animate_point_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       // this should work and not trigger another willChange action, as willChange
@@ -207,9 +230,9 @@ static void   animate_point_property( struct _mulle_objc_property *property,
 
 
 static void   animate_size_property( struct _mulle_objc_property *property,
-                                     struct property_animation_context  *ctx)
+                                     struct CAPropertyAnimationContext *ctx)
 {
-   CAAnimation  *animation;
+   CAAnimation   *animation;
    CGSize        startSize;
    CGSize        endSize;
    SEL           getter;
@@ -228,7 +251,7 @@ static void   animate_size_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       // this should work and not trigger another willChange action, as willChange
@@ -241,7 +264,7 @@ static void   animate_size_property( struct _mulle_objc_property *property,
 
 
 static void   animate_rect_property( struct _mulle_objc_property *property,
-                                     struct property_animation_context *ctx)
+                                     struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation  *animation;
    CGRect        startRect;
@@ -262,7 +285,7 @@ static void   animate_rect_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       // this should work and not trigger another willChange action, as willChange
@@ -275,7 +298,7 @@ static void   animate_rect_property( struct _mulle_objc_property *property,
 
 
 static void   animate_insets_property( struct _mulle_objc_property *property,
-                                       struct property_animation_context *ctx)
+                                       struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation       *animation;
    MulleEdgeInsets   startInsets;
@@ -296,7 +319,7 @@ static void   animate_insets_property( struct _mulle_objc_property *property,
                                                    options:&ctx->animationOptions] autorelease];
    if( animation)
    {
-      animation_add( ctx, animation);
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
 
       // reset to start position
       // this should work and not trigger another willChange action, as willChange
@@ -308,36 +331,6 @@ static void   animate_insets_property( struct _mulle_objc_property *property,
 }
 
 
-static void   animate_color_property( struct _mulle_objc_property *property,
-                                      struct property_animation_context *ctx)
-{
-   CAAnimation   *animation;
-   CGColor       startColor;
-   CGColor       endColor;
-   SEL           getter;
-   SEL           setter;
-
-   getter     = mulle_objc_property_get_getter( property);
-   startColor = MulleObjectGetCGColor( ctx->snapshot, getter);
-   endColor   = MulleObjectGetCGColor( ctx->self, getter);
-
-   if( CGColorEqualToColor( startColor,  endColor))
-      return;
-
-   setter    = mulle_objc_property_get_setter( property);
-   animation = [[[CABasicAnimation alloc] initWithProperty:property
-                                           startColorValue:startColor
-                                             endColorValue:endColor
-                                                   options:&ctx->animationOptions] autorelease];
-   if( animation)
-   {
-      animation_add( ctx, animation);
-
-      // reset to start position
-      MulleObjectSetCGColor( ctx->self, setter, startColor);
-   }
-}
-
 
 @implementation NSObject( CAAnimation)
 
@@ -347,11 +340,12 @@ static mulle_objc_walkcommand_t
                             struct _mulle_objc_infraclass *infra,
                             void *userinfo)
 {
-   struct property_animation_context  *ctx = userinfo;
-   char                               *signature;
-   char                               *name_b;
-   char                               *name_e;
-   size_t                             name_len;
+   struct CAPropertyAnimationContext      *ctx = userinfo;
+   struct CAAnimationPropertyDefinition   *p;
+   char                                   *signature;
+   char                                   *name_b;
+   char                                   *name_e;
+   size_t                                 name_len;
 
    if( ! (_mulle_objc_property_get_bits( property) & _mulle_objc_property_observable))
       return( mulle_objc_walk_ok);
@@ -415,9 +409,6 @@ static mulle_objc_walkcommand_t
    case 'g' : if( ! string_matcher( "NSRange", name_b, name_len))
                  animate_range_property( property, ctx);
               return( mulle_objc_walk_ok);
-   case 'l' : if( ! string_matcher( "NVGcolor", name_b, name_len))
-                  animate_color_property( property, ctx);
-              return( mulle_objc_walk_ok);
    case 'n' : if( ! string_matcher( "CGPoint", name_b, name_len))
                   animate_point_property( property, ctx);
               return( mulle_objc_walk_ok);
@@ -429,6 +420,10 @@ static mulle_objc_walkcommand_t
               return( mulle_objc_walk_ok);
    }
 
+   p = CAAnimationPropertyDefinitionSearchExtension( name_b, name_len);
+   if( p)
+      (*p->animateProperty)( property, ctx);
+
    return( mulle_objc_walk_ok);
 }
 
@@ -436,7 +431,7 @@ static mulle_objc_walkcommand_t
 - (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
                                       animationGroup:(CAAnimationGroup *) animationGroup
 {
-   struct property_animation_context   ctxt;
+   struct CAPropertyAnimationContext   ctxt;
    struct _mulle_objc_infraclass       *infra;
 
    if( ! snapshot || ! animationGroup)
@@ -450,7 +445,7 @@ static mulle_objc_walkcommand_t
 
    [animationGroup setupBasicAnimationOptions:&ctxt.animationOptions];
    [animationGroup setAnimationObject:self];
-	_mulle_objc_infraclass_walk_properties( infra,
+   _mulle_objc_infraclass_walk_properties( infra,
                                            _mulle_objc_infraclass_get_inheritance( infra),
                                            walkproperties_callback,
                                            &ctxt);

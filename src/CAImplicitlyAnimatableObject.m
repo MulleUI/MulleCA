@@ -43,6 +43,7 @@
    return( clone);
 }
 
+
 //
 // This is called very often during animation, it would be good if the
 // animation code could use a different setter that does not call
@@ -82,5 +83,22 @@
    [_snapshot autorelease];
    _snapshot = nil;
 }
+
+
+- (void) forgetImplicitAnimations
+{
+   id   manager;
+
+   if( ! _snapshot)
+      return;
+
+   // this is called frequently so use C
+   manager = CATransactionGetCurrentTransaction();
+   [manager removeAnimatableObject:self];   
+
+   [_snapshot autorelease];
+   _snapshot = nil;
+}
+
 
 @end

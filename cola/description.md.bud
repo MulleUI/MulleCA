@@ -1,0 +1,39 @@
+
+# 🍃 MulleCA
+
+#### 🍃 Animate properties in real time with mulle-objc
+
+MulleCA is used to stuff values into properties over a desired timespan.
+
+
+If you want a `NSInteger` property named "someIntegerValue"
+on your object `foo` to change value from 0 to 1000 over the next second, you
+set up a `CABasicAnimation`:
+
+``` objc
+   // get property "someIntegerValue" from 'foo'
+   property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
+   // options: NULL yields convenient  default values `delay=0; duration=1;`)
+   animation = [[[CABasicAnimation alloc] initWithProperty:property
+                                         startIntegerValue:0
+                                           endIntegerValue:1000
+                                                   options:NULL] autorelease];
+   [animation setAnimationObject:foo];
+```
+
+and run it with an animator:
+
+``` objc
+   animator = [CAAnimator object];
+   [animator addAnimation:animation];
+   hz       = 60.0;
+
+   while( [animator animateWithAbsoluteTime:time( NULL)
+                              animationRate:1.0 / hz])
+   {
+       struct timespec   delay = { 0, (1000 * 1000 * 1000) / hz };
+       nanosleep( &delay, NULL);
+   }
+   return( 0);
+```
+

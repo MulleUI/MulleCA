@@ -29,7 +29,7 @@
 //
 // if there are subviews, layout in 2x2 rectangular fashion
 //
-- (void) layoutSubviews
+- (BOOL) layoutSubviews
 {
    CGRect       layoutRect;
    CGRect       rects[ 4];
@@ -38,7 +38,7 @@
 
    if( [self getSubviews:views
                    range:NSMakeRange( 0, 4)] <= 0)
-      return;
+      return( YES);
 
    layoutRect = [self layoutRect];
    CGRectPartitionHorizontally( layoutRect, 0, 2, rects);
@@ -49,6 +49,8 @@
    // get areas
    for( i = 0; i < 4; i++)
       [views[ i] setFrame:rects[ i]];
+
+   return( YES);
 }
 
 @end
@@ -76,11 +78,11 @@ void   setupSceneAndAnimation( UIWindow *window)
 
    view       = [CustomView viewWithFrame:CGRectMake( 100, 100, 200, 200)];
 
-   redView    = [CustomView viewWithFrame:CGRectZero];
-   blueView   = [CustomView viewWithFrame:CGRectZero];
-   greenView  = [CustomView viewWithFrame:CGRectZero];
-   yellowView = [CustomView viewWithFrame:CGRectZero];
-   greenView  = [CustomView viewWithFrame:CGRectZero];
+   redView    = [CustomView object];
+   blueView   = [CustomView object];
+   greenView  = [CustomView object];
+   yellowView = [CustomView object];
+   greenView  = [CustomView object];
 
    [view setDebugNameUTF8String:"Container"];
 
@@ -137,11 +139,8 @@ int   main( int argc, char *argv[])
     */
    app    = [UIApplication sharedInstance];
 
-   /*
-    * window and app
-    */
    styleMask = UIWindowStyleMaskDefault;
-//   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleRetained, NO);
+   styleMask = UIWindowsStyleMaskBySetting( styleMask, UIWindowStyleRetained, NO);
    window = [UIWindow windowWithFrame:CGRectMake( 0.0, 0.0, 800.0, 600.0)
                       titleUTF8String:"Demo"
                             styleMask:styleMask];
@@ -150,8 +149,6 @@ int   main( int argc, char *argv[])
    [window setBackgroundColor:CGColorMakeWithRGBA( 1.0, 1.0, 1.0, 1.0)];
    [window setFrameRateHz:5.0f];
    setupSceneAndAnimation( window);
-
-   [window dump];
 
    [app addWindow:window];
 

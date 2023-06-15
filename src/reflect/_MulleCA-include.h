@@ -15,15 +15,15 @@
 #define _mulle_ca_include_h__
 
 // You can tweak the following #include with these commands.
-// (Use A0F07100-5D89-412E-8C3C-542D002FDCB4 instead of mulle-layout if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-layout no-header`
-//    rename:              `mulle-sde dependency|library set mulle-layout include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-layout <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-layout [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-layout [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-layout [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-layout no-platform-<uname>`
+// (Use 76AC82D4-48AB-4751-BCC0-81FBA02488AC instead of mulle-gfx if there are duplicate entries)
+//    remove #include:: `mulle-sde dependency mark mulle-gfx no-header`
+//    rename:              `mulle-sde dependency|library set mulle-gfx include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-gfx <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-gfx [no-]import`
+//    toggle public:       `mulle-sde dependency mark mulle-gfx [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-gfx [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-gfx no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-layout/mulle-layout.h>   // mulle-layout
+#include <mulle-gfx/mulle-gfx.h>   // mulle-gfx
 
 #endif

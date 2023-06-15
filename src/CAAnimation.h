@@ -58,7 +58,10 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationBits)
 
    // other options, wont be reset
 
-   CAAnimationHasIntegerRepeat = 0x200000,
+   CAAnimationHasIntegerRepeat  = 0x200000,
+//   CAAnimationStickyArrayFront  = 0x0,        // default
+   CAAnimationStickyArrayCenter = 0x400000,
+   CAAnimationStickyArrayEnd    = 0x800000,
 };
 
 extern NS_OPTIONS_TABLE( CAAnimationBits, 15);
@@ -81,6 +84,15 @@ struct CAAnimationOptions
    NSUInteger                        bits;  // reverse flag mainly
 };
 
+
+#define CA_ANIMATION_OPTIONS_INIT( delay, duration, repeat, bits)  \
+   ((struct CAAnimationOptions)                                    \
+   {                                                               \
+      MULLE_RELATIVETIMERANGE_INIT( (delay), (duration)),          \
+      (repeat),                                                    \
+      (bits)                                                       \
+   })
+   
 
 static inline struct CAAnimationOptions
    CAAnimationOptionsMake( struct mulle_relativetimerange timeRange,
@@ -260,7 +272,7 @@ normalizedRelativeTime:(double) t
            elapsedTime:(mulle_relativetime_t) time;
 
 // animation passes a duration boundary
-- (void) animationIndexWillChange;
+//- (void) animationIndexWillChange;
 - (void) animationIndexDidChange;
 
 - (BOOL) hasEnded;

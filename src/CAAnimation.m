@@ -213,11 +213,6 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
 - (NSUInteger) isAnimatingAtAbsoluteTime:(mulle_absolutetime_t) now
                            animationRate:(mulle_relativetime_t) animationRate
 {
-   mulle_relativetime_t   t;
-   mulle_relativetime_t   diff;
-   mulle_relativetime_t   duration;
-   NSUInteger             nFrames;
-
    if( self->_state.bits & CAAnimationEnded)
    {
       return( CAAnimationStateDone);
@@ -273,17 +268,19 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
                 absoluteTime:(mulle_absolutetime_t) now
                animationRate:(mulle_relativetime_t) animationRate
 {
-   double                 t;
-   double                 corrected;
-   mulle_relativetime_t   elapsedTime;
-   mulle_relativetime_t   expectedTime;
-   double                 d;
-   mulle_relativetime_t   delta;
-   mulle_relativetime_t   theEnd;
-   mulle_absolutetime_t   previousFrameTimestamp;
-   NSUInteger             animationIndex;
-   NSUInteger             nextState;
    BOOL                   reverseIfNeeded;
+   double                 corrected;
+   double                 d;
+   double                 maxValue;
+   double                 midpoint;
+   double                 minValue;
+   double                 t;
+   double                 value;
+   mulle_relativetime_t   delta;
+   mulle_relativetime_t   elapsedTime;
+   NSUInteger             animationIndex;
+   NSUInteger             frameIndex;
+   NSUInteger             nextState;
    NSUInteger             reverseBits;
 
 #ifdef ANIMATION_DEBUG
@@ -304,11 +301,15 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
                            animationRate:animationRate])
       return( stateReturn( CAAnimationStateActive));
 
-   elapsedTime    = mulle_timeinterval_subtract( now, self->_state.start);
+   // just some paranoia, in case someone messes with the clock
+   if( now < self->_state.start)
+      self->_state.start = now;
+
+   elapsedTime = mulle_timeinterval_subtract( now, self->_state.start);
 
    // d is the number of animation cycles we are in (a float)
-   d              = elapsedTime / self->_state.duration;
-   nextState      = CAAnimationAnimating;
+   d           = elapsedTime / self->_state.duration;
+   nextState   = CAAnimationAnimating;
 
    // we need to reversecheck, if we crossed the duration boundary
    if( animationRate == 0.0)
@@ -316,6 +317,7 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
       corrected = fmod( d, 1.0);
 //      if( d != 0.0 && corrected == 0.0 && ! (self->_state.bits & CAAnimationWrapToZero))
 //         corrected = 1.0;
+      assert( corrected >= 0.0 && corrected <= 1.0);
 
       if( d >= self->_repeatCount)
       {
@@ -330,13 +332,8 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
    }
    else
    {
-      double       value;
-      NSUInteger   frameIndex;
-      double       minValue;
-      double       maxValue;
-      double       midpoint;
-
       minValue  = animationRate / 2 / self->_state.duration;
+      assert( minValue >= 0.0 && minValue <= 1.0);
       maxValue  = 1.0 - minValue;
 
       //
@@ -349,14 +346,15 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
       value      = fmod( midpoint / self->_state.duration, 1.0);
 
       if( maxValue != 0.5)
-         corrected  = value + ((value - 0.5) / (maxValue - 0.5)) * minValue;
+         corrected = value + ((value - 0.5) / (maxValue - 0.5)) * minValue;
       else
          corrected = value;
 
-      if( value < minValue)
+      if( corrected < minValue)
          corrected = 0.0;
-      if( value > maxValue)
+      if( corrected > maxValue)
          corrected = 1.0;
+      assert( corrected >= 0.0 && corrected <= 1.0);
 
       if( ! (self->_state.bits & CAAnimationFinalized))
       {
@@ -392,7 +390,6 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
          if( reverseBits == CAAnimationReverses)
             [self reverse];
       }
-
    }
 
    if( animationIndex > self->_state.previousAnimationIndex)
