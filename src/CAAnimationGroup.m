@@ -10,7 +10,7 @@
 
 
 
-#define ANIMATION_DEBUG
+//#define ANIMATION_DEBUG
 
 
 @interface CAAnimation( Private)

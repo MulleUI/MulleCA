@@ -100,5 +100,4 @@
    _snapshot = nil;
 }
 
-
 @end

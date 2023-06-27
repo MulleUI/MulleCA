@@ -4,13 +4,33 @@
 
 
 
-
+// The implicit conversion to "signedness" by using double, is important
+// here. This is probably not a static inline function, to avoid casting
+// so much, but not sure anymore.
 #define CAInterpolateAdditive( start, end, x) \
-   ( (x) * ((end) - (start)) )
+   ( (double) (x) * ((double) (end) - (double) (start)) )
 
 
 #define CAInterpolate( start, end, x)  \
    ( (start) + CAInterpolateAdditive( start, end, x) )
+
+
+
+//
+// length is interpolated length:
+// (NSUInteger) round( CAInterpolate( startLength, endLength, x));
+// mode is any of 0, CAAnimationStickyArrayCenter CAAnimationStickyArrayEnd
+//
+MULLE_CA_EXTERN_GLOBAL
+NSInteger   CAArrayIndexForInterpolation( NSUInteger startLength,
+                                          NSUInteger length,
+                                          NSUInteger mode);
+
+MULLE_CA_EXTERN_GLOBAL
+NSInteger   CAInterpolatedArrayIndex( NSUInteger startLength,
+                                      NSUInteger endLength,
+                                      double x,
+                                      NSUInteger mode);
 
 //
 //       Moving to NSValue could be cleaner, but is problematic for CGColor.
@@ -85,6 +105,7 @@ typedef NS_ENUM( NSInteger, CAAnimationValueType)
    CAAnimationValueCGFloat2,
    CAAnimationValueCGFloat4,
    CAAnimationValueFloatArray,
+   CAAnimationValueObject,
 // just some aliases
    CAAnimationValueCGPoint    = CAAnimationValueCGFloat2,
    CAAnimationValueCGSize     = CAAnimationValueCGFloat2,
@@ -92,6 +113,7 @@ typedef NS_ENUM( NSInteger, CAAnimationValueType)
    CAAnimationValueEdgeInsets = CAAnimationValueCGFloat4
 };
 
+#define CAAnimationValueTypeLastBuiltIn   CAAnimationValueObject
 
 struct CAAnimationFloat2
 {
@@ -120,8 +142,23 @@ static inline char  *CAAnimationFloat4UTF8String( struct CAAnimationFloat4 value
                                                 value.v[ 3]));
 }
 
+
 MULLE_CA_EXTERN_GLOBAL
 char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value);
+
+@protocol CAInterpolatableValue < NSCopying, NSObject>
+
+// standard interpolation: self + (end - self) * x;
+// additive interpolation (1): (end - self) * x (is diff)
+- (id) interpolateTo:(id) end
+              factor:(double) x
+            additive:(BOOL) additive;
+
+// additive interpolation (2): self - previous + diff
+- (id) interpolatedValueWithDiff:(id) diff
+                    previousDiff:(id) previous;  // previous will be nil the first call!
+
+@end
 
 
 union CAAnimationValue
@@ -131,15 +168,17 @@ union CAAnimationValue
    NSRange                    rangeValue;       // two 32 or 64 bit integers (special semantics)
    CGFloat                    floatValue;       // a 32 bit float usually
 
-   struct CAAnimationFloat2   float2Value;  // a 32 bit float usually
-   struct CAAnimationFloat4   float4Value;  // a 32 bit float usually
+   struct CAAnimationFloat2   float2Value;      // a 32 bit float usually
+   struct CAAnimationFloat4   float4Value;      // a 32 bit float usually
    struct mulle__floatarray   floatArray;
+
+   id <CAInterpolatableValue>  objectValue;
 //   CGColor        color;          // four floats
 };
 
 
 static inline union CAAnimationValue
-   CGAnimationValueMakeWithVector( CGVector vector)
+   CAAnimationValueMakeWithVector( CGVector vector)
 {
    union CAAnimationValue  value;
 
@@ -149,7 +188,7 @@ static inline union CAAnimationValue
 
 
 static inline union CAAnimationValue
-   CGAnimationValueMakeWithPoint( CGPoint point)
+   CAAnimationValueMakeWithPoint( CGPoint point)
 {
    union CAAnimationValue   value;
 
@@ -159,7 +198,7 @@ static inline union CAAnimationValue
 
 
 static inline union CAAnimationValue
-   CGAnimationValueMakeWithSize( CGSize size)
+   CAAnimationValueMakeWithSize( CGSize size)
 {
    union CAAnimationValue   value;
 
@@ -169,7 +208,7 @@ static inline union CAAnimationValue
 
 
 static inline union CAAnimationValue
-   CGAnimationValueMakeWithRect( CGRect rect)
+   CAAnimationValueMakeWithRect( CGRect rect)
 {
    union CAAnimationValue   value;
 
@@ -179,13 +218,25 @@ static inline union CAAnimationValue
 
 
 static inline union CAAnimationValue
-   CGAnimationValueMakeWithEdgeInsets( MulleEdgeInsets insets)
+   CAAnimationValueMakeWithEdgeInsets( MulleEdgeInsets insets)
 {
    union CAAnimationValue   value;
 
    *(MulleEdgeInsets *) &value.float4Value = insets;
    return( value);
 }
+
+
+
+static inline union CAAnimationValue
+   CAAnimationValueMakeWithObject( id<NSCopying> obj)
+{
+   union CAAnimationValue   value;
+
+   value.objectValue = [obj copy];
+   return( value);
+}
+
 
 
 
@@ -345,7 +396,7 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
 @class CABasicAnimation;
 
 
-typedef void  CABasicAnimationInterpolator( CABasicAnimation *, id, double);
+typedef void  CABasicAnimationInterpolator_t( CABasicAnimation *, id, double);
 typedef char  *CAAnimationValueUTF8Printer( union CAAnimationValue);
 
 //
@@ -355,11 +406,11 @@ typedef char  *CAAnimationValueUTF8Printer( union CAAnimationValue);
 //
 struct CABasicAnimationTypeDefinition
 {
-   NSUInteger                     type;
-   char                           *name;
-   CABasicAnimationInterpolator   *interpolate;
-   CABasicAnimationInterpolator   *interpolateAdditive;
-   CAAnimationValueUTF8Printer    *valueUTF8String;
+   NSUInteger                       type;
+   char                             *name;
+   CABasicAnimationInterpolator_t   *interpolate;
+   CABasicAnimationInterpolator_t   *interpolateAdditive;
+   CAAnimationValueUTF8Printer      *valueUTF8String;
 };
 
 // run this during +initialize or +load
@@ -379,17 +430,19 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 
 @interface CABasicAnimation : CAAnimation
 {
-   CABasicAnimationInterpolator  *_interpolate;
-   CABasicAnimationInterpolator  *_interpolateAdditive;
-   CAAnimationValueType          _valueType;
-   union CAAnimationValue        _start;
-   union CAAnimationValue        _end;
-   // for additive that's the previous difference we added
-   union CAAnimationValue        _previous;
-
-   CAQuadratic                   _quadratic;
-   CATweenFunction               *_tween;
-   struct _mulle_objc_property   *_property;
+   CABasicAnimationInterpolator_t   *_interpolate;
+   CABasicAnimationInterpolator_t   *_interpolateAdditive;
+   CAAnimationValueType             _valueType;
+   union CAAnimationValue           _start;
+   union CAAnimationValue           _end;
+   // for additive that's the previous difference we added,
+   // but it might be better to store the lastValue and not the diff,
+   // for objects we could then just mutate some properties and not
+   // allocate new stuff
+   union CAAnimationValue           _previous;
+   CAQuadratic                      _quadratic;
+   CATweenFunction                  *_tween;
+   struct _mulle_objc_property      *_property;
 }
 
 //
@@ -432,6 +485,11 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
                 options:(struct CABasicAnimationOptions *) options;
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
+       startObjectValue:(id <CAInterpolatableValue>) start
+         endObjectValue:(id <CAInterpolatableValue>) end
+                options:(struct CABasicAnimationOptions *) options;
+
+- (id) initWithProperty:(struct _mulle_objc_property *) property
         startRangeValue:(NSRange) start
           endRangeValue:(NSRange) end
                 options:(struct CABasicAnimationOptions *) options;
@@ -458,3 +516,14 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 @end
 
 
+
+@interface NSObject( CABasicAnimation)
+
+// it's not necessary to return a CABasicAnimation, it can be a custom
+// animation
++ (CAAnimation *) animationWithProperty:(struct _mulle_objc_property *) property
+                       startObjectValue:(id) start
+                         endObjectValue:(id) end
+                                options:(struct CABasicAnimationOptions *) options;
+
+@end

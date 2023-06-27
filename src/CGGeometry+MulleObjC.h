@@ -121,3 +121,16 @@ static inline CGPoint   MulleObjectGetCGPoint( id obj, SEL sel)
 }
 
 
+static inline void   MulleObjectSetObject( id obj, SEL sel, id value)
+{
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, value);
+}
+
+
+static inline id   MulleObjectGetObject( id obj, SEL sel)
+{
+   return( mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, obj));
+}
+
+
+

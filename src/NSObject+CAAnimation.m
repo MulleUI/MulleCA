@@ -331,6 +331,49 @@ static void   animate_insets_property( struct _mulle_objc_property *property,
 }
 
 
+static void   animate_object_property( struct _mulle_objc_property *property,
+                                       struct CAPropertyAnimationContext *ctx)
+{
+   CAAnimation   *animation;
+   id            startObject;
+   id            endObject;
+   SEL           getter;
+   SEL           setter;
+   Class         cls;
+
+   getter      = mulle_objc_property_get_getter( property);
+   startObject = MulleObjectGetObject( ctx->snapshot, getter);
+   endObject   = MulleObjectGetObject( ctx->self, getter);
+
+   // could ask for isEqual: but...
+   if( startObject == endObject)
+      return;
+
+   cls = [startObject class];
+   if( ! cls)
+      cls = [endObject class];
+
+   setter    = mulle_objc_property_get_setter( property);
+   animation = [cls animationWithProperty:property
+                         startObjectValue:startObject
+                           endObjectValue:endObject
+                                  options:&ctx->animationOptions];
+
+   if( animation)
+   {
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
+
+      // reset to start position
+      // this should work and not trigger another willChange action, as willChange
+      // will see the existing snapshot in the layer and do nothing
+      // STILL it would be nicer to do this more stealthily by setting the ivar
+      // directly
+      MulleObjectSetObject( ctx->self, setter, startObject);
+   }
+}
+
+
+
 
 @implementation NSObject( CAAnimation)
 
@@ -360,6 +403,11 @@ static mulle_objc_walkcommand_t
    switch( *signature)
    {
    default           : return( mulle_objc_walk_ok); // warn ????
+
+   case _C_RETAIN_ID :
+   case _C_COPY_ID   : // future: only one allowable!
+   case _C_ASSIGN_ID : animate_object_property( property, ctx);
+                       return( mulle_objc_walk_ok);
 
    case _C_BOOL      : animate_bool_property( property, ctx);
                        return( mulle_objc_walk_ok);
