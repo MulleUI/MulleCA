@@ -5,6 +5,7 @@
 #include <assert.h>
 
 
+//#define ANIMATION_DEBUG
 
 
 char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value)
@@ -30,7 +31,6 @@ char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value)
 
 
 
-#define ANIMATION_DEBUG
 
 static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x);
 
@@ -46,20 +46,23 @@ char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *option
 }
 
 
-#pragma mark - Interpolation code
+#pragma mark - Additive Interpolation code
 
 
 @implementation CABasicAnimation
 
-static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *self,
-                                                              id object,
-                                                              double x)
+static void
+   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *self,
+                                                   id object,
+                                                   double x)
 {
    NSInteger  diff;
    NSInteger  value;
    NSInteger  newValue;
 
-   diff     = (NSInteger) round( CAInterpolateAdditive( self->_start.integerValue, self->_end.integerValue, x));
+   diff     = (NSInteger) round( CAInterpolateAdditive( self->_start.integerValue,
+                                                        self->_end.integerValue,
+                                                        x));
    value    = (NSInteger) mulle_objc_object_call_variablemethodid( object,
                                                                    self->_property->getter,
                                                                    object);
@@ -77,9 +80,10 @@ static void   CABasicAnimationSetInterpolatedIntegerAdditive( CABasicAnimation *
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
-                                                            id object,
-                                                            double x)
+static void
+   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
+                                                 id object,
+                                                 double x)
 {
    CGFloat   diff;
    CGFloat   value;
@@ -116,9 +120,10 @@ static void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *se
 }
 
 
-static void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
-                                                             id object,
-                                                             double x)
+static void
+   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
+                                                  id object,
+                                                  double x)
 {
    struct CAAnimationFloat2   diff;
    struct CAAnimationFloat2   value;
@@ -198,6 +203,45 @@ static void
       param.p = newValue;
       mulle_objc_object_call_variablemethodid( object, self->_property->setter, &param);
    }
+}
+
+
+static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *self,
+                                                            id object,
+                                                            double x)
+{
+   id   diff;
+   id   value;
+   id   newValue;
+
+   if( ! self->_start.objectValue)
+      diff     = [self->_end.objectValue interpolateTo:nil
+                                                factor:(1.0 - x)
+                                              additive:YES];
+   else
+      diff     = [self->_start.objectValue interpolateTo:self->_end.objectValue
+                                                  factor:x
+                                                additive:YES];
+
+   value    = mulle_objc_object_call_variablemethodid( object, 
+                                                       self->_property->getter, 
+                                                       object);
+   newValue = [value interpolatedValueWithDiff:diff
+                                  previousDiff:self->_previous.objectValue];
+
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s :: %@ - %@ + %@ -> %@",
+                              object,
+                              mulle_objc_property_get_name( self->_property),
+                              value,
+                              self->_previous.objectValue,
+                              diff,
+                              newValue);
+#endif
+   [self->_previous.objectValue autorelease];
+   self->_previous.objectValue = [diff copy];
+
+   mulle_objc_object_call_variablemethodid( object, self->_property->setter, newValue);
 }
 
 
@@ -338,6 +382,66 @@ static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self,
 }
 
 
+NSInteger   CAArrayIndexForInterpolation( NSUInteger startLength,
+                                          NSUInteger length,
+                                          NSUInteger mode)
+{
+   switch( mode)
+   {
+   default :
+      // 1)
+      // start    = |124689|
+      // inter_50 = |412|
+      // end      = |9|       -> |900000|
+      //
+      // 2)
+      // start    = |1|       -> |100000|
+      // inter_50 = |443|
+      // end      = |986421|
+      //
+      return( 0);
+
+   case CAAnimationStickyArrayEnd :
+      // 1)
+      // start    = |124689|
+      // inter_50 =    |349|
+      // end      =      |9|  -> |000009|
+      //
+      // 2)
+      // start    =      |1|  -> |000001|
+      // inter_50 =    |211|
+      // end      = |986421|
+      //
+      return( (NSInteger) startLength - (NSInteger) length);
+
+   case CAAnimationStickyArrayCenter :
+      // 1)
+      // start    = |124689|
+      // inter_50 =  |163|
+      // end      =   |9|    -> |009000|
+      //
+      // 2)
+      // start    =   |1|    -> |001000|
+      // inter_50 =  |432|
+      // end      = |986421|
+      //
+      return( ((NSInteger) startLength - (NSInteger) length + 1) / 2.0);
+   }
+}
+
+
+NSInteger   CAInterpolatedArrayIndex( NSUInteger startLength,
+                                      NSUInteger endLength,
+                                      double x,
+                                      NSUInteger mode)
+{
+   NSUInteger   length;
+
+   length = (NSUInteger) round( CAInterpolate( startLength, endLength, x));
+   return( CAArrayIndexForInterpolation( startLength, length, mode));
+}
+
+
 static void   CABasicAnimationSetInterpolatedFloatArray( CABasicAnimation *self,
                                                          id object,
                                                          double x)
@@ -359,53 +463,8 @@ static void   CABasicAnimationSetInterpolatedFloatArray( CABasicAnimation *self,
    length      = (NSUInteger) round( CAInterpolate( startLength, endLength, x));
    bits        = self->_state.bits & (CAAnimationStickyArrayCenter|CAAnimationStickyArrayEnd);
 
-   switch( bits)
-   {
-   default :
-      // 1)
-      // start    = |124689|
-      // inter_50 = |412|
-      // end      = |9|       -> |900000|          
-      //
-      // 2)
-      // start    = |1|       -> |100000|
-      // inter_50 = |443|
-      // end      = |986421|          
-      //
-      i = 0;
-      j = 0;
-      break;
-
-   case CAAnimationStickyArrayEnd :
-      // 1)
-      // start    = |124689|
-      // inter_50 =    |349|
-      // end      =      |9|  -> |000009|          
-      //
-      // 2)
-      // start    =      |1|  -> |000001|
-      // inter_50 =    |211|
-      // end      = |986421|          
-      //
-      i = (startLength - length);
-      j = (endLength   - length);
-      break;
-
-   case CAAnimationStickyArrayCenter :
-      // 1)
-      // start    = |124689|
-      // inter_50 =  |163|
-      // end      =   |9|    -> |009000|          
-      //
-      // 2)
-      // start    =   |1|    -> |001000|
-      // inter_50 =  |432|
-      // end      = |986421|          
-      //
-      i = (startLength - length + 1) / 2.0;
-      j = (endLength   - length + 1) / 2.0;
-      break;
-   }
+   i = CAArrayIndexForInterpolation( startLength, length, bits);
+   j = CAArrayIndexForInterpolation( endLength, length, bits);
 
    allocator = MulleObjCInstanceGetAllocator( self);
    _mulle__floatarray_init( &value, 0, allocator);
@@ -430,8 +489,35 @@ static void   CABasicAnimationSetInterpolatedFloatArray( CABasicAnimation *self,
 }
 
 
+static void   CABasicAnimationSetInterpolatedObject( CABasicAnimation *self,
+                                                     id object,
+                                                     double x)
+{
+   id   newValue;
 
-struct CABasicAnimationTypeDefinition  builtins[ 8] =
+   // now
+   if( ! self->_start.objectValue)
+      newValue = [self->_end.objectValue interpolateTo:nil
+                                                factor:(1.0 - x)
+                                              additive:NO];
+   else       
+      newValue = [self->_start.objectValue interpolateTo:self->_end.objectValue
+                                                  factor:x
+                                                additive:NO];
+
+#ifdef ANIMATION_DEBUG
+   MulleUILog( "%#@ %s -> %@", object,
+                               mulle_objc_property_get_name( self->_property),
+                               newValue);
+#endif
+
+   mulle_objc_object_call_variablemethodid( object, self->_property->setter, newValue);
+}
+
+
+
+
+static struct CABasicAnimationTypeDefinition  builtins[] =
 {
    {
       CAAnimationValueUndefined,
@@ -480,11 +566,22 @@ struct CABasicAnimationTypeDefinition  builtins[ 8] =
       CAAnimationValueFloatArray,
       "CAAnimationValueFloatArray",
       CABasicAnimationSetInterpolatedFloatArray,
-      NULL
+      (CABasicAnimationInterpolator_t *) abort  // not yet coded
+   },
+
+   {
+      CAAnimationValueObject,
+      "CAAnimationValueObject",
+      CABasicAnimationSetInterpolatedObject,
+      CABasicAnimationSetInterpolatedObjectAdditive
    }
 };
 
-static struct CABasicAnimationTypeDefinition  extensions[ 8];
+#define N_BUILTINS  (sizeof( builtins) / sizeof( struct CABasicAnimationTypeDefinition))
+
+// room for 8
+#define S_EXTENSIONS  8
+static struct CABasicAnimationTypeDefinition  extensions[ S_EXTENSIONS];
 static unsigned int                           n_extensions;
 
 
@@ -504,22 +601,23 @@ struct CABasicAnimationTypeDefinition *
    abort();
 }
 
+
 struct CABasicAnimationTypeDefinition *
    CABasicAnimationTypeDefinitionGet( CAAnimationValueType type)
 {
-   if( type <= CAAnimationValueFloatArray)
+   if( type <= CAAnimationValueTypeLastBuiltIn)
       return( &builtins[ type]);
    return( CABasicAnimationTypeDefinitionGetExtension( type));
 }
 
 
-void  CABasicAnimationTypeDefinitionRegister( struct CABasicAnimationTypeDefinition *p)
+void   CABasicAnimationTypeDefinitionRegister( struct CABasicAnimationTypeDefinition *p)
 {
-   if( n_extensions >= 8)
+   if( n_extensions >= S_EXTENSIONS)
       abort();
 
    assert( p);
-   assert( p->type > CAAnimationValueCGFloat4);
+   assert( p->type > CAAnimationValueTypeLastBuiltIn);
    assert( p->name && p->name[ 0]);
    assert( p->interpolate);
    assert( p->interpolateAdditive);
@@ -528,8 +626,8 @@ void  CABasicAnimationTypeDefinitionRegister( struct CABasicAnimationTypeDefinit
 }
 
 
-char  *CAAnimationValueUTF8String( union CAAnimationValue value,
-                                   CAAnimationValueType type)
+char   *CAAnimationValueUTF8String( union CAAnimationValue value,
+                                    CAAnimationValueType type)
 {
    struct CABasicAnimationTypeDefinition  *p;
 
@@ -543,6 +641,7 @@ char  *CAAnimationValueUTF8String( union CAAnimationValue value,
    case CAAnimationValueCGFloat2   : return( CAAnimationFloat2UTF8String( value.float2Value));
    case CAAnimationValueCGFloat4   : return( CAAnimationFloat4UTF8String( value.float4Value));
    case CAAnimationValueFloatArray : return( CAAnimationFloatArrayUTF8String( value.floatArray));
+   case CAAnimationValueObject     : return( [value.objectValue UTF8String]);
    }
 
    p = CABasicAnimationTypeDefinitionGetExtension( type);
@@ -550,8 +649,8 @@ char  *CAAnimationValueUTF8String( union CAAnimationValue value,
 }
 
 
-char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
-                                        CAAnimationValueType type)
+char   *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
+                                         CAAnimationValueType type)
 {
    char   *s[ 2];
 
@@ -604,17 +703,17 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
                         CAAnimationValueTypeUTF8String( type),
                         CAAnimationValueRangeUTF8String( range, type));
 #endif
-   self->_property    = property;
-   self->_quadratic   = CAQuadraticForAnimationCurve( options->curve);
-   self->_tween       = options->tween ? options->tween : CAQuadraticGetValue;
+   self->_property  = property;
+   self->_quadratic = CAQuadraticForAnimationCurve( options->curve);
+   self->_tween     = options->tween ? options->tween : CAQuadraticGetValue;
 
    p                          = CABasicAnimationTypeDefinitionGet( type);
    self->_interpolate         = p->interpolate;
    self->_interpolateAdditive = p->interpolateAdditive;
 
-   self->_valueType   = type;
-   self->_start       = range->start;
-   self->_end         = range->end;
+   self->_valueType = type;
+   self->_start     = range->start;
+   self->_end       = range->end;
 
    return( self);
 }
@@ -627,8 +726,8 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
 {
    struct CAAnimationValueRange  range;
 
-   range.start = CGAnimationValueMakeWithRect( start);
-   range.end   = CGAnimationValueMakeWithRect( end);
+   range.start = CAAnimationValueMakeWithRect( start);
+   range.end   = CAAnimationValueMakeWithRect( end);
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat4
                        valueRange:&range
@@ -643,8 +742,8 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
 {
    struct CAAnimationValueRange  range;
 
-   range.start = CGAnimationValueMakeWithEdgeInsets( start);
-   range.end   = CGAnimationValueMakeWithEdgeInsets( end);
+   range.start = CAAnimationValueMakeWithEdgeInsets( start);
+   range.end   = CAAnimationValueMakeWithEdgeInsets( end);
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat4
                        valueRange:&range
@@ -659,8 +758,8 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
 {
    struct CAAnimationValueRange  range;
 
-   range.start = CGAnimationValueMakeWithSize( start);
-   range.end   = CGAnimationValueMakeWithSize( end);
+   range.start = CAAnimationValueMakeWithSize( start);
+   range.end   = CAAnimationValueMakeWithSize( end);
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat2
                        valueRange:&range
@@ -675,8 +774,8 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
 {
    struct CAAnimationValueRange  range;
 
-   range.start = CGAnimationValueMakeWithPoint( start);
-   range.end   = CGAnimationValueMakeWithPoint( end);
+   range.start = CAAnimationValueMakeWithPoint( start);
+   range.end   = CAAnimationValueMakeWithPoint( end);
    return( [self initWithProperty:property
                         valueType:CAAnimationValueCGFloat2
                        valueRange:&range
@@ -694,14 +793,15 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
    struct mulle_allocator        *allocator;
 
    allocator = MulleObjCInstanceGetAllocator( self);
-   n         = mulle__floatarray_get_count( &start);
+
+   n = mulle__floatarray_get_count( &start);
    _mulle__floatarray_init( &range.start.floatArray, n, allocator);
    _mulle__floatarray_add_array( &range.start.floatArray,
                                  &start,
                                  mulle_range_make_all(),
                                  allocator);
 
-   n         = mulle__floatarray_get_count( &end);
+   n = mulle__floatarray_get_count( &end);
    _mulle__floatarray_init( &range.end.floatArray, n, allocator);
    _mulle__floatarray_add_array( &range.end.floatArray,
                                  &end,
@@ -713,6 +813,26 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
                        valueRange:&range
                           options:options]);
 }
+
+
+- (id) initWithProperty:(struct _mulle_objc_property *) property
+       startObjectValue:(id <CAInterpolatableValue>) start
+         endObjectValue:(id <CAInterpolatableValue>) end
+                options:(struct CABasicAnimationOptions *) options
+{
+   struct CAAnimationValueRange  range;
+
+   assert( ! start || [start conformsToProtocol:@protocol( CAInterpolatableValue)]);
+   assert( ! end   || [end conformsToProtocol:@protocol( CAInterpolatableValue)]);
+
+   range.start.objectValue = [start copy];
+   range.end.objectValue   = [end copy];
+   return( [self initWithProperty:property
+                        valueType:CAAnimationValueObject
+                       valueRange:&range
+                          options:options]);
+}
+
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
         startFloatValue:(CGFloat) start
@@ -728,7 +848,6 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
                        valueRange:&range
                           options:options]);
 }
-
 
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
@@ -778,16 +897,51 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
 }
 
 
-- (void) dealloc 
+static void   releasePrevious( CABasicAnimation *self)
 {
    struct mulle_allocator   *allocator;
 
-   if( _valueType == CAAnimationValueFloatArray)
+   switch( self->_valueType)
    {
+   case CAAnimationValueFloatArray :
       allocator = MulleObjCInstanceGetAllocator( self);
-      _mulle__floatarray_done( &_end.floatArray, allocator);
-      _mulle__floatarray_done( &_start.floatArray, allocator);
+      _mulle__floatarray_done( &self->_previous.floatArray, allocator);
+      break;
+
+   case CAAnimationValueObject :
+      [self->_previous.objectValue autorelease];
+      break;
    }
+}
+
+
+static void   releaseStartEnd( CABasicAnimation *self)
+{
+   struct mulle_allocator   *allocator;
+
+   switch( self->_valueType)
+   {
+   case CAAnimationValueFloatArray :
+      allocator = MulleObjCInstanceGetAllocator( self);
+      _mulle__floatarray_done( &self->_previous.floatArray, allocator);
+      _mulle__floatarray_done( &self->_end.floatArray, allocator);
+      _mulle__floatarray_done( &self->_start.floatArray, allocator);
+      break;
+
+   case CAAnimationValueObject :
+      [self->_previous.objectValue autorelease];
+      [self->_end.objectValue autorelease];
+      [self->_start.objectValue autorelease];
+      break;
+   }
+}
+
+
+
+- (void) dealloc
+{
+   releaseStartEnd( self);
+   releasePrevious( self);
    [super dealloc];
 }
 
@@ -800,11 +954,11 @@ static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x
    return( _state.bits & CAAnimationAdditive);
 }
 
+
 - (BOOL) isCumulative
 {
    return( _state.bits & CAAnimationCumulative);
 }
-
 
 
 //
@@ -833,6 +987,8 @@ normalizedRelativeTime:(double) t
 - (void) reset
 {
    [super reset];
+
+   releasePrevious( self);
    memset( &_previous, 0, sizeof( union CAAnimationValue));
 }
 
@@ -843,6 +999,7 @@ normalizedRelativeTime:(double) t
    {
       assert( _state.bits & CAAnimationAdditive);
 
+      releasePrevious( self);
       memset( &_previous, 0, sizeof( union CAAnimationValue));
    }
 }
@@ -861,3 +1018,19 @@ normalizedRelativeTime:(double) t
 
 @end
 
+
+
+@implementation NSObject( CABasicAnimation)
+
++ (CAAnimation *) animationWithProperty:(struct _mulle_objc_property *) property
+                       startObjectValue:(id) start
+                         endObjectValue:(id) end
+                                options:(struct CABasicAnimationOptions *) options
+{
+   return( [[[CABasicAnimation alloc] initWithProperty:property
+                                      startObjectValue:start
+                                        endObjectValue:end
+                                               options:options] autorelease]);
+}
+
+@end

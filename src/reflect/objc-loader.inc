@@ -9,3 +9,4 @@
       { @selector( CAImplicitlyAnimatableObject), MULLE_OBJC_NO_CATEGORYID },      // 539e0feb;CAImplicitlyAnimatableObject;;
       { @selector( CATransaction), MULLE_OBJC_NO_CATEGORYID },      // acf47d79;CATransaction;;
       { @selector( NSObject), @selector( CAAnimation) },      // b3a66256;NSObject;c85bd814;CAAnimation
+      { @selector( NSObject), @selector( CABasicAnimation) },      // b3a66256;NSObject;1462ac1b;CABasicAnimation
