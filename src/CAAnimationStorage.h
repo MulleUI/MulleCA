@@ -37,6 +37,8 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 - (BOOL) hasAnimations;
 - (NSUInteger) numberOfAnimations;
 - (BOOL) hasRunningAnimations;
+- (BOOL) hasLayoutChangingAnimations;
+
 - (void) addAnimation:(id <CAAnimation>) animation;
 - (void) removeAnimation:(id <CAAnimation>) animation;
 - (void) resetAllAnimations;

@@ -20,6 +20,8 @@
 @end
 
 
+#define REPEATS  3
+#define STEPS    5
 
 int   main( int argc, char *argv[])
 {
@@ -29,17 +31,31 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
 
    foo       = [Foo object];
-   options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1), INFINITY, YES);
+   // though this looks a little wordy, its easier to figure out
+   // what what is
+   options   = (struct CABasicAnimationOptions)
+               {
+                  .base = (struct CAAnimationOptions)
+                          {
+                              .timeRange   = mulle_relativetimerange_make( 0, 1),
+                              .offset      = 0.0,
+                              .repeatCount = REPEATS,
+                              .bits        = CAAnimationReverses
+                          },
+                  .curve = CAAnimationCurveLinear,
+                  .tween = NULL
+               };
+
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
                                          startIntegerValue:-10
                                            endIntegerValue:+10
                                                    options:&options] autorelease];
 
-   for( i = 0; i < 11; i++)
+   for( i = 0; i <= REPEATS * STEPS; i++)
    {
       printf( "%ld: ", i);
       [animation animateObject:foo
-                  absoluteTime:i / 5.0
+                  absoluteTime:(double) i / STEPS
                  animationRate:0.0];
    }
 

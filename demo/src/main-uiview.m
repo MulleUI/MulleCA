@@ -31,7 +31,7 @@
 //
 - (BOOL) layoutSubviews
 {
-   CGRect       layoutRect;
+   CGRect       contentRect;
    CGRect       rects[ 4];
    UIView       *views[ 4];
    NSUInteger   i;
@@ -40,8 +40,8 @@
                    range:NSMakeRange( 0, 4)] <= 0)
       return( YES);
 
-   layoutRect = [self layoutRect];
-   CGRectPartitionHorizontally( layoutRect, 0, 2, rects);
+   contentRect = [self contentRect];
+   CGRectPartitionHorizontally( contentRect, 0, 2, rects);
 
    CGRectPartitionVertically( rects[ 1], 0, 2, &rects[ 2]);
    CGRectPartitionVertically( rects[ 0], 0, 2, &rects[ 0]);
@@ -64,7 +64,6 @@ void   setupSceneAndAnimation( UIWindow *window)
    UIView            *yellowView;
    UIView            *blueView;
    CATransaction     *ta;
-   UIWindowPlane     *contentPlane;
    CAAnimationGroup  *group;
    CAAnimator        *animator;
 
@@ -73,7 +72,7 @@ void   setupSceneAndAnimation( UIWindow *window)
    view       = [CustomView viewWithFrame:CGRectMake( 150, 150, 300, 300)];
    [view setDebugNameUTF8String:"Target"];
    [view setBackgroundColor:[UIColor grayColor]];
-   [[window contentPlane] addSubview:view];
+   [[window contentView] addSubview:view];
 
 
    view       = [CustomView viewWithFrame:CGRectMake( 100, 100, 200, 200)];
@@ -101,7 +100,7 @@ void   setupSceneAndAnimation( UIWindow *window)
    [view addSubview:greenView];
    [view addSubview:yellowView];
 
-   [[window contentPlane] addSubview:view];
+   [[window contentView] addSubview:view];
 
    // need to call layout here, so that the zero sized color views are
    // properly sized in the beginning

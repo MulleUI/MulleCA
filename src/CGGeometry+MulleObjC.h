@@ -64,6 +64,51 @@ static inline CGFloat   MulleObjectGetCGFloat( id obj, SEL sel)
 }
 
 
+
+static inline CGFloat2   MulleObjectGetCGFloat2
+( id obj, SEL sel)
+{
+   mulle_metaabi_union_void_parameter( struct { CGFloat2 value; })  param;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+   return( param.r.value);
+}
+
+
+static inline void   MulleObjectSetCGFloat2
+( id obj, SEL sel, CGFloat2 value)
+{
+   mulle_metaabi_union_void_return( struct { CGFloat2 value; })  param;
+
+   param.p.value = value;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+}
+
+
+
+static inline CGFloat4   MulleObjectGetCGFloat4
+( id obj, SEL sel)
+{
+   mulle_metaabi_union_void_parameter( struct { CGFloat4 value; })  param;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+   return( param.r.value);
+}
+
+
+static inline void   MulleObjectSetCGFloat4
+( id obj, SEL sel, CGFloat4 value)
+{
+   mulle_metaabi_union_void_return( struct { CGFloat4 value; })  param;
+
+   param.p.value = value;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+}
+
+
+
 static inline void   MulleObjectSetCGRect( id obj, SEL sel, CGRect rect)
 {
    mulle_metaabi_union_void_return( struct { CGRect rect; })  param;
@@ -133,4 +178,40 @@ static inline id   MulleObjectGetObject( id obj, SEL sel)
 }
 
 
+static inline void   MulleObjectSetCACircle( id obj, SEL sel, CACircle circle)
+{
+   mulle_metaabi_union_void_return( struct { CACircle circle; })  param;
+
+   param.p.circle = circle;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+}
+
+
+static inline CACircle   MulleObjectGetCACircle( id obj, SEL sel)
+{
+   mulle_metaabi_union_void_parameter( struct { CACircle circle; })  param;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+   return( param.r.circle);
+}
+
+
+static inline void   MulleObjectSetCAPolarPoint( id obj, SEL sel, CAPolarPoint polar)
+{
+   mulle_metaabi_union_void_return( struct { CAPolarPoint polar; })  param;
+
+   param.p.polar = polar;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+}
+
+
+static inline CAPolarPoint   MulleObjectGetCAPolarPoint( id obj, SEL sel)
+{
+   mulle_metaabi_union_void_parameter( struct { CAPolarPoint polar; })  param;
+
+   mulle_objc_object_call( obj, (mulle_objc_methodid_t) sel, &param);
+   return( param.r.polar);
+}
 

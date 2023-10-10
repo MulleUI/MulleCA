@@ -45,12 +45,7 @@
 // to constituent CAAnimations. Example: is the delay additive ?
 //
 
-@protocol CAImplicitlyAnimatableObject < NSObject, MullePropertyObserving>
-
-- (void) willChange; // MullePropertyObserving
-- (void) commitImplicitAnimations:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
-
-@end
+@protocol CAImplicitlyAnimatableObject;
 
 
 typedef NS_ENUM( NSUInteger, CATransactionState)
@@ -92,10 +87,10 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //                                                  '----------------'
 //
 //
-// The orginal CATransaction operates globally with class methods, on a thread
+// The original CATransaction operates globally with class methods, on a thread
 // local basis.
 // Here you have to create the transaction yourself, it is still thread local
-// though. Don't operate on layers from multiple threads though (at the
+// though. Don't operate on layers from multiple threads (at the
 // same time).
 //
 // Note: this mechanism doesn't work just with layers but can work with all
@@ -103,8 +98,10 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //
 @interface CATransaction : NSObject
 {
-   // mutable state
+   // mutable state, objects aren't retained
    struct mulle_pointerarray   _animatedObjects;
+
+   // retained
    CAAnimationGroup            *_animationGroup;
 }
 
@@ -130,24 +127,26 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 
 
 //
-// forwarded to the animationGroup. These properties will not be work until a
-// -begin and will stop working after -commit or -cancel
+// forwarded to the animationGroup. These properties will not work until the
+// -[CATransaction begin] and will stop working after a -[CATransaction commit]
+// or -[CATransaction cancel]
 //
 @interface CATransaction( CAAnimationGroupForwarding)
 
-@property( assign, dynamic) void     *context;
-@property( assign, dynamic) id       animationDelegate;
-@property( assign, dynamic) SEL      animationWillStartSelector;
-@property( assign, dynamic) SEL      animationDidStopSelector;
-@property( assign, dynamic) char     *animationID;
+@property( assign, dynamic) void                   *context;
+@property( assign, dynamic) id                     animationDelegate;
+@property( assign, dynamic) SEL                    animationWillStartSelector;
+@property( assign, dynamic) SEL                    animationDidStopSelector;
+@property( assign, dynamic) char                   *animationID;
 
 // keep in order of CAAnimationParameters
-@property( assign, dynamic) mulle_relativetime_t     animationDelay;
-@property( assign, dynamic) mulle_relativetime_t     animationDuration;
-@property( assign, dynamic) float                    animationRepeatCount;
-@property( assign, dynamic) NSUInteger               animationCurve;
-@property( assign, dynamic) CATweenFunction         *animationTweenFunction;
-@property( assign, dynamic) BOOL                     animationAutoreverses;
+@property( assign, dynamic) mulle_relativetime_t   animationDelay;
+@property( assign, dynamic) mulle_relativetime_t   animationOffset;
+@property( assign, dynamic) mulle_relativetime_t   animationDuration;
+@property( assign, dynamic) float                  animationRepeatCount;
+@property( assign, dynamic) NSUInteger             animationCurve;
+@property( assign, dynamic) CATweenFunction        *animationTweenFunction;
+@property( assign, dynamic) BOOL                   animationAutoreverses;
 
 //
 // For CALayer, implicit additive animations are "added" to the layer.
@@ -186,13 +185,13 @@ static inline void   CATransactionSetCurrentTransaction( id p)
 // suspended. Afterwards the previous state is reset.
 // Don't "return" from within the block
 //
-#define CATransactionSuspendedDo( name)                                                   \
-   for( CATransaction * name ## __suspend__  = CATransactionGetCurrentTransaction(),      \
-                      * name ## __once__     = (CATransactionSetCurrentTransaction( NULL),\
-                                                NULL);                                    \
-        ! name ## __once__;                                                               \
-        CATransactionSetCurrentTransaction( name ## __suspend__),                         \
-        name ## __once__ = (CATransaction *) 0x1)                                         \
-      for( int name ## __break_protect__ = 0;                                             \
-           ! name ## __break_protect__;                                                   \
+#define CATransactionSuspendedDo( name)                                                  \
+   for( CATransaction * name ## __suspend__ = CATransactionGetCurrentTransaction(),      \
+                      * name ## __once__    = (CATransactionSetCurrentTransaction( NULL),\
+                                               NULL);                                    \
+        ! name ## __once__;                                                              \
+        CATransactionSetCurrentTransaction( name ## __suspend__),                        \
+        name ## __once__ = (CATransaction *) 0x1)                                        \
+      for( int name ## __break_protect__ = 0;                                            \
+           ! name ## __break_protect__;                                                  \
            name ## __break_protect__ = 1) 

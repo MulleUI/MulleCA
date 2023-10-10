@@ -27,9 +27,18 @@ static mulle_absolutetime_t   timestamps[] =
    0.6,
    0.9,
    1.2,
-   1.5
+   1.5,
+   1.8,
+   2.1
 };
 
+static struct CABasicAnimationOptions
+   options = CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( 0,    // delay
+                                                    1,    // duration
+                                                    0.0,  // initial elapsed
+                                                    2.0,  // repeat
+                                                    0,    // bits
+                                                    CAAnimationCurveLinear);
 
 int   main( int argc, char *argv[])
 {
@@ -38,14 +47,11 @@ int   main( int argc, char *argv[])
    NSInteger              i;
    mulle_absolutetime_t   now;
 
-
    foo       = [Foo object];
-
-   // basic animation duration by default is 1
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
                                          startIntegerValue:-10
                                            endIntegerValue:+10
-                                                   options:NULL] autorelease];
+                                                   options:&options] autorelease];
 
    for( i = 0; i < sizeof( timestamps) / sizeof( timestamps[ 0]); i++)
    {

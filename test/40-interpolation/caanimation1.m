@@ -2,115 +2,42 @@
 
 #import <stdio.h>
 
-@interface Float : NSObject <CAInterpolatableValue>
 
-@property( assign) float   value;
-
-@end
-
-
-@implementation Float
-
-+ (instancetype) objectWithFloat:(float) v
-{
-   Float   *p;
-
-   p = [self object];
-   p->_value = v;
-   return( p);
-}
-
-
-// standard interpolation self is start: start + (end - start) * x;
-- (id) interpolateTo:(id) end
-              factor:(double) x
-            additive:(BOOL) additive
-{
-   float   value;
-
-   assert( [end isKindOfClass:[Float class]]);
-   if( additive)
-      value = CAInterpolateAdditive( self->_value, ((Float *) end)->_value, x);
-   else
-      value = CAInterpolate( self->_value, ((Float *) end)->_value, x);
-   return( [MulleObjCObjectGetClass( self) objectWithFloat:value]);
-}
-
-
-// self - previous + diff
-- (id) interpolatedValueWithDiff:(id) diff
-                    previousDiff:(id) previous
-{
-   float   value;
-
-   assert( [diff isKindOfClass:[Float class]]);
-   assert( ! previous [previous isKindOfClass:[Float class]]);
-
-   value = self->_value - (previous ? ((Float *) previous)->_value : nil) + ((Float *) diff)->_value;
-   return( [MulleObjCObjectGetClass( self) objectWithFloat:value]);
-}
-
-@end
-
-
-
-@interface Foo : NSObject
-
-@property( copy) Float  *f;
-
-@end
-
-
-@implementation Foo
-
-- (void) setF:(Float *) f
-{
-   [_f autorelease];
-   _f = [f copy];  // don't need to store it for non additive
-   printf( "%.3f\n", [f value]);
-}
-
-@end
-
-
+#define DURATION        3.0
+#define REPEATS         1.5
+#define ANIMATION_RATE  (1.0 / 2.0)
 
 
 int   main( int argc, char *argv[])
 {
-   Foo                              *foo;
-   CABasicAnimation                 *animation;
-   NSInteger                        i;
-   Float                            *start;
-   Float                            *end;
-   struct CABasicAnimationOptions   options;
+   CAAnimation                   *animation;
+   NSInteger                     i;
+   struct CAAnimationOptions     options;
+   struct _mulle_objc_property   *property;
+   struct CAAnimationFrameInfo   info;
+   mulle_relativetime_t          elapsed;
 
-   foo = [Foo object];
-   [foo setF:[Float objectWithFloat:-10.0f]];
+   options = (struct CAAnimationOptions)
+             {
+                 .timeRange   = mulle_relativetimerange_make( 0, DURATION),
+                 .offset      = 0.0,
+                 .repeatCount = REPEATS,
+                 .bits        = CAAnimationReverses
+             };
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 2.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
-   fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
-
-   start     = [Float objectWithFloat:-10.0f];
-   end       = [Float objectWithFloat:+10.0f];
-   animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))
-                                          startObjectValue:start
-                                            endObjectValue:end
-                                                   options:&options] autorelease];
-
-   for( i = 0; i <= 10; i++)
+   animation = [CAAnimation animationWithAnimationOptions:&options];
+   i = 0;
+   CAAnimationStart( animation, 0.0, ANIMATION_RATE);
+   for( elapsed = 0.0; elapsed < REPEATS * DURATION; elapsed += ANIMATION_RATE)
    {
-      printf( "%ld: ", i);
-      [animation animateObject:foo
-                  absoluteTime:i / 5.0
-                  animationRate:0.0];
+      info = CAAnimationComputeFrameInfo( animation, elapsed, 0.0);
+      printf( "%td: %g\n", i, info.t);
+      ++i;
+      CAAnimationDidAnimate( animation, elapsed, info);
    }
 
    return( 0);
 }
-
 
 
 //

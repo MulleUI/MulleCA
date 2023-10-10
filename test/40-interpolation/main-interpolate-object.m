@@ -2,7 +2,7 @@
 
 #import <stdio.h>
 
-@interface Float : NSObject <CAInterpolatableValue>
+@interface Float : NSObject <CAInterpolatableValue, NSCopying>
 
 @property( assign) float   value;
 
@@ -44,9 +44,9 @@
    float   value;
 
    assert( [diff isKindOfClass:[Float class]]);
-   assert( ! previous [previous isKindOfClass:[Float class]]);
+   assert( ! previous || [previous isKindOfClass:[Float class]]);
 
-   value = self->_value - (previous ? ((Float *) previous)->_value : nil) + ((Float *) diff)->_value;
+   value = self->_value - (previous ? ((Float *) previous)->_value : 0.0f) + ((Float *) diff)->_value;
    return( [MulleObjCObjectGetClass( self) objectWithFloat:value]);
 }
 
@@ -63,11 +63,15 @@
 
 @implementation Foo
 
+// if we are running with pedantic exit, this will be called during
+// finalize, to clear the property. We painstakingly suppress this
+// output
 - (void) setF:(Float *) f
 {
    [_f autorelease];
    _f = [f copy];  // don't need to store it for non additive
-   printf( "%.3f\n", [f value]);
+   if( ! _mulle_objc_object_is_finalized( self))
+      printf( "%.3f\n", [f value]);
 }
 
 @end

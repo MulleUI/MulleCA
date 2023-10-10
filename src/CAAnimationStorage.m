@@ -42,7 +42,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
  */
 - (BOOL) hasAnimations
 {
-   struct CAAnimationStorage            *storage;
+   struct CAAnimationStorage   *storage;
 
    storage = [self animationStorage];
    return( storage->_numberOfAnimations != 0);
@@ -51,7 +51,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
 - (NSUInteger) numberOfAnimations
 {
-   struct CAAnimationStorage            *storage;
+   struct CAAnimationStorage   *storage;
 
    storage = [self animationStorage];
    return( storage->_numberOfAnimations);
@@ -60,22 +60,43 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
 - (BOOL) hasRunningAnimations
 {
-   BOOL                                 flag;
-   CAAnimation                          *animation;
-   struct CAAnimationStorage            *storage;
-   struct mulle_pointerarrayenumerator  rover;
+   BOOL                        flag;
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
 
    flag    = NO;
    storage = [self animationStorage];
-   rover   = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
       if( animation && ! [animation hasEnded])
       {
          flag = YES;
+         break;
       }
-   mulle_pointerarrayenumerator_done( &rover);
+   }
    return( flag);
 }
+
+
+- (BOOL) hasLayoutChangingAnimations
+{
+   BOOL                        flag;
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+
+   flag    = NO;
+   storage = [self animationStorage];
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      if( [animation changesLayout])
+      {
+         flag = YES;
+         break;
+      }
+   }
+   return( flag);
+}
+
 
 
 - (void) addAnimation:(id <CAAnimation>) animation
@@ -117,50 +138,44 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
 - (void) resetAnimationsForAnimationObject:(id) animationObject
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id <CAAnimation>                      animation;
-   struct CAAnimationStorage             *storage;
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
 
    storage = [self animationStorage];
 
-   rover = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
    {
       if( [animation animationObject] == animationObject)
          [animation reset];
    }
-   mulle_pointerarrayenumerator_done( &rover);
 }
 
 
 - (void) resetAllAnimations
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id <CAAnimation>                      animation;
-   struct CAAnimationStorage             *storage;
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
 
    storage = [self animationStorage];
 
-   rover = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
       [animation reset];
-   mulle_pointerarrayenumerator_done( &rover);
+   }
 }
 
 
 - (void) removeAnimationsForAnimationObject:(id) animationObject
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id <CAAnimation>                      animation;
-   struct CAAnimationStorage             *storage;
-   struct mulle_allocator                *allocator;
-   NSUInteger                            index;
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
+   struct mulle_allocator      *allocator;
+   NSUInteger                  index;
 
    storage = [self animationStorage];
 
    index = 0;
-   rover = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
    {
       if( [animation animationObject] == animationObject)
       {
@@ -172,7 +187,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
       }
       ++index;
    }
-   mulle_pointerarrayenumerator_done( &rover);
 
    if( ! storage->_numberOfAnimations)
    {
@@ -182,20 +196,20 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    }
 }
 
+
 - (void) removeAllAnimations
 {
-   struct mulle_pointerarrayenumerator   rover;
-   CAAnimation                           *animation;
-   struct CAAnimationStorage             *storage;
-   struct mulle_allocator                *allocator;
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+   struct mulle_allocator      *allocator;
 
    storage   = [self animationStorage];
    allocator = mulle_pointerarray_get_allocator( &storage->_animations);
 
-   rover = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
       [animation autorelease];
-   mulle_pointerarrayenumerator_done( &rover);
+   }
 
    _mulle_pointerarray_done( &storage->_animations);
    _mulle_pointerarray_init( &storage->_animations, 0, allocator);
@@ -207,15 +221,14 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
                    animationRate:(mulle_relativetime_t) animationRate
 {
-   CAAnimation                           *animation;
-   NSUInteger                            n_animations;
-   NSUInteger                            n_deletions;
-   struct CAAnimationStorage             *storage;
-   struct mulle_pointerarray             deletions;
-   struct mulle_pointerarrayenumerator   rover;
-   id                                    target;
-   BOOL                                  flag;
-   CAAnimationState                      state;
+   CAAnimation                 *animation;
+   NSUInteger                  n_animations;
+   NSUInteger                  n_deletions;
+   struct CAAnimationStorage   *storage;
+   struct mulle_pointerarray   deletions;
+   id                          target;
+   BOOL                        flag;
+   CAAnimationState            state;
 
    storage = [self animationStorage];
    n_animations = mulle_pointerarray_get_count( &storage->_animations);
@@ -232,8 +245,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
    flag  = NO;
    // animate all animations, collect those that are finished
-   rover = mulle_pointerarray_enumerate( &storage->_animations);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+   mulle_pointerarray_for( &storage->_animations, animation)
    {
       target = [animation animationObject];
       state  = [animation animateObject:target ? target : self
@@ -247,7 +259,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
       else
          flag = YES;
    }
-   mulle_pointerarrayenumerator_done( &rover);
 
    // remove finished animations
    n_deletions = mulle_pointerarray_get_count( &deletions);
@@ -260,10 +271,10 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
       }
       else
       {
-         rover = mulle_pointerarray_enumerate( &deletions);
-         while( _mulle_pointerarrayenumerator_next( &rover, (void **) &animation))
+         mulle_pointerarray_for( &storage->_animations, animation)
+         {
             [self removeAnimation:animation];
-         mulle_pointerarrayenumerator_done( &rover);
+         }
       }
    }
    mulle_pointerarray_done( &deletions);

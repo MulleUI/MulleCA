@@ -72,7 +72,7 @@ int   main( int argc, char *argv[])
       _mulle__floatarray_init_with_floats( &end, values_2, sizeof( values_2) / sizeof( float), NULL);
 
       foo       = [Foo object];
-      options   = CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( 0, 1, 1.0, bits[ j], CAAnimationCurveLinear);
+      options   = CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( 0, 1, 0.0, 1.0, bits[ j], CAAnimationCurveLinear);
       animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( r))
                                          startFloatArrayValue:start
                                            endFloatArrayValue:end

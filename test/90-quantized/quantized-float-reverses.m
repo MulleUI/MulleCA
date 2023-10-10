@@ -28,8 +28,9 @@ static inline struct CABasicAnimationOptions
    return( (struct CABasicAnimationOptions)
            {
               .base  = CAAnimationOptionsMake( timeRange,
+                                               0.0f,
                                                repeatCount,
-                                               CAAnimationReverses|CAAnimationReversesLate),
+                                               CAAnimationReverses),
               .curve = CAAnimationCurveLinear,
               .tween = 0
             });
@@ -39,12 +40,12 @@ static inline struct CABasicAnimationOptions
 
 int   main( int argc, char *argv[])
 {
-   Foo                              *foo;
    CABasicAnimation                 *animation;
-   NSInteger                        i;
+   Foo                              *foo;
    mulle_absolutetime_t             now;
-   struct CABasicAnimationOptions   options;
+   NSInteger                        i;
    NSUInteger                       state;
+   struct CABasicAnimationOptions   options;
 
    foo     = [Foo object];
 
@@ -57,12 +58,12 @@ int   main( int argc, char *argv[])
                                            endFloatValue:+10.0
                                                    options:&options] autorelease];
 
-   for( now = 0.0, i = 0;; i++, now += 1/ 3.0)
+   for( now = 0.0, i = 0;; i++, now += 1.0 / 10.0)
    {
       printf( "%td: %g ", i, now);
       state = [animation animateObject:foo
-                      absoluteTime:now
-                     animationRate:0.3]; // small error in animation rate
+                          absoluteTime:now
+                         animationRate:0.1]; // small error in animation rate
       printf( "\n");
       if( state == CAAnimationStateDone)
          break;

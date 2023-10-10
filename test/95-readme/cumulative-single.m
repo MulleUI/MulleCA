@@ -32,10 +32,12 @@ int   main( int argc, char *argv[])
    foo = [Foo object];
    [foo setX:10];       // initial value, don't care for plain
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 4),
-                                                 2.0,
-                                                 CAAnimationAdditive|CAAnimationCumulative,
-                                                 CAAnimationCurveLinear);
+   options = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 4),
+                                               CAAnimationCurveLinear,
+                                               2.0,
+                                               NO);
+   CABasicAnimationOptionsSetBit( &options, CAAnimationAdditive|CAAnimationCumulative);
+
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 
    property  = MulleObjCInstanceSearchProperty( foo, @selector( x));

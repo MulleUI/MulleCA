@@ -30,10 +30,11 @@ int   main( int argc, char *argv[])
    foo = [Foo object];
    [foo setP:CGPointMake( -10.0f, 20.0f)];
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
+   options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),
+                                                  1.0,
+                                                  NO);
+   CABasicAnimationOptionsSetBit( &options, CAAnimationAdditive);
+
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
                                            startPointValue:CGPointMake( -10.0f, 20.0f)
                                              endPointValue:CGPointMake( 10.0f, 0.0f)

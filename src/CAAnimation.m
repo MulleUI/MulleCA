@@ -2,6 +2,7 @@
 
 #import "CAAnimation.h"
 
+#import "CAAnimation+DebugPrivate.h"
 #import "CAAnimationGroup.h"
 
 #import "import-private.h"
@@ -19,7 +20,7 @@
 @end
 
 
-NS_OPTIONS_TABLE( CAAnimationBits, 15) = 
+NS_OPTIONS_TABLE( CAAnimationBits, 18) =
 {
    NS_OPTIONS_ITEM( CAAnimationStarted),
    NS_OPTIONS_ITEM( CAAnimationAnimating),
@@ -29,16 +30,21 @@ NS_OPTIONS_TABLE( CAAnimationBits, 15) =
    NS_OPTIONS_ITEM( CAAnimationFinalized),
    NS_OPTIONS_ITEM( CAAnimationEnded),
    NS_OPTIONS_ITEM( CAAnimationPreempt),
-
+// 8
+   NS_OPTIONS_ITEM( CAAnimationDelegateWillStartNotified),
    NS_OPTIONS_ITEM( CAAnimationDelegateDidStartNotified),
 
+// 10
    NS_OPTIONS_ITEM( CAAnimationReverses),
-   NS_OPTIONS_ITEM( CAAnimationReversesLate),
+   NS_OPTIONS_ITEM( CAAnimationQuantize),
    NS_OPTIONS_ITEM( CAAnimationAdditive),
    NS_OPTIONS_ITEM( CAAnimationCumulative),
-   NS_OPTIONS_ITEM( CAAnimationWrapToZero),
+   NS_OPTIONS_ITEM( CAAnimationRateCorrect),
 
-   NS_OPTIONS_ITEM( CAAnimationHasIntegerRepeat)
+// 15
+   NS_OPTIONS_ITEM( CAAnimationHasIntegerRepeat),
+   NS_OPTIONS_ITEM( CAAnimationStickyArrayCenter),
+   NS_OPTIONS_ITEM( CAAnimationStickyArrayEnd)
 };
 
 
@@ -57,6 +63,45 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
 
 
 @implementation CAAnimation
+
+- (BOOL) __isCAAnimation
+{
+   return( YES);
+}
+
+
+static struct
+{
+   NSUInteger   _debugEnabled;
+} Self;
+
+
++ (void) initialize
+{
+   char   *s;
+
+   s = getenv( "CAAnimationDebugEnabled");
+   if( s)
+      Self._debugEnabled = strtol( s, NULL, 0);
+   else
+   {
+#ifdef CA_ANIMATION_DEBUG_ENABLED
+      Self._debugEnabled = CA_ANIMATION_DEBUG_ENABLED;
+#endif
+   }
+}
+
+
++ (void) deinitialize
+{
+}
+
+
++ (void) setDebugEnabled:(NSUInteger) flag
+{
+   Self._debugEnabled = flag;
+}
+
 
 const struct CAAnimationOptions   CAAnimationDefaultOptions =
 {
@@ -88,9 +133,19 @@ static inline void   resetAnimation( CAAnimation *self)
    assert( (options->bits & (CAAnimationAdditive|CAAnimationCumulative)) !=
            CAAnimationCumulative);
 
+   // use INFINITY for repeatCount
+   assert( ! isinf( self->_relative.duration));
+
    self->_relative            = options->timeRange;
    self->_state.bits          = options->bits & ~0xFFFF;  // mask off our internal state bits
    self->_removedOnCompletion = YES;
+
+   //
+   // an offset of 1.0 is just wrapping to zero, if negative make positive
+   //
+   self->_offset              = fmod( options->offset, 1.0);
+   if( self->_offset < 0.0)
+      self->_offset += 1.0;
 
    self->_repeatCount         = options->repeatCount <= 0.0 ? 1.0 : options->repeatCount;
    if( (NSInteger) self->_repeatCount == self->_repeatCount)
@@ -103,6 +158,7 @@ static inline void   resetAnimation( CAAnimation *self)
    return( [[[self alloc] initWithAnimationOptions:options] autorelease]);
 }
 
+
 // separated into two parameters, so animations can live without
 // a group
 - (id) initWithAnimationOptions:(struct CAAnimationOptions *) options
@@ -112,6 +168,8 @@ static inline void   resetAnimation( CAAnimation *self)
       [self release];
       return( nil);
    }
+
+   _debugEnabled = Self._debugEnabled;
 
    [self setAnimationOptions:options];
    resetAnimation( self);
@@ -131,17 +189,23 @@ static inline void   resetAnimation( CAAnimation *self)
    CAAnimation  *clone;
 
    clone = NSCopyObject( self, 0, NULL);
+   // will have been retained by NSCopyObject, but we don't want it
+   // (still in alloc/init) here so release is fine
+   [clone->_animationObject release];
    clone->_animationObject = nil;  // or what ?
    return( clone);
 }
 
 
+
+- (void) animationIndexDidChange
+{
+   // do nuthin
+}
+
+
 - (void) reverse
 {
-   if( ! (self->_state.bits & CAAnimationHasReversed))
-      self->_state.bits |= CAAnimationHasReversed;
-
-   self->_state.bits ^= CAAnimationIsReverse;
 }
 
 
@@ -150,6 +214,11 @@ static inline void   resetAnimation( CAAnimation *self)
    resetAnimation( self);
 }
 
+
+- (BOOL) changesLayout
+{
+   return( NO);
+}
 
 //
 // this is called by the layer (ahem) animatableObject
@@ -175,19 +244,14 @@ normalizedRelativeTime:(double) t
 
 - (void) willStartAnimating
 {
-#ifdef ANIMATION_DEBUG
-   MulleUILogThisMethod();
-#endif
-   self->_state.bits |= CAAnimationAnimating;
+   CAAnimationLog("");
 }
 
 
 // returns YES, if really ended (reverse flag is confusing to me)
 - (BOOL) didEnd
 {
-#ifdef ANIMATION_DEBUG
-   MulleUILogThisMethod();
-#endif
+   CAAnimationLog("");
 
    // don't call callbacks if we are "scrubbing" (future)
    // also don't really end
@@ -201,18 +265,235 @@ normalizedRelativeTime:(double) t
 }
 
 
-static inline CAAnimationState  stateReturn( CAAnimationState state)
+static inline CAAnimationState  stateReturn( CAAnimation *self, CAAnimationState state)
 {
-#ifdef ANIMATION_DEBUG
-   MulleUICLog( CAAnimationStateUTF8String( state));
-#endif
+   CAAnimationLogVerbose( "%s", CAAnimationStateUTF8String( state));
+
    return( state);
 }
 
 
-- (NSUInteger) isAnimatingAtAbsoluteTime:(mulle_absolutetime_t) now
-                           animationRate:(mulle_relativetime_t) animationRate
+
+void   CAAnimationStart( CAAnimation *self,
+                         mulle_absolutetime_t now,
+                         mulle_relativetime_t animationRate)
 {
+   //
+   // Should we start animating if not yet ? We round down here, so we may
+   // start a/ little early in absolute time! This will happen if there is a
+   // delay to hit the animationRate better. (All this is a nop if 0.0)
+   //
+   self->_state.start    = mulle_timeinterval_add( now, self->_relative.delay)
+                           - (animationRate / 2.0);
+   self->_state.duration = self->_relative.duration;
+
+   // if we are starting immediately fix start back to actual start
+   // (tests better)
+   if( now >= self->_state.start)
+      self->_state.start = now;  // sic!
+
+   self->_state.bits |= CAAnimationStarted;
+}
+
+
+//
+// this function just does "math" and no callbacks, which makes it a little
+// easier to debug
+//
+struct CAAnimationFrameInfo
+   CAAnimationComputeFrameInfo( CAAnimation *self,
+                                mulle_absolutetime_t now,
+                                mulle_relativetime_t animationRate)
+{
+   double                        d;
+   double                        e;
+   double                        f;
+   double                        maxValue;
+   double                        midpoint;
+   double                        minValue;
+   double                        value;
+   double                        t;
+   int                           edge;
+   mulle_relativetime_t          delta;
+   mulle_relativetime_t          elapsedTime;
+   mulle_relativetime_t          nextMidpoint;
+   NSUInteger                    frameIndex;
+   NSUInteger                    i;
+   NSUInteger                    nextState;
+   struct CAAnimationFrameInfo   info;
+
+   nextState   = CAAnimationAnimating;
+   delta       = now - (isinf( self->_state.previousFrameTimestamp)
+                       ? now
+                       : self->_state.previousFrameTimestamp);
+   elapsedTime = mulle_timeinterval_subtract( now, self->_state.start);
+
+   // READ: dox/indepth/CAAnimation-in-depth.html before dicking around with
+   //       this code
+
+   //
+   // if we got a "animationRate" we always quantize, otherwise we
+   // quantize it to the last delta (could filter that)
+   //
+   if( self->_state.bits & CAAnimationQuantize)
+      animationRate = (animationRate == 0.0f) ? delta : animationRate;
+   if( animationRate != 0.0)
+   {
+      //
+      // instead of the true elapsed time, we "jitter" correct it
+      // and to get a stable midpoint, by calculating off the ideal
+      // frame elapsedTime
+      //
+      // 0     0.20         0.61      1.0         1.6
+      //     elapsedTime elapsedTime elapsedTime elapsedTime
+      //       x            x         x           x
+      // |........|........|........|........|........
+      // 0       0.3      0.6      0.9      1.2
+      //       animRate
+      //
+
+      //                   elapsedTime
+      //                     x
+      //  frame:  #0             #1             #2
+      // ................|........_.......|...............
+      //                0.3       |      0.6
+      //                          v
+      //                        midPoint
+      //
+
+      // which frame are we in ?
+      frameIndex = (NSUInteger) round( elapsedTime / animationRate);
+      // midpoint in the frame in seconds (like elapsedTime)
+      midpoint   = (frameIndex * animationRate) + (animationRate / 2.0);
+
+      if( elapsedTime > midpoint)
+         elapsedTime = midpoint + (animationRate / 2.0);
+      else
+         elapsedTime = midpoint - (animationRate / 2.0);
+   }
+
+   d            = self->_offset + elapsedTime;
+   e            = (self->_repeatCount * self->_state.duration) + self->_offset;
+   nextMidpoint = fmax( delta, animationRate) / 2.0;
+
+   // when should we finish the animation ? The delta or animationRate give
+   // a clue, when the next frame will hit. If we are close to the end, we
+   // check if we should round up to end this. If yes, we set 'd' to exactly
+   // the value, we would get if we ran the animation through
+   if( d + nextMidpoint >= e)
+   {
+      self->_state.bits |= CAAnimationFinalized;
+      nextState          = CAAnimationStateFinalAnimation;
+      d                  = e;
+   }
+
+   //
+   // now scale 'd' down to self->_state.duration (that way then
+   // i is the integer part, and f the fractional part)
+   // edge is when there just has been a transition to another repeatCount
+   //
+
+   //
+   // correct 'f' (see CAAnimation-in-depth.html)
+   // has no effect if animationRate is 0.0
+   //
+   if( self->_state.bits & CAAnimationRateCorrect)
+   {
+      minValue = animationRate / 2 / self->_state.duration;
+      maxValue = 1.0 - minValue;
+
+      midpoint = d + (animationRate / 2.0);
+      value    = fmod( midpoint / self->_state.duration, 1.0);
+      f        = value + ((value - 0.5) / (maxValue - 0.5)) * minValue;
+      if( f < minValue)
+         f = 0.0f;
+      if( f > maxValue)
+         f = 1.0;
+   }
+   else
+   {
+      f = fmod( d / self->_state.duration, 1.0);
+   }
+
+   i = (NSUInteger) floor( d / self->_state.duration);
+   // do not use `d` or `e` past this point
+   edge = i > self->_state.previousAnimationIndex;
+   if( edge)
+   {
+      if( self->_state.bits & CAAnimationReverses)
+      {
+         if( ! (self->_state.bits & CAAnimationHasReversed))
+            self->_state.bits |= CAAnimationHasReversed;
+
+         self->_state.bits ^= CAAnimationIsReverse;
+      }
+   }
+
+   //
+   // now compute t from 'f'
+   //
+   if( nextState == CAAnimationStateFinalAnimation &&
+       (self->_state.bits & CAAnimationHasIntegerRepeat))
+   {
+      // the CAAnimationIsReverse meaning is reversed here
+      t = (f == 0.0 && i != 0)
+          ? (((self->_state.bits & (CAAnimationReverses|CAAnimationIsReverse)) == CAAnimationReverses)
+             ? 0.0
+             : 1.0
+            )
+          : f;
+   }
+   else
+   {
+      t = f;
+      if( self->_state.bits & CAAnimationIsReverse)
+         t = 1.0 - t;
+   }
+
+   info.nextState = nextState;
+   info.t         = t;
+   info.i         = i;
+   info.delta     = delta;
+
+   return( info);
+}
+
+
+BOOL   CAAnimationDidAnimate( CAAnimation *self,
+                              mulle_relativetime_t now,
+                              struct CAAnimationFrameInfo info)
+{
+   self->_state.previousFrameTimestamp         = now;
+   self->_state.previousAnimationIndex         = info.i;
+   self->_state.previousNormalizedRelativeTime = info.t;
+
+   if( ! (self->_state.bits & CAAnimationDelegateDidStartNotified))
+   {
+      self->_state.bits |= CAAnimationDelegateDidStartNotified;
+      return( YES);
+   }
+   return( NO);
+}
+
+
+// b animateObject:absoluteTime:animationRate:
+- (NSUInteger) animateObject:(id) object
+                absoluteTime:(mulle_absolutetime_t) now
+               animationRate:(mulle_relativetime_t) animationRate
+{
+   struct CAAnimationFrameInfo   info;
+
+   CAAnimationLogVerbose( "_bits=%s; object=%#@ now=%.6f start=%.6f animationRate=%.6f",
+                  CAAnimationBitsUTF8String( self->_state.bits), object, now, self->_state.start, animationRate);
+
+   if( self->_state.bits & CAAnimationFinalized)
+   {
+      if( [self didEnd])
+         return( stateReturn( self, CAAnimationStateDone));
+
+      self->_state.bits &= ~CAAnimationFinalized;
+   }
+
    if( self->_state.bits & CAAnimationEnded)
    {
       return( CAAnimationStateDone);
@@ -226,208 +507,52 @@ static inline CAAnimationState  stateReturn( CAAnimationState state)
 
    if( ! (self->_state.bits & CAAnimationStarted))
    {
-      if( animationRate == 0.0)
-      {
-         self->_state.start    = mulle_timeinterval_add( now, self->_relative.delay);
-         self->_state.duration = self->_relative.duration;
-      }
-      else
-      {
-   // Should we start animating if not yet ? We round down here, so we may
-   // start a/ little early in absolute time! if there is a delay
-         self->_state.start    = mulle_timeinterval_add( now, self->_relative.delay) - (animationRate / 2.0);
-         self->_state.duration = self->_relative.duration; // mulle_timeinterval_quantize( self->_relative.duration,
-                                                           //   animationRate);
-      }
-      self->_state.bits       |= CAAnimationStarted;
+      CAAnimationStart( self, now, animationRate);
    }
 
    if( now < self->_state.start)
-      return( NO);
+      return( CAAnimationStateActive);
+
+   if( self->_state.duration == 0.0f)
+   {
+      [self didEnd]; // ignore scrubbing
+      return( stateReturn( self, CAAnimationStateDone));
+   }
 
    if( ! (self->_state.bits & CAAnimationAnimating))
    {
-      if( animationRate != 0.0)
-         self->_state.start = now;  // set actual start to now
-      [self willStartAnimating]; // will set CAAnimationAnimating
-   }
+      [self willStartAnimating];
+      self->_state.bits |= CAAnimationAnimating;
 
-   return( YES);
-}
-
-
-
-
-- (void) animationIndexDidChange
-{
-   // do nuthin
-}
-
-
-- (NSUInteger) animateObject:(id) object
-                absoluteTime:(mulle_absolutetime_t) now
-               animationRate:(mulle_relativetime_t) animationRate
-{
-   BOOL                   reverseIfNeeded;
-   double                 corrected;
-   double                 d;
-   double                 maxValue;
-   double                 midpoint;
-   double                 minValue;
-   double                 t;
-   double                 value;
-   mulle_relativetime_t   delta;
-   mulle_relativetime_t   elapsedTime;
-   NSUInteger             animationIndex;
-   NSUInteger             frameIndex;
-   NSUInteger             nextState;
-   NSUInteger             reverseBits;
-
-#ifdef ANIMATION_DEBUG
-   MulleUILog( "_bits=%s; object=%#@ now=%.6f start=%.6f animationRate=%.6f",
-                  CAAnimationBitsUTF8String( self->_state.bits), object, now, self->_state.start, animationRate);
-#endif
-
-   if( self->_state.bits & CAAnimationFinalized)
-   {
-      if( [self didEnd])
-         return( stateReturn( CAAnimationStateDone));
-
-      self->_state.bits &= ~CAAnimationFinalized;
-   }
-
-   // active but not yet animating ?
-   if( ! [self isAnimatingAtAbsoluteTime:now
-                           animationRate:animationRate])
-      return( stateReturn( CAAnimationStateActive));
-
-   // just some paranoia, in case someone messes with the clock
-   if( now < self->_state.start)
-      self->_state.start = now;
-
-   elapsedTime = mulle_timeinterval_subtract( now, self->_state.start);
-
-   // d is the number of animation cycles we are in (a float)
-   d           = elapsedTime / self->_state.duration;
-   nextState   = CAAnimationAnimating;
-
-   // we need to reversecheck, if we crossed the duration boundary
-   if( animationRate == 0.0)
-   {
-      corrected = fmod( d, 1.0);
-//      if( d != 0.0 && corrected == 0.0 && ! (self->_state.bits & CAAnimationWrapToZero))
-//         corrected = 1.0;
-      assert( corrected >= 0.0 && corrected <= 1.0);
-
-      if( d >= self->_repeatCount)
+      // kinda superflous check or ?
+      if( ! (self->_state.bits & CAAnimationDelegateWillStartNotified))
       {
-         self->_state.bits |= CAAnimationFinalized;
-         if( d > self->_repeatCount)
-         {
-            if( [self didEnd])
-               return( stateReturn( CAAnimationStateDone));
-         }
-         nextState = CAAnimationStateFinalAnimation;
-      }
-   }
-   else
-   {
-      minValue  = animationRate / 2 / self->_state.duration;
-      assert( minValue >= 0.0 && minValue <= 1.0);
-      maxValue  = 1.0 - minValue;
-
-      //
-      // instead of the true elapsed time, we "jitter" correct it
-      // and to get a stable midpoint, by calculating off the ideal
-      // frame elapsedTime
-      //
-      frameIndex = (NSUInteger) floor( elapsedTime / animationRate);
-      midpoint   = (frameIndex * animationRate) + (animationRate / 2.0);
-      value      = fmod( midpoint / self->_state.duration, 1.0);
-
-      if( maxValue != 0.5)
-         corrected = value + ((value - 0.5) / (maxValue - 0.5)) * minValue;
-      else
-         corrected = value;
-
-      if( corrected < minValue)
-         corrected = 0.0;
-      if( corrected > maxValue)
-         corrected = 1.0;
-      assert( corrected >= 0.0 && corrected <= 1.0);
-
-      if( ! (self->_state.bits & CAAnimationFinalized))
-      {
-         // check if we are in the last to be displayed frame
-         if( (midpoint / self->_state.duration) >= self->_repeatCount)
-         {
-            self->_state.bits |= CAAnimationFinalized;
-            nextState = CAAnimationStateFinalAnimation;
-         }
+         self->_state.bits |= CAAnimationDelegateWillStartNotified;
+         [_delegate animationWillStart:self];
       }
    }
 
-   assert( nextState != CAAnimationStateDone);
+   info = CAAnimationComputeFrameInfo( self, now, animationRate);
 
-   animationIndex  = (NSUInteger) floor( d);
-   reverseIfNeeded = NO;
-
-   if( nextState == CAAnimationStateFinalAnimation)
+   if( info.i > self->_state.previousAnimationIndex)
    {
-      if( self->_state.bits & CAAnimationHasIntegerRepeat)
-         corrected = 1.0; // round( corrected);  // down to 0 or up
-      else
-         corrected = fmod( self->_repeatCount, 1.0);
-   }
-   else
-   {
-      reverseBits     = self->_state.bits & (CAAnimationReversesLate|CAAnimationReverses);
-      reverseIfNeeded = (animationIndex > self->_state.previousAnimationIndex);
-
-      if( reverseIfNeeded)
-      {
-   //         [self animationIndexWillChange];
-         if( reverseBits == CAAnimationReverses)
-            [self reverse];
-      }
-   }
-
-   if( animationIndex > self->_state.previousAnimationIndex)
+      // used by CABasicAnimation to free some stuff
       [self animationIndexDidChange];
 
-   t     = (self->_state.bits & CAAnimationIsReverse)
-               ? 1.0 - corrected
-               : corrected;
-   delta = now - (isinf( self->_state.previousFrameTimestamp)
-                        ? now
-                        : self->_state.previousFrameTimestamp
-                       );
+      if( self->_state.bits & CAAnimationReverses)
+      {
+         [self reverse];
+      }
+   }
 
    [self animateObject:object
-normalizedRelativeTime:t
-           elapsedTime:delta];
+normalizedRelativeTime:info.t
+           elapsedTime:info.delta];
 
-   if( reverseIfNeeded)
-   {
-      if( reverseBits == (CAAnimationReversesLate|CAAnimationReverses))
-         [self reverse];
-   }
-
-   self->_state.previousFrameTimestamp         = now;
-   self->_state.previousAnimationIndex         = animationIndex;
-   self->_state.previousNormalizedRelativeTime = t;
-
-#ifdef ANIMATION_DEBUG
-   MulleUILog( "d=%.6f t=%.6f elapsedTime=%.6f", d, t, elapsedTime);
-#endif
-
-   if( ! (self->_state.bits & CAAnimationDelegateDidStartNotified))
-   {
-      self->_state.bits |= CAAnimationDelegateDidStartNotified;
+   if( CAAnimationDidAnimate( self, now, info))
       [_delegate animationDidStart:self];
-   }
 
-   return( stateReturn( nextState));
+   return( stateReturn( self, info.nextState));
 }
 
 
@@ -442,22 +567,21 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
                                         mulle_absolutetime_t renderTime,
                                         mulle_absolutetime_t animationRate)
 {
-   struct mulle_pointerarrayenumerator   rover;
-   id                                    object;
-   NSUInteger                            state;
+   id           object;
+   NSUInteger   state;
 
    state = CAAnimationStateDone;
    assert( ! state);
 
-   rover = mulle_pointerarray_enumerate( objects);
-   while( _mulle_pointerarrayenumerator_next( &rover, (void **) &object))
+   mulle_pointerarray_for( objects, object)
+   {
       state |= (NSUInteger) MulleObjCObjectPerformSelectorDoubleArgument2( object,
                                                                            sel,
                                                                            renderTime,
                                                                            animationRate);
-   mulle_pointerarrayenumerator_done( &rover);
+   }
 
-   return (state != CAAnimationStateDone);
+   return( state != CAAnimationStateDone);
 }
 
 

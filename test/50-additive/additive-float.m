@@ -32,9 +32,10 @@ int   main( int argc, char *argv[])
    [foo setF:-10.0f];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
+                                                 CAAnimationCurveLinear,
                                                  2.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
+                                                 NO);
+   CABasicAnimationOptionsSetBit( &options, CAAnimationAdditive);
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))

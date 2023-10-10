@@ -51,7 +51,7 @@ void   setupSceneAndAnimation( UIWindow *window)
 
    layer = [CALayer layerWithFrame:CGRectMake( 100, 100, 100, 100)];
    [layer setBackgroundColor:CGColorMakeWithHexColor( 0xFF0000FF)];
-   [[window contentPlane] addLayer:layer];
+   [[window contentView] addLayer:layer];
 
    // UIView -> CAAnimation
    setupAnimation( window, layer);

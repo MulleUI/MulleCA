@@ -12,7 +12,13 @@
 #import "CATransaction.h"
 #import "CAAnimationStorage.h"
 
-// this class might soon die though and be replaced by a protocolclass
+@protocol CAImplicitlyAnimatableObject < NSObject, MullePropertyObserving>
+
+- (void) willChange; // MullePropertyObserving
+- (void) commitImplicitAnimations:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
+
+@end
+
 
 
 // A simplified sketch of a simple animation of a CALayer moving from
@@ -45,11 +51,29 @@
 //                                  '---------------| -setFrame:     |
 //                                                  '----------------'
 //
-
-
-// if you can subclass from this you have it easier, otherwise copy the code
-// into your class.
-
+// WARNING: you can implicitly animate only properties of types:
+//
+//          id
+//          NSInteger
+//          CGFloat
+//          CGPoint
+//          CGRect
+//          CGSize
+//          CAPolarPoint
+//          CACircle
+//          MulleCornerInsets
+//          MulleEdgeInsets
+//          NSRange
+//          mulle_range
+//
+// specifically not working currently: BOOL, unsigned <type>, short, int,
+//                                     char, long, long long, long double
+//                                     <type> *, union {} ...
+//
+// if you can subclass from CAImplicitlyAnimatableObject you have it easier,
+// otherwise copy the code from the @implementation into your class and
+// adopt the protocol.
+//
 @interface CAImplicitlyAnimatableObject : NSObject < NSCopying, CAImplicitlyAnimatableObject>
 {
    id   _snapshot;

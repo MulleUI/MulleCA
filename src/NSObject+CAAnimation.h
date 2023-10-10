@@ -32,10 +32,20 @@ void  CAAnimationPropertyDefinitionRegister( struct CAAnimationPropertyDefinitio
 MULLE_CA_EXTERN_GLOBAL
 void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext *ctx,
                                               CAAnimation *animation);
+
+
 @interface NSObject( CAAnimation)
 
 - (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
-                        animationGroup:(CAAnimationGroup *) group;
+                                      animationGroup:(CAAnimationGroup *) group;
 
+// implement this on "value" objects class to create a CAAnimation to animate
+// from "startObject" to "endObject"
+// TODO: is this better in CAInterpolatableValue ?
+//
++ (CAAnimation *) createAnimationFrom:(id) startObject
+                                   to:(id) endObject
+                             property:(struct _mulle_objc_property *) property
+                              options:(struct CABasicAnimationOptions *) animationOptions;
 @end
 

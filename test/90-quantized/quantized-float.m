@@ -39,12 +39,12 @@ int   main( int argc, char *argv[])
                                            endFloatValue:+10.0
                                                    options:&options] autorelease];
 
-   for( now = 0.0, i = 0;; i++, now += 1 / 4.0)
+   for( now = 0.0, i = 0;; i++, now += 1 / 10.0)
    {
       printf( "%td: %g ", i, now);
       state = [animation animateObject:foo
                           absoluteTime:now
-                         animationRate:1 / 4.0];
+                         animationRate:1 / 10.0];
       printf( "\n");
       if( state == CAAnimationStateDone)
          break;
