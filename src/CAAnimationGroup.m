@@ -6,11 +6,10 @@
 #import "import-private.h"
 
 #import "CAAnimation.h"
+#import "CAAnimation+DebugPrivate.h"
 #import "CABasicAnimation.h"
 
 
-
-//#define ANIMATION_DEBUG
 
 
 @interface CAAnimation( Private)
@@ -57,13 +56,16 @@
 }
 
 
+- (BOOL) changesLayout
+{
+   return( [self hasLayoutChangingAnimations]);
+}
+
 /*
  *
  */
 - (void) willStartAnimating
 {
-   [super willStartAnimating];
-
    if( _animationWillStartSelector)
       [_animationDelegate performSelector:_animationWillStartSelector
                                withObject:(id) _animationID
@@ -86,10 +88,9 @@ normalizedRelativeTime:(mulle_relativetime_t) t
    NSUInteger   state;
    NSUInteger   bits;
 
-#ifdef ANIMATION_DEBUG
-   MulleUILog( "object=%#@ now=%.6f (animations=%td)",
-                  object, now, [self numberOfAnimations]);
-#endif
+   CAAnimationLogVerbose( "object=%#@ now=%.6f (animations=%td)",
+                              object, now, [self numberOfAnimations]);
+
    bits  = _state.bits;
    state = [super animateObject:nil
                    absoluteTime:now
@@ -126,10 +127,12 @@ normalizedRelativeTime:(mulle_relativetime_t) t
 static inline void  setupAnimationOptions( CAAnimationGroup *self,
                                            struct CAAnimationOptions *options)
 {
-   options->timeRange   = mulle_relativetimerange_make( self->_animationDelay, self->_animationDuration);
-   options->repeatCount = self->_animationRepeatCount;
-   options->bits        = (self->_animationAutoreverses ? CAAnimationReverses : 0) |
-                          (self->_animationIsAdditive   ? CAAnimationAdditive : 0);
+   options->timeRange        = mulle_relativetimerange_make( self->_animationDelay,
+                                                             self->_animationDuration);
+   options->offset           = self->_animationOffset;
+   options->repeatCount      = self->_animationRepeatCount;
+   options->bits             = (self->_animationAutoreverses ? CAAnimationReverses : 0) |
+                               (self->_animationIsAdditive   ? CAAnimationAdditive : 0);
 }
 
 
@@ -150,7 +153,7 @@ static inline void  setupAnimationOptions( CAAnimationGroup *self,
    memset( options, 0, sizeof( *options));
 
    setupAnimationOptions( self, &options->base);
-   options->tween     = _animationTweenFunction;
+   options->tween = _animationTweenFunction;
    if( ! options->tween)
       options->curve  = _animationCurve;
 }

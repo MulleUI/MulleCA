@@ -21,6 +21,10 @@
 @end
 
 
+#define REPEATS   2
+#define STEPS     4
+#define DURATION  3
+
 int   main( int argc, char *argv[])
 {
    Foo                              *foo;
@@ -32,10 +36,10 @@ int   main( int argc, char *argv[])
    foo = [Foo object];
    [foo setX:10];       // initial value, don't care for plain
 
-   options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 4),
-                                                 2.0,
-                                                 0,
-                                                 CAAnimationCurveLinear);
+   options = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, DURATION),
+                                               CAAnimationCurveLinear,
+                                               2.0,
+                                               NO);
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));
 
    property  = MulleObjCInstanceSearchProperty( foo, @selector( x));
@@ -44,12 +48,12 @@ int   main( int argc, char *argv[])
                                            endIntegerValue:20
                                                    options:&options] autorelease];
 
-   for( i = 0; i < 8; i++)
+   for( i = 0; i <= REPEATS * STEPS; i++)
    {
       printf( "%ld: ", i);
       [animation animateObject:foo
                   absoluteTime:i * 1.0
-                 animationRate:1.0];
+                 animationRate:0.0];
    }
 
    return( 0);

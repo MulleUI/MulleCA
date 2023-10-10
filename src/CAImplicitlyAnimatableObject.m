@@ -19,6 +19,9 @@
 
 @implementation CAImplicitlyAnimatableObject
 
+// CALayer overrides mulleCopyRetainsProperties to return YES, so properties
+// are properly retained/copied during -copy!
+
 - (void) dealloc
 {
    [_snapshot release];
@@ -38,6 +41,7 @@
    // from NSCopying. So we declare a category on top
    clone = [super copy];
 
+   // not a property, therefore not retained
    clone->_snapshot = nil;
 
    return( clone);
@@ -58,9 +62,13 @@
    // Generally keep this snappy, as it can bottleneck. We especially don't
    // want this in a classcluster to have to ask [self snapshotPointer] or
    // somesuch
+   //
    manager = CATransactionGetCurrentTransaction();
    if( ! manager)
       return;
+
+   // most of the time _snapshot will be NULL, so check after manager
+   // which is usually NULL
    if( _snapshot)
       return;
 

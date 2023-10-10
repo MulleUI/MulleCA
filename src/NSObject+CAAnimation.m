@@ -29,7 +29,7 @@ struct CAAnimationPropertyDefinition
 
    p        = extensions;
    sentinel = &p[ n_extensions];
-   while( p < sentinel)
+   for( ; p < sentinel; p++)
       if( (*p->matchRuntimeStructName)( s, length))
          return( p);
    return( NULL);
@@ -195,6 +195,81 @@ static void   animate_float_property( struct _mulle_objc_property *property,
 }
 
 
+//
+// intended to be used by CACircle, CAPolarPoint, CGPoint, CGSize
+//
+static void   animate_float2_property( struct _mulle_objc_property *property,
+                                       struct CAPropertyAnimationContext *ctx)
+{
+   CAAnimation   *animation;
+   CGFloat2      start;
+   CGFloat2      end;
+   SEL           getter;
+   SEL           setter;
+
+   getter = mulle_objc_property_get_getter( property);
+   start  = MulleObjectGetCGFloat2( ctx->snapshot, getter);
+   end    = MulleObjectGetCGFloat2( ctx->self, getter);
+   if( CGFloat2EqualToFloat2( start, end))
+      return;
+
+   setter    = mulle_objc_property_get_setter( property);
+   animation = [[[CABasicAnimation alloc] initWithProperty:property
+                                          startFloat2Value:start
+                                            endFloat2Value:end
+                                                   options:&ctx->animationOptions] autorelease];
+   if( animation)
+   {
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
+
+      // reset to start position
+      // this should work and not trigger another willChange action, as willChange
+      // will see the existing snapshot in the layer and do nothing
+      // STILL it would be nicer to do this more stealthily by setting the ivar
+      // directly
+      MulleObjectSetCGFloat2( ctx->self, setter, start);
+   }
+}
+
+
+//
+// intended to be used by CGRect, MulleEdgeInsets, MulleCornerInsets
+//
+static void   animate_float4_property( struct _mulle_objc_property *property,
+                                       struct CAPropertyAnimationContext *ctx)
+{
+   CAAnimation   *animation;
+   CGFloat4      start;
+   CGFloat4      end;
+   SEL           getter;
+   SEL           setter;
+
+   getter = mulle_objc_property_get_getter( property);
+   start  = MulleObjectGetCGFloat4( ctx->snapshot, getter);
+   end    = MulleObjectGetCGFloat4( ctx->self, getter);
+   if( CGFloat4EqualToFloat4( start, end))
+      return;
+
+   setter    = mulle_objc_property_get_setter( property);
+   animation = [[[CABasicAnimation alloc] initWithProperty:property
+                                           startFloat4Value:start
+                                             endFloat4Value:end
+                                                   options:&ctx->animationOptions] autorelease];
+   if( animation)
+   {
+      CAPropertyAnimationContextAddAnimation( ctx, animation);
+
+      // reset to start position
+      // this should work and not trigger another willChange action, as willChange
+      // will see the existing snapshot in the layer and do nothing
+      // STILL it would be nicer to do this more stealthily by setting the ivar
+      // directly
+      MulleObjectSetCGFloat4( ctx->self, setter, start);
+   }
+}
+
+
+
 static void   animate_point_property( struct _mulle_objc_property *property,
                                       struct CAPropertyAnimationContext *ctx)
 {
@@ -266,7 +341,7 @@ static void   animate_size_property( struct _mulle_objc_property *property,
 static void   animate_rect_property( struct _mulle_objc_property *property,
                                      struct CAPropertyAnimationContext *ctx)
 {
-   CAAnimation  *animation;
+   CAAnimation   *animation;
    CGRect        startRect;
    CGRect        endRect;
    SEL           getter;
@@ -297,8 +372,8 @@ static void   animate_rect_property( struct _mulle_objc_property *property,
 }
 
 
-static void   animate_insets_property( struct _mulle_objc_property *property,
-                                       struct CAPropertyAnimationContext *ctx)
+static void   animate_edge_insets_property( struct _mulle_objc_property *property,
+                                           struct CAPropertyAnimationContext *ctx)
 {
    CAAnimation       *animation;
    MulleEdgeInsets   startInsets;
@@ -331,6 +406,28 @@ static void   animate_insets_property( struct _mulle_objc_property *property,
 }
 
 
+static inline void   animate_corner_insets_property( struct _mulle_objc_property *property,
+                                                     struct CAPropertyAnimationContext *ctx)
+{
+   // abuse these being four floats, samas MulleObjectSetEdgeInsets
+   return( animate_float4_property( property, ctx));
+}
+
+
+static inline void   animate_polar_point_property( struct _mulle_objc_property *property,
+                                                   struct CAPropertyAnimationContext *ctx)
+{
+   return( animate_float2_property( property, ctx));
+}
+
+
+static inline void   animate_circle_property( struct _mulle_objc_property *property,
+                                              struct CAPropertyAnimationContext *ctx)
+{
+   return( animate_float2_property( property, ctx));
+}
+
+
 static void   animate_object_property( struct _mulle_objc_property *property,
                                        struct CAPropertyAnimationContext *ctx)
 {
@@ -354,10 +451,10 @@ static void   animate_object_property( struct _mulle_objc_property *property,
       cls = [endObject class];
 
    setter    = mulle_objc_property_get_setter( property);
-   animation = [cls animationWithProperty:property
-                         startObjectValue:startObject
-                           endObjectValue:endObject
-                                  options:&ctx->animationOptions];
+   animation = [cls createAnimationFrom:startObject
+                                     to:endObject
+                               property:property
+                                options:&ctx->animationOptions];
 
    if( animation)
    {
@@ -373,15 +470,17 @@ static void   animate_object_property( struct _mulle_objc_property *property,
 }
 
 
-
-
 @implementation NSObject( CAAnimation)
 
+- (BOOL) __isCAAnimation
+{
+   return( NO);
+}
 
 static mulle_objc_walkcommand_t
-   walkproperties_callback( struct _mulle_objc_property *property,
-                            struct _mulle_objc_infraclass *infra,
-                            void *userinfo)
+   caanimation_walkproperties_callback( struct _mulle_objc_property *property,
+                                        struct _mulle_objc_infraclass *infra,
+                                        void *userinfo)
 {
    struct CAPropertyAnimationContext      *ctx = userinfo;
    struct CAAnimationPropertyDefinition   *p;
@@ -402,38 +501,55 @@ static mulle_objc_walkcommand_t
 
    switch( *signature)
    {
-   default           : return( mulle_objc_walk_ok); // warn ????
-
    case _C_RETAIN_ID :
    case _C_COPY_ID   : // future: only one allowable!
    case _C_ASSIGN_ID : animate_object_property( property, ctx);
                        return( mulle_objc_walk_ok);
 
+   // MEMO: does not work, because our BOOL is really an int
    case _C_BOOL      : animate_bool_property( property, ctx);
                        return( mulle_objc_walk_ok);
-   case _C_LNG       : if( sizeof( long) == sizeof( NSInteger))
-                          animate_integer_property( property, ctx);
-                       return( mulle_objc_walk_ok);
-   case _C_LNG_LNG   : if( sizeof( long long) == sizeof( NSInteger))
-                          animate_integer_property( property, ctx);
+
+   case _C_INT       : if( sizeof( int) != sizeof( NSInteger))
+                          goto type_fail;
+                       animate_integer_property( property, ctx);
                        return( mulle_objc_walk_ok);
 
-   case _C_FLT       : if( sizeof( float) == sizeof( CGFloat))
-                          animate_float_property( property, ctx);
+   case _C_LNG       : if( sizeof( long) != sizeof( NSInteger))
+                          goto type_fail;
+                       animate_integer_property( property, ctx);
                        return( mulle_objc_walk_ok);
-   case _C_DBL       : if( sizeof( double) == sizeof( CGFloat))
-                          animate_float_property( property, ctx);
+
+   case _C_LNG_LNG   : if( sizeof( long long) != sizeof( NSInteger))
+                          goto type_fail;
+                       animate_integer_property( property, ctx);
                        return( mulle_objc_walk_ok);
-   case _C_STRUCT_B  : // default code
+
+   case _C_FLT       : if( sizeof( float) != sizeof( CGFloat))
+                          goto type_fail;
+                       animate_float_property( property, ctx);
+                       return( mulle_objc_walk_ok);
+
+   case _C_DBL       : if( sizeof( double) != sizeof( CGFloat))
+                          goto type_fail;
+                       animate_float_property( property, ctx);
+                       return( mulle_objc_walk_ok);
+   case _C_STRUCT_B  : // drop down to following,
       break;
+
+   default           : goto type_fail;
    }
 
+   // TODO: if struct is [ff] [fff] or [ffff], then use generic animation
+   //       code ?
+   //
    // struct code
    name_b = signature + 1;
    name_e = strchr( name_b, '=');
    assert( name_e && strchr( name_b, ',') > name_e);
    name_len = name_e - name_b;
 
+   // Mulle[C]ornerInsets
    // Mulle[E]dgeInsets
    // CGSiz[e]
    // NSRan[g]e is actually mulle_range though
@@ -441,37 +557,82 @@ static mulle_objc_walkcommand_t
    // CGPoi[n]t
    // mulle[_]range
    // CGRec[t]
+   // CACir[c]le
+   // CAPol[a]rPoint
 
-   if( name_len < 6)
-      return( mulle_objc_walk_ok);
-
-   switch( name_b[ 5])
+   if( name_len >= 6)
    {
-   // soon to be CGEdgeInsets ?
-   case 'E' : if( ! string_matcher( "MulleEdgeInsets", name_b, name_len))
-                  animate_insets_property( property, ctx);
-              return( mulle_objc_walk_ok);
-   case 'e' : if( ! string_matcher( "CGSize", name_b, name_len))
-                  animate_size_property( property, ctx);
-              return( mulle_objc_walk_ok);
-   case 'g' : if( ! string_matcher( "NSRange", name_b, name_len))
-                 animate_range_property( property, ctx);
-              return( mulle_objc_walk_ok);
-   case 'n' : if( ! string_matcher( "CGPoint", name_b, name_len))
-                  animate_point_property( property, ctx);
-              return( mulle_objc_walk_ok);
-   case '_' : if( ! string_matcher( "mulle_range", name_b, name_len))
-                  animate_range_property( property, ctx);
-              return( mulle_objc_walk_ok);
-   case 't' : if( ! string_matcher( "CGRect", name_b, name_len))
-                  animate_rect_property( property, ctx);
-              return( mulle_objc_walk_ok);
+      switch( name_b[ 5])
+      {
+      // soon to be CGEdgeInsets ?
+      case 'C' : if( ! string_matcher( "MulleCornerInsets", name_b, name_len))
+                 {
+                     animate_corner_insets_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'E' : if( ! string_matcher( "MulleEdgeInsets", name_b, name_len))
+                 {
+                     animate_edge_insets_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'a' : if( ! string_matcher( "CAPolarPoint", name_b, name_len))
+                 {
+                     animate_polar_point_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'c' : if( ! string_matcher( "CACircle", name_b, name_len))
+                 {
+                     animate_circle_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'e' : if( ! string_matcher( "CGSize", name_b, name_len))
+                 {
+                     animate_size_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'g' : if( ! string_matcher( "NSRange", name_b, name_len))
+                 {
+                    animate_range_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 'n' : if( ! string_matcher( "CGPoint", name_b, name_len))
+                 {
+                     animate_point_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case '_' : if( ! string_matcher( "mulle_range", name_b, name_len))
+                 {
+                     animate_range_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      case 't' : if( ! string_matcher( "CGRect", name_b, name_len))
+                 {
+                     animate_rect_property( property, ctx);
+                     return( mulle_objc_walk_ok);
+                 }
+                 break;
+      }
    }
 
    p = CAAnimationPropertyDefinitionSearchExtension( name_b, name_len);
    if( p)
+   {
       (*p->animateProperty)( property, ctx);
+      return( mulle_objc_walk_ok);
+   }
 
+type_fail:
+   MulleUICLog( "CABasicAnimation does not support type \"%s\" of property \"%s\"",
+                signature, _mulle_objc_property_get_name( property));
+   assert( 0 && "wrong type for observable property");
    return( mulle_objc_walk_ok);
 }
 
@@ -495,7 +656,7 @@ static mulle_objc_walkcommand_t
    [animationGroup setAnimationObject:self];
    _mulle_objc_infraclass_walk_properties( infra,
                                            _mulle_objc_infraclass_get_inheritance( infra),
-                                           walkproperties_callback,
+                                           caanimation_walkproperties_callback,
                                            &ctxt);
 }
 

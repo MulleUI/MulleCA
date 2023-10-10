@@ -47,6 +47,9 @@
 //
 // Animations are not clipped to the duration of the animation group.
 //
+// CAAnimationGroup inherits "animationObject". Currently it needs to be set
+// though it is unused...
+//
 @interface CAAnimationGroup : CAAnimation < CAAnimationStorageObject>
 {
    struct CAAnimationStorage   _animationStorage;
@@ -64,6 +67,7 @@
 // ...
 @property( assign) mulle_relativetime_t    animationDelay;
 @property( assign) mulle_relativetime_t    animationDuration;
+@property( assign) mulle_relativetime_t    animationOffset;
 
 //
 // Properties that are used to setup the animations on their creation

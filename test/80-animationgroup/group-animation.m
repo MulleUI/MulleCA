@@ -47,7 +47,7 @@ int   main( void)
    property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
 
    options  = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),
-                                                 0.0,
+                                                 1.0,
                                                  NO);
    animation = [[[CABasicAnimation alloc] initWithProperty:property
                                          startIntegerValue:0

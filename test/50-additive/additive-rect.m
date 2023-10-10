@@ -39,9 +39,10 @@ int   main( int argc, char *argv[])
    [foo setR:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),
+                                                 CAAnimationCurveLinear,
                                                  1.0,
-                                                 CAAnimationAdditive,
-                                                 CAAnimationCurveLinear);
+                                                 NO);
+   CABasicAnimationOptionsSetBit( &options, CAAnimationAdditive);
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( r))
                                             startRectValue:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)
                                               endRectValue:CGRectMake( 10.0f, 0.0f, 20.0f, -10.0f)

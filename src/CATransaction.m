@@ -7,8 +7,7 @@
 
 #import "CAAnimation.h"
 #import "CAAnimationGroup.h"
-
-
+#import "CAImplicitlyAnimatableObject.h"
 
 
 @interface CAAnimation( Private)
@@ -106,6 +105,7 @@ mulle_thread_tss_t   CATransactionThreadKey;
       [group setupAnimationOptions:&options];
       [group setAnimationOptions:&options];
 
+      // autoreleases _animationGroup and zeroes ivar
       [self reset];
    }
 

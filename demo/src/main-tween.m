@@ -107,7 +107,7 @@ static void   setupScene( UIWindow *window)
    CATransaction      *ta;
    CAAnimationGroup   *group;
 
-   frame = [[window contentPlane] contentRect];
+   frame = [[window contentView] contentRect];
    frame = UIEdgeInsetsInsetRect( frame, UIEdgeInsetsMake( 10, 10, 10, 10));
 
    ta = [CATransaction object];
@@ -122,7 +122,7 @@ static void   setupScene( UIWindow *window)
       else
          [layers[ i] setBackgroundColor:CGColorMakeWithRGBA( 0.0, 0.0, 1.0, 1.0)];
 
-      [[window contentPlane] addLayer:layers[ i]];
+      [[window contentView] addLayer:layers[ i]];
 
       [ta begin];
       {

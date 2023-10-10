@@ -47,24 +47,30 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationBits)
    CAAnimationEnded       = 0x40,
    CAAnimationPreempt     = 0x80,   // signal preemption
 
-   CAAnimationDelegateDidStartNotified = 0x100,
+// 8
+   CAAnimationDelegateWillStartNotified = 0x100,
+   CAAnimationDelegateDidStartNotified  = 0x200,
 
+// 10
    // user options, wont be reset
    CAAnimationReverses      = 0x10000,
-   CAAnimationReversesLate  = 0x20000,
+//   CAAnimationReversesLate  = 0x20000,    // no longer supported
+   CAAnimationQuantize      = 0x20000,   // scale according to Indepth2
    CAAnimationAdditive      = 0x40000,    // values will be added
    CAAnimationCumulative    = 0x80000,    // valid with additive, values will not be reset on repeat
-   CAAnimationWrapToZero    = 0x100000,   // pedantic fmod( x) = 0.0 -> 0.0 not 1.0
+   CAAnimationRateCorrect   = 0x100000,   // scale according to Indepth2
 
+// 15
    // other options, wont be reset
 
    CAAnimationHasIntegerRepeat  = 0x200000,
 //   CAAnimationStickyArrayFront  = 0x0,        // default
    CAAnimationStickyArrayCenter = 0x400000,
-   CAAnimationStickyArrayEnd    = 0x800000,
+   CAAnimationStickyArrayEnd    = 0x800000
+// 18
 };
 
-extern NS_OPTIONS_TABLE( CAAnimationBits, 15);
+extern NS_OPTIONS_TABLE( CAAnimationBits, 18);
 
 static inline char  *CAAnimationBitsUTF8String( CAAnimationBits bits)
 {
@@ -75,36 +81,93 @@ static inline char  *CAAnimationBitsUTF8String( CAAnimationBits bits)
 // If this were iOS and you would set CAAnimationReverses, the repeatCount
 // would be implicitly doubled. (e.g. a 0.2s autoreverses CAAnimation on iOS
 // takes 0.4s). Here CAAnimationReverses won't happen if the repeatCount is
-// 1.
+// 1. An animation with a repeatCount of <= 0.0 is corrected to 1.0, as 0.0
+// makes no sense!
 //
 struct CAAnimationOptions
 {
    struct mulle_relativetimerange    timeRange;
-   CGFloat                           repeatCount;
+   float                             offset;  // 0 - 1 (1 is same as 0)
+   float                             repeatCount;
    NSUInteger                        bits;  // reverse flag mainly
 };
 
 
-#define CA_ANIMATION_OPTIONS_INIT( delay, duration, repeat, bits)  \
-   ((struct CAAnimationOptions)                                    \
-   {                                                               \
-      MULLE_RELATIVETIMERANGE_INIT( (delay), (duration)),          \
-      (repeat),                                                    \
-      (bits)                                                       \
+#define CA_ANIMATION_OPTIONS_INIT( delay, duration, offset, repeat, bits)  \
+   ((struct CAAnimationOptions)                                            \
+   {                                                                       \
+      MULLE_RELATIVETIMERANGE_INIT( (delay), (duration)),                  \
+      (offset),                                                            \
+      (repeat),                                                            \
+      (bits)                                                               \
    })
    
 
 static inline struct CAAnimationOptions
    CAAnimationOptionsMake( struct mulle_relativetimerange timeRange,
-                           CGFloat repeatCount,
+                           mulle_relativetime_t  offset,
+                           float repeatCount,
                            NSUInteger bits)
 {
    return( (struct CAAnimationOptions)
            {
               .timeRange   = timeRange,
+              .offset      = offset,
               .repeatCount = repeatCount,
               .bits        = bits
             });
+}
+
+
+// these options are not in the constructors, because they are reasonably
+// rare and remembering the order as well as the meaning of the constants
+// gets some
+static inline void
+   CAAnimationOptionsSetTimeRange( struct CAAnimationOptions *options,
+                                  struct mulle_relativetimerange timeRange)
+{
+   if( ! options)
+      return;
+   options->timeRange = timeRange;
+}
+
+
+static inline void
+   CAAnimationOptionsSetOffset( struct CAAnimationOptions *options,
+                                float offset)
+{
+   if( ! options)
+      return;
+   options->offset = offset;
+}
+
+static inline void
+   CAAnimationOptionsSetRepeatCount( struct CAAnimationOptions *options,
+                                     float repeatCount)
+{
+   if( ! options)
+      return;
+   options->repeatCount = repeatCount;
+}
+
+
+static inline void
+   CAAnimationOptionsSetBit( struct CAAnimationOptions *options,
+                             NSUInteger  bit)
+{
+   if( ! options)
+      return;
+   options->bits |= bit;
+}
+
+
+static inline void
+   CAAnimationOptionsClearBit( struct CAAnimationOptions *options,
+                               NSUInteger bit)
+{
+   if( ! options)
+      return;
+   options->bits &= ~bit;
 }
 
 
@@ -114,8 +177,9 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options);
 @class CAAnimation;
 
 
-static inline mulle_relativetime_t   CAFrameCountToRelativeTime( NSUInteger frames,
-                                                                 mulle_relativetime_t frameRate)
+static inline mulle_relativetime_t
+   CAFrameCountToRelativeTime( NSUInteger frames,
+                               mulle_relativetime_t frameRate)
 {
    return( frames * frameRate);
 }
@@ -130,7 +194,7 @@ static inline mulle_relativetime_t   CAFrameCountToRelativeTime( NSUInteger fram
 - (void) animationWillStart:(CAAnimation *) animation;
 - (void) animationDidStart:(CAAnimation *) animation;
 - (void) animationDidStop:(CAAnimation *) animation
-                 finished:(BOOL)flag;
+                 finished:(BOOL) flag;
 @end
 
 
@@ -149,7 +213,8 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationState)
 {
    CAAnimationStateDone           = 0x0,   // animation is done
    CAAnimationStateActive         = 0x1,   // animation is active but waiting
-   CAAnimationStateAnimating      = 0x2,   // animation is animating
+   CAAnimationStateStarted        = 0x2,   // animation just started
+   CAAnimationStateAnimating      = 0x4,   // animation is animating
    CAAnimationStateFinalAnimation = 0x8    // animation has just done the final value
 };
 
@@ -192,7 +257,7 @@ struct CAAnimationMutableState
 @property( getter=isRemovedOnCompletion) BOOL removedOnCompletion;
 
 //
-// Used, if part of a CAAnimationGroup, not used if animation is a
+// Used, if part of a CAAnimationGroup.Not used, if animation is a
 // CALayer "private" animation. Return self, if you want to animate your
 // custom class, that implements CAAnimation so it can be removed by
 // CAAnimationStorage
@@ -206,11 +271,15 @@ struct CAAnimationMutableState
 
 
 // used if options are set to CAAnimationReverses (and CAAnimationRepeats)
-// animation will start again, with reverse time
+// will be called in addition to -animationIndexDidChange when animation
+// bounces
 - (void) reverse;
 
 // reset to start values
 - (void) reset;
+
+// if an animation touches a UIView frame or bounds, default: NO
+- (BOOL) changesLayout;
 
 @end
 
@@ -220,31 +289,33 @@ struct CAAnimationMutableState
 //       though it is costly
 //       HSV seems like a cheaper and probably more gainly alternative
 //
+
+// if there is an animationGroup it will retain us
 @interface CAAnimation : NSObject <NSCopying, CAAnimation>
 {
    struct mulle_relativetimerange   _relative;  // delay, copied from initialRenderdelay
-   CGFloat                          _repeatCount;
+   float                            _repeatCount;
+   mulle_relativetime_t             _offset;
 
    // mutating state
    struct CAAnimationMutableState   _state;
 }
 
+@property NSUInteger  debugEnabled;
 
-@property( getter=isRemovedOnCompletion) BOOL removedOnCompletion;
-@property( retain) id    animationObject;
 
+@property( getter=isRemovedOnCompletion) BOOL   removedOnCompletion;
+@property( retain) id                           animationObject;
 
 // contrary to Apple CoreAnimation, the delegate is not retained
-@property( assign) id <CAAnimationDelegate>   delegate;
+@property( assign) id <CAAnimationDelegate>     delegate;
 
-// if there is an animationGroup it will retain us
-@property( assign) CAAnimationFunction        *animationFunction;
+@property( assign) CAAnimationFunction          *animationFunction;
 
 
 //
-// If you use an animationRate != 0.0 and the repeatCount is an integer,
-// CAAnimation will ensure that the endValue is placed into the animatable
-// objects and the end of the animation
+// If the repeatCount is an integer, CAAnimation will ensure that the
+// endValue is placed into the animatable objects at the end of the animation.
 //
 + (BOOL) animateObjects:(struct mulle_pointerarray *) objects
            absoluteTime:(mulle_absolutetime_t) renderTime
@@ -278,3 +349,32 @@ normalizedRelativeTime:(double) t
 - (BOOL) hasEnded;
 
 @end
+
+
+// Use these functions for testing
+struct CAAnimationFrameInfo
+{
+   double                 t;
+   NSUInteger             i;
+   NSUInteger             nextState;
+   mulle_relativetime_t   delta;
+};
+
+
+void   CAAnimationStart( CAAnimation *self,
+                         mulle_absolutetime_t now,
+                         mulle_relativetime_t animationRate);
+
+//
+// this function just does "math" and no callbacks, which makes it a little
+// easier to debug
+//
+struct CAAnimationFrameInfo
+   CAAnimationComputeFrameInfo( CAAnimation *self,
+                                mulle_absolutetime_t now,
+                                mulle_relativetime_t animationRate);
+
+
+BOOL   CAAnimationDidAnimate( CAAnimation *self,
+                              mulle_relativetime_t now,
+                              struct CAAnimationFrameInfo info);
