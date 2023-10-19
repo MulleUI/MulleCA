@@ -28,8 +28,6 @@ char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value)
 }
 
 
-
-
 static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x);
 
 
@@ -205,13 +203,13 @@ static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *s
    id   newValue;
 
    if( ! self->_start.objectValue)
-      diff     = [self->_end.objectValue interpolateTo:nil
-                                                factor:(1.0 - x)
-                                              additive:YES];
+      diff = [self->_end.objectValue interpolateTo:nil
+                                            factor:(1.0 - x)
+                                          additive:YES];
    else
-      diff     = [self->_start.objectValue interpolateTo:self->_end.objectValue
-                                                  factor:x
-                                                additive:YES];
+      diff = [self->_start.objectValue interpolateTo:self->_end.objectValue
+                                              factor:x
+                                            additive:YES];
 
    value    = mulle_objc_object_call_variablemethodid( object, 
                                                        self->_property->getter, 
@@ -231,7 +229,6 @@ static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *s
 
    mulle_objc_object_call_variablemethodid( object, self->_property->setter, newValue);
 }
-
 
 
 // x can be < 0  and > 1 here
@@ -539,8 +536,6 @@ static void   CABasicAnimationSetInterpolatedObject( CABasicAnimation *self,
 }
 
 
-
-
 static struct CABasicAnimationTypeDefinition  builtins[] =
 {
    {
@@ -698,7 +693,6 @@ static const struct CABasicAnimationOptions
                                              CAAnimationCurveLinear);
 
 
-
 static void   CABasicAnimationAbort( CABasicAnimation *self, id object, double x)
 {
    mulle_fprintf( stderr, "This kind of interpolation is not supported on %ld\n", self->_valueType);
@@ -790,7 +784,6 @@ static int   types_are_compatible( char *a, int a_len,
 
       }
 
-
       //
       // we want to have {CGFloat2=ff} and {CGPoint=ff} to be compatible
       //
@@ -829,7 +822,6 @@ int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b)
 
    return( _mulle_objc_typeinfo_is_compatible( &a_info, &b_info));
 }
-
 
 
 static void  assert_property_is_compatible( struct _mulle_objc_property *property,
@@ -929,13 +921,11 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
    }
 #endif
 
-
-   CAAnimationLog( "%s %s %s",
-                 mulle_objc_property_get_name( property),
-                 CAAnimationValueTypeUTF8String( type),
-                 CAAnimationValueRangeUTF8String( range, type));
-
    self = [self initWithAnimationOptions:&options->base];
+   if( self)
+   {
+      CAAnimationLog( "property: \"%s\"",  mulle_objc_property_get_name( property));
+   }
    return( self);
 }
 
@@ -1190,6 +1180,7 @@ static void   releaseStartEnd( CABasicAnimation *self)
    }
 }
 
+
 - (void) dealloc
 {
    releaseStartEnd( self);
@@ -1254,6 +1245,20 @@ normalizedRelativeTime:(double) t
       releasePrevious( self);
       memset( &_previous, 0, sizeof( union CAAnimationValue));
    }
+}
+
+
+- (char *) UTF8String
+{
+   char   *s;
+
+   s = MulleObjC_asprintf( "<%s %p: [%s,%s] %s>",
+                           MulleObjCInstanceGetClassNameUTF8String( self),
+                           self,
+                           CAAnimationValueUTF8String( self->_start, self->_valueType),
+                           CAAnimationValueUTF8String( self->_end, self->_valueType),
+                           CAAnimationBitsUTF8String( self->_state.bits));
+   return( s);
 }
 
 @end

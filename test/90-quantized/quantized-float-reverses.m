@@ -65,7 +65,7 @@ int   main( int argc, char *argv[])
                           absoluteTime:now
                          animationRate:0.1]; // small error in animation rate
       printf( "\n");
-      if( state == CAAnimationStateDone)
+      if( state == CAAnimationReturnStateDone)
          break;
    }
 

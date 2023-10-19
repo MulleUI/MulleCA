@@ -38,20 +38,21 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationBits)
 {
    // internal state, can't be set from outside
    // this will be cleaned on reset
-   CAAnimationStarted     = 0x1,    // animation active, but possibly delayed
-   CAAnimationAnimating   = 0x2,    // passed delay, now doing something
-   CAAnimationScrubbing   = 0x4,    // future
-   CAAnimationHasReversed = 0x8,
-   CAAnimationIsReverse   = 0x10,
-   CAAnimationFinalized   = 0x20,   // only used with animationRate
-   CAAnimationEnded       = 0x40,
-   CAAnimationPreempt     = 0x80,   // signal preemption
+   CAAnimationStarted          = 0x1,    // animation active, but possibly delayed
+   CAAnimationAnimating        = 0x2,    // passed delay, now doing something
+   CAAnimationScrubbing        = 0x4,    // future
+   CAAnimationHasReversed      = 0x8,
+   CAAnimationIsReverse        = 0x10,
+   CAAnimationFinalized        = 0x20,   // only used with animationRate
+   CAAnimationEnded            = 0x40,
+   CAAnimationInterruptSignal  = 0x100,   // signal preemption
+   CAAnimationFinishSignal     = 0x200,   // signal quick finish
 
-// 8
-   CAAnimationDelegateWillStartNotified = 0x100,
-   CAAnimationDelegateDidStartNotified  = 0x200,
+// 9
+   CAAnimationDelegateWillStartNotified = 0x1000,
+   CAAnimationDelegateDidStartNotified  = 0x2000,
 
-// 10
+// 11
    // user options, wont be reset
    CAAnimationReverses      = 0x10000,
 //   CAAnimationReversesLate  = 0x20000,    // no longer supported
@@ -60,22 +61,20 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationBits)
    CAAnimationCumulative    = 0x80000,    // valid with additive, values will not be reset on repeat
    CAAnimationRateCorrect   = 0x100000,   // scale according to Indepth2
 
-// 15
+// 16
    // other options, wont be reset
 
    CAAnimationHasIntegerRepeat  = 0x200000,
 //   CAAnimationStickyArrayFront  = 0x0,        // default
    CAAnimationStickyArrayCenter = 0x400000,
    CAAnimationStickyArrayEnd    = 0x800000
-// 18
+// 19
 };
 
-extern NS_OPTIONS_TABLE( CAAnimationBits, 18);
+extern NS_OPTIONS_TABLE( CAAnimationBits, 19);
 
-static inline char  *CAAnimationBitsUTF8String( CAAnimationBits bits)
-{
-   return( NS_OPTIONS_PRINT( CAAnimationBits, bits));
-}
+MULLE_CA_EXTERN_GLOBAL
+char  *CAAnimationBitsUTF8String( CAAnimationBits bits);
 
 //
 // If this were iOS and you would set CAAnimationReverses, the repeatCount
@@ -124,7 +123,7 @@ static inline struct CAAnimationOptions
 // gets some
 static inline void
    CAAnimationOptionsSetTimeRange( struct CAAnimationOptions *options,
-                                  struct mulle_relativetimerange timeRange)
+                                   struct mulle_relativetimerange timeRange)
 {
    if( ! options)
       return;
@@ -153,7 +152,7 @@ static inline void
 
 static inline void
    CAAnimationOptionsSetBit( struct CAAnimationOptions *options,
-                             NSUInteger  bit)
+                             NSUInteger bit)
 {
    if( ! options)
       return;
@@ -203,33 +202,50 @@ static inline mulle_relativetime_t
 @class CAAnimationGroup;
 
 //
-// return values for animateObject:
-// You will not necessarily see "CAAnimationStateFinalAnimation" during the
+// This enum is _not_ stored in CAAnimation. Its the possible 
+// return values for -animateObject:absoluteTime:animationRate:
+//
+// You will not necessarily see "CAAnimationReturnStateFinalAnimation" during the
 // animation steps. It's there to properly chain animations, waiting for a
-// an animation being done or just having finished to setup a seemless
+// an animation being done or just having finished to setup a seamless
 // transition.
 //
-typedef NS_OPTIONS( NSUInteger, CAAnimationState)
+typedef NS_OPTIONS( NSUInteger, CAAnimationReturnState)
 {
-   CAAnimationStateDone           = 0x0,   // animation is done
-   CAAnimationStateActive         = 0x1,   // animation is active but waiting
-   CAAnimationStateStarted        = 0x2,   // animation just started
-   CAAnimationStateAnimating      = 0x4,   // animation is animating
-   CAAnimationStateFinalAnimation = 0x8    // animation has just done the final value
+   CAAnimationReturnStateDone           = 0x0,   // animation is done
+   CAAnimationReturnStateActive         = 0x1,   // animation is active but waiting
+   CAAnimationReturnStateStarted        = 0x2,   // animation just started
+   CAAnimationReturnStateAnimating      = 0x4,   // animation is animating
+   CAAnimationReturnStateFinalAnimation = 0x8    // animation has just done the final value
 };
 
 
-static inline char   *CAAnimationStateUTF8String( CAAnimationState state)
+static inline char   *CAAnimationReturnStateUTF8String( CAAnimationReturnState state)
 {
    switch( state)
    {
-   case CAAnimationStateDone           : return( "CAAnimationStateDone");
-   case CAAnimationStateActive         : return( "CAAnimationStateActive");
-   case CAAnimationStateAnimating      : return( "CAAnimationStateAnimating");
-   case CAAnimationStateFinalAnimation : return( "CAAnimationStateFinalAnimation");
+   case CAAnimationReturnStateDone           : return( "CAAnimationReturnStateDone");
+   case CAAnimationReturnStateActive         : return( "CAAnimationReturnStateActive");
+   case CAAnimationReturnStateStarted        : return( "CAAnimationReturnStateStarted");
+   case CAAnimationReturnStateAnimating      : return( "CAAnimationReturnStateAnimating");
+   case CAAnimationReturnStateFinalAnimation : return( "CAAnimationReturnStateFinalAnimation");
    default                             : return( "???");
    }
 }
+
+static inline char   *CAAnimationShortStateUTF8String( CAAnimationReturnState state)
+{
+   switch( state)
+   {
+   case CAAnimationReturnStateDone           : return( "Done");
+   case CAAnimationReturnStateActive         : return( "Active");
+   case CAAnimationReturnStateStarted        : return( "Started");
+   case CAAnimationReturnStateAnimating      : return( "Animating");
+   case CAAnimationReturnStateFinalAnimation : return( "FinalAnimation");
+   default                             : return( "???");
+   }
+}
+
 
 
 typedef void   CAAnimationFunction( CAAnimation *animation,
@@ -241,14 +257,14 @@ typedef void   CAAnimationFunction( CAAnimation *animation,
 struct CAAnimationMutableState
 {
   // mutating state
-   NSUInteger             bits;        // options and more
-
    mulle_absolutetime_t   start;
    mulle_relativetime_t   duration;
 
-   mulle_absolutetime_t   previousFrameTimestamp;
+   NSUInteger             bits;        // options and more
+
    NSUInteger             previousAnimationIndex;
-   double                 previousNormalizedRelativeTime;
+   mulle_absolutetime_t   previousFrameTimestamp;
+//   mulle_relativetime_t   previousNormalizedRelativeTime;
 };
 
 
@@ -264,7 +280,7 @@ struct CAAnimationMutableState
 //
 @property( retain) id    animationObject;
 
-// returns CAAnimationState
+// returns CAAnimationReturnState
 - (NSUInteger) animateObject:(id) object
                 absoluteTime:(mulle_absolutetime_t) now
                animationRate:(mulle_relativetime_t) animationRate;
@@ -277,6 +293,12 @@ struct CAAnimationMutableState
 
 // reset to start values
 - (void) reset;
+
+// keep at current values (and stop animating)
+- (void) interrupt;
+
+// set to end values (and stop animating)
+- (void) finish;
 
 // if an animation touches a UIView frame or bounds, default: NO
 - (BOOL) changesLayout;
@@ -294,11 +316,10 @@ struct CAAnimationMutableState
 @interface CAAnimation : NSObject <NSCopying, CAAnimation>
 {
    struct mulle_relativetimerange   _relative;  // delay, copied from initialRenderdelay
-   float                            _repeatCount;
-   mulle_relativetime_t             _offset;
-
    // mutating state
    struct CAAnimationMutableState   _state;
+   mulle_relativetime_t             _offset;
+   float                            _repeatCount;
 }
 
 @property NSUInteger  debugEnabled;
@@ -329,7 +350,7 @@ struct CAAnimationMutableState
 - (instancetype) initWithAnimationOptions:(struct CAAnimationOptions *) options;
 
 
-// returns CAAnimationState
+// returns CAAnimationReturnState
 - (NSUInteger) animateObject:(id) object
                 absoluteTime:(mulle_absolutetime_t) now
                animationRate:(mulle_relativetime_t) animationRate;

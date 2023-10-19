@@ -13,7 +13,6 @@
 
 PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 
-
 - (id) initAnimationStorage
 {
    struct mulle_allocator     *allocator;
@@ -98,7 +97,6 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-
 - (void) addAnimation:(id <CAAnimation>) animation
 {
    struct CAAnimationStorage   *storage;
@@ -106,11 +104,11 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    assert( animation);
 
 #ifdef DEBUG_VERBOSE
-   fprintf( stderr, "%s %s receives animation %p\n", __PRETTY_FUNCTION__,
-                        [self UTF8String], animation);
+   MulleUILog( "add animation %#@", animation);
 #endif
    storage = [self animationStorage];
    assert( _mulle_pointerarray_find( &storage->_animations, animation) == mulle_not_found_e);
+
    _mulle_pointerarray_add( &storage->_animations, [animation retain]);
    storage->_numberOfAnimations++;
 }
@@ -120,6 +118,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 {
    struct CAAnimationStorage   *storage;
    uintptr_t                   index;
+   unsigned int                n;
 
    storage = [self animationStorage];
 
@@ -127,14 +126,25 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    if( index == mulle_not_found_e)
       return;
 
+#ifdef DEBUG_VERBOSE
+   MulleUILog( "remove animation %#@", self, animation);
+#endif
+
    if( ! --storage->_numberOfAnimations)
       [self removeAllAnimations];
    else
    {
       [animation autorelease];
       mulle_pointerarray_set( &storage->_animations, (unsigned int) index, NULL);
+
+      // if we have too many holes, performance will suffer, so do not accept
+      // too many holes (don't bother with tiny arrays)
+      n = _mulle_pointerarray_get_count( &storage->_animations);
+      if( n >= 8 && n >= storage->_numberOfAnimations * 2)
+         mulle_pointerarray_compact( &storage->_animations, NULL);
    }
 }
+
 
 - (void) resetAnimationsForAnimationObject:(id) animationObject
 {
@@ -222,65 +232,109 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
                    animationRate:(mulle_relativetime_t) animationRate
 {
    CAAnimation                 *animation;
-   NSUInteger                  n_animations;
    NSUInteger                  n_deletions;
    struct CAAnimationStorage   *storage;
    struct mulle_pointerarray   deletions;
    id                          target;
-   BOOL                        flag;
-   CAAnimationState            state;
+   BOOL                        hasAnimations;
+   CAAnimationReturnState            state;
 
    storage = [self animationStorage];
-   n_animations = mulle_pointerarray_get_count( &storage->_animations);
-   if( ! n_animations)
-      return( NO);
 
 #ifdef DEBUG_VERBOSE
-   fprintf( stderr, "%.5f: %s %s (%ld)\n",
-               now, __PRETTY_FUNCTION__, [self UTF8String], n_animations);
+   MulleUILog( "now=%.6f numberOfAnimations=%ld",
+                now, storage->_numberOfAnimations);
 #endif
+
+   if( ! storage->_numberOfAnimations)
+      return( NO);
 
    // assume deletion is a rare occurrence
    mulle_pointerarray_init( &deletions, 0, NULL);
-
-   flag  = NO;
-   // animate all animations, collect those that are finished
-   mulle_pointerarray_for( &storage->_animations, animation)
    {
-      target = [animation animationObject];
-      state  = [animation animateObject:target ? target : self
-                           absoluteTime:now
-                          animationRate:animationRate];
-      if( state == CAAnimationStateDone)
+      hasAnimations = NO;
+      // animate all animations, collect those that are finished
+      mulle_pointerarray_for( &storage->_animations, animation)
       {
-         if( [animation isRemovedOnCompletion])
-            mulle_pointerarray_add( &deletions, animation);
-      }
-      else
-         flag = YES;
-   }
+         target = [animation animationObject];
+         state  = [animation animateObject:target ? target : self
+                              absoluteTime:now
+                             animationRate:animationRate];
 
-   // remove finished animations
-   n_deletions = mulle_pointerarray_get_count( &deletions);
-   if( n_deletions)
-   {
-      // likely quite common, and this is easier
-      if( n_deletions == n_animations)
-      {
-         [self removeAllAnimations];
-      }
-      else
-      {
-         mulle_pointerarray_for( &storage->_animations, animation)
+         if( state == CAAnimationReturnStateDone)
          {
-            [self removeAnimation:animation];
+            if( [animation isRemovedOnCompletion])
+            {
+#ifdef DEBUG_VERBOSE
+               MulleUILog( "schedule animation %#@ for deletion", animation);
+#endif
+               mulle_pointerarray_add( &deletions, animation);
+            }
+         }
+         else
+            hasAnimations = YES;
+      }
+
+      // remove finished animations
+      n_deletions = mulle_pointerarray_get_count( &deletions);
+      if( n_deletions)
+      {
+         // likely quite common, and this is easier
+         if( n_deletions == storage->_numberOfAnimations)
+         {
+            [self removeAllAnimations];
+         }
+         else
+         {
+            mulle_pointerarray_for( &deletions, animation)
+            {
+               [self removeAnimation:animation];
+            }
          }
       }
    }
    mulle_pointerarray_done( &deletions);
 
-   return( flag);
+   return( hasAnimations);
+}
+
+
+- (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
+                                  stateBitsCleared:(NSUInteger) clrBits
+{
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+   NSUInteger                  count;
+
+   storage = [self animationStorage];
+   count   = 0;
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      count += [animation _numberOfAnimationsWithStateBitsSet:setBits
+                                            stateBitsCleared:clrBits];
+   }
+
+   return( count);
 }
 
 
 PROTOCOLCLASS_END()
+
+
+@implementation CAAnimation( CAAnimationStorageObject)
+
+- (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
+                                  stateBitsCleared:(NSUInteger) clrBits
+{
+   NSUInteger   state;
+
+   state = self->_state.bits;
+   if( (state & clrBits) != 0)
+      return( 0);
+   if( (state & setBits) != setBits)
+      return( 0);
+
+   return( 1);
+}
+
+@end

@@ -46,7 +46,7 @@ int   main( int argc, char *argv[])
                           absoluteTime:now
                          animationRate:1 / 10.0];
       printf( "\n");
-      if( state == CAAnimationStateDone)
+      if( state == CAAnimationReturnStateDone)
          break;
    }
 

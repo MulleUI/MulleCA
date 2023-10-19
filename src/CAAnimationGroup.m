@@ -73,6 +73,36 @@
 }
 
 
+- (void) finish
+{
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
+
+   [super finish];
+
+   storage = [self animationStorage];
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      [animation finish];
+   }
+}
+
+
+- (void) interrupt
+{
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
+
+   [super interrupt];
+
+   storage = [self animationStorage];
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      [animation interrupt];
+   }
+}
+
+
 - (void) animateObject:(id) object
 normalizedRelativeTime:(mulle_relativetime_t) t
            elapsedTime:(mulle_relativetime_t) elapsedTime
@@ -99,6 +129,8 @@ normalizedRelativeTime:(mulle_relativetime_t) t
    // CAAnimationStorage animator
    [self animateWithAbsoluteTime:now
                    animationRate:animationRate];
+
+   // TODO: handle finish and interrupt here so that we are done too
 
    // we like to call this after the constituent animations have run,
    // so use a separate logic here than -didEnd
