@@ -20,7 +20,7 @@
 @end
 
 
-NS_OPTIONS_TABLE( CAAnimationBits, 18) =
+NS_OPTIONS_TABLE( CAAnimationBits, 19) =
 {
    NS_OPTIONS_ITEM( CAAnimationStarted),
    NS_OPTIONS_ITEM( CAAnimationAnimating),
@@ -29,24 +29,92 @@ NS_OPTIONS_TABLE( CAAnimationBits, 18) =
    NS_OPTIONS_ITEM( CAAnimationIsReverse),
    NS_OPTIONS_ITEM( CAAnimationFinalized),
    NS_OPTIONS_ITEM( CAAnimationEnded),
-   NS_OPTIONS_ITEM( CAAnimationPreempt),
-// 8
+   NS_OPTIONS_ITEM( CAAnimationInterruptSignal),
+   NS_OPTIONS_ITEM( CAAnimationFinishSignal),
+// 9
    NS_OPTIONS_ITEM( CAAnimationDelegateWillStartNotified),
    NS_OPTIONS_ITEM( CAAnimationDelegateDidStartNotified),
 
-// 10
+// 11
    NS_OPTIONS_ITEM( CAAnimationReverses),
    NS_OPTIONS_ITEM( CAAnimationQuantize),
    NS_OPTIONS_ITEM( CAAnimationAdditive),
    NS_OPTIONS_ITEM( CAAnimationCumulative),
    NS_OPTIONS_ITEM( CAAnimationRateCorrect),
 
-// 15
+// 16
    NS_OPTIONS_ITEM( CAAnimationHasIntegerRepeat),
    NS_OPTIONS_ITEM( CAAnimationStickyArrayCenter),
    NS_OPTIONS_ITEM( CAAnimationStickyArrayEnd)
 };
 
+
+static char   *skip_prefix_if_present( char *s, char *prefix)
+{
+   size_t   len;
+
+   len = strlen( prefix);
+   if( ! strncmp( s, prefix, len))
+      s += len;
+   return( s);
+}
+
+
+char  *CAAnimationBitsUTF8String( CAAnimationBits bits)
+{
+   NSUInteger   bit;
+   char         *desc;
+   char         *s;
+
+   mulle_buffer_do_autoreleased_string( buffer, NULL, s)
+   {
+      bit = 0x1;
+      while( bits)
+      {
+         if( bits & bit)
+         {
+            desc = NS_OPTIONS_LOOKUP( CAAnimationBits, bit);
+            desc = desc ? desc : "???";
+            desc = skip_prefix_if_present( desc, "CAAnimation");
+            mulle_buffer_add_string_if_not_empty( buffer, "|");
+            mulle_buffer_add_string( buffer, desc);
+
+            bits &= ~bit;
+         }
+         bit <<= 1;
+      }
+      mulle_buffer_add_string_if_empty( buffer, "0");
+   }
+   return( s);
+}
+
+
+char  *CAAnimationBitsDiffUTF8String( CAAnimationBits old, CAAnimationBits bits)
+{
+   CAAnimationBits   set;
+   CAAnimationBits   cleared;
+   char              *s;
+                              // old     bits       ~      =
+   set     = bits & ~old;     // 0x05 -> 0x0C  :   0xFA   0x8
+   cleared = old  & ~bits;    //               :   0xF3   0x1
+
+   mulle_buffer_do_autoreleased_string( buffer, NULL, s)
+   {
+      if( cleared)
+      {
+         mulle_buffer_add_string( buffer, "-");
+         mulle_buffer_add_string( buffer, CAAnimationBitsUTF8String( cleared));
+      }
+
+      if( set)
+      {
+         mulle_buffer_add_string_if_not_empty( buffer, ",");
+         mulle_buffer_add_string( buffer, "+");
+         mulle_buffer_add_string( buffer, CAAnimationBitsUTF8String( set));
+      }
+   }
+   return( s);
+}
 
 
 char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
@@ -59,7 +127,6 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
                options->repeatCount,
                CAAnimationBitsUTF8String( options->bits)));
 }
-
 
 
 @implementation CAAnimation
@@ -76,9 +143,14 @@ static struct
 } Self;
 
 
+// this will be called for subclasses as well, does it matter ?
 + (void) initialize
 {
    char   *s;
+
+   // don't run again for subclass
+   if( MulleObjCClassGetID( self) != @selector( CAAnimation))
+      return;
 
    s = getenv( "CAAnimationDebugEnabled");
    if( s)
@@ -116,7 +188,7 @@ static inline void   resetAnimation( CAAnimation *self)
    self->_state.bits                          &= ~0xFFFF;
    self->_state.previousFrameTimestamp         = -INFINITY;
    self->_state.previousAnimationIndex         = 0;
-   self->_state.previousNormalizedRelativeTime = 0.0;
+//   self->_state.previousNormalizedRelativeTime = 0.0;
 }
 
 
@@ -143,11 +215,11 @@ static inline void   resetAnimation( CAAnimation *self)
    //
    // an offset of 1.0 is just wrapping to zero, if negative make positive
    //
-   self->_offset              = fmod( options->offset, 1.0);
+   self->_offset = fmod( options->offset, 1.0);
    if( self->_offset < 0.0)
       self->_offset += 1.0;
 
-   self->_repeatCount         = options->repeatCount <= 0.0 ? 1.0 : options->repeatCount;
+   self->_repeatCount = options->repeatCount <= 0.0 ? 1.0 : options->repeatCount;
    if( (NSInteger) self->_repeatCount == self->_repeatCount)
       self->_state.bits |= CAAnimationHasIntegerRepeat;
 }
@@ -169,7 +241,8 @@ static inline void   resetAnimation( CAAnimation *self)
       return( nil);
    }
 
-   _debugEnabled = Self._debugEnabled;
+   _debugEnabled        = Self._debugEnabled;
+   _removedOnCompletion = YES;
 
    [self setAnimationOptions:options];
    resetAnimation( self);
@@ -195,7 +268,6 @@ static inline void   resetAnimation( CAAnimation *self)
    clone->_animationObject = nil;  // or what ?
    return( clone);
 }
-
 
 
 - (void) animationIndexDidChange
@@ -233,12 +305,27 @@ normalizedRelativeTime:(double) t
 }
 
 
-// at the moment, if you call this
-- (void) wasPreempted
+- (void) finish
 {
-   self->_state.bits |= CAAnimationEnded;
-   [_delegate animationDidStop:self
-                      finished:NO];
+   if( self->_state.bits & CAAnimationEnded)
+      return;
+
+   self->_state.bits |= CAAnimationFinishSignal;
+
+   // -> Finalized
+   [self animateObject:[self animationObject]
+          absoluteTime:0.0
+         animationRate:0.0];
+   // -> Ended
+   [self animateObject:[self animationObject]
+          absoluteTime:0.0
+         animationRate:0.0];
+}
+
+
+- (void) interrupt
+{
+   self->_state.bits |= CAAnimationInterruptSignal;
 }
 
 
@@ -251,50 +338,72 @@ normalizedRelativeTime:(double) t
 // returns YES, if really ended (reverse flag is confusing to me)
 - (BOOL) didEnd
 {
+   BOOL  finished;
+
    CAAnimationLog("");
 
+   finished = (self->_state.bits & CAAnimationInterruptSignal) ? NO : YES;
    // don't call callbacks if we are "scrubbing" (future)
    // also don't really end
-   if( self->_state.bits & CAAnimationScrubbing)
+   if( finished && self->_state.bits & CAAnimationScrubbing)
       return( NO);
 
-   self->_state.bits |= CAAnimationEnded;
    [_delegate animationDidStop:self
-                      finished:YES];
+                      finished:finished];
    return( YES);
 }
 
 
-static inline CAAnimationState  stateReturn( CAAnimation *self, CAAnimationState state)
-{
-   CAAnimationLogVerbose( "%s", CAAnimationStateUTF8String( state));
+#if ! defined( CA_ANIMATION_DEBUG_DISABLED)
 
-   return( state);
-}
+#define CAAnimationReturnStateLogDo( text)                                          \
+   for( NSUInteger loop__state = 0, old__bits = self->_state.bits;            \
+        loop__state == 0;                                                     \
+        ( ((old__bits != self->_state.bits &&                                 \
+            self->_debugEnabled & CAAnimationDebugState)                      \
+           ? ( mulleui_log( "<%s %p>: '%s' %s",                               \
+                       MulleObjCInstanceGetClassNameUTF8String( self),        \
+                       self,                                                  \
+                       (text),                                                \
+                       CAAnimationBitsDiffUTF8String( old__bits,              \
+                                                      self->_state.bits)), 0) \
+           : 0),                                                              \
+          loop__state = 1)                                                    \
+      )                                                                       \
+      for( int  break_protect ## __j = 0;    /* break protection */           \
+           break_protect ## __j < 1;                                          \
+           break_protect ## __j++)
 
+#else
+
+#define CAAnimationReturnStateLogDo( text)    do {} while( 0)
+
+#endif
 
 
 void   CAAnimationStart( CAAnimation *self,
                          mulle_absolutetime_t now,
                          mulle_relativetime_t animationRate)
 {
-   //
-   // Should we start animating if not yet ? We round down here, so we may
-   // start a/ little early in absolute time! This will happen if there is a
-   // delay to hit the animationRate better. (All this is a nop if 0.0)
-   //
-   self->_state.start    = mulle_timeinterval_add( now, self->_relative.delay)
-                           - (animationRate / 2.0);
-   self->_state.duration = self->_relative.duration;
+   CAAnimationReturnStateLogDo( "Start")
+   {
+      //
+      // Should we start animating if not yet ? We round down here, so we may
+      // start a/ little early in absolute time! This will happen if there is a
+      // delay to hit the animationRate better. (All this is a nop if 0.0)
+      //
+      self->_state.start    = mulle_timeinterval_add( now, self->_relative.delay)
+                              - (animationRate / 2.0);
+      self->_state.duration = self->_relative.duration;
 
-   // if we are starting immediately fix start back to actual start
-   // (tests better)
-   if( now >= self->_state.start)
-      self->_state.start = now;  // sic!
+      // if we are starting immediately fix start back to actual start
+      // (tests better)
+      if( now >= self->_state.start)
+         self->_state.start = now;  // sic!
 
-   self->_state.bits |= CAAnimationStarted;
+      self->_state.bits |= CAAnimationStarted;
+   }
 }
-
 
 //
 // this function just does "math" and no callbacks, which makes it a little
@@ -314,6 +423,7 @@ struct CAAnimationFrameInfo
    double                        value;
    double                        t;
    int                           edge;
+   mulle_relativetime_t          end;
    mulle_relativetime_t          delta;
    mulle_relativetime_t          elapsedTime;
    mulle_relativetime_t          nextMidpoint;
@@ -382,9 +492,19 @@ struct CAAnimationFrameInfo
    // the value, we would get if we ran the animation through
    if( d + nextMidpoint >= e)
    {
-      self->_state.bits |= CAAnimationFinalized;
-      nextState          = CAAnimationStateFinalAnimation;
-      d                  = e;
+      CAAnimationReturnStateLogDo( "End")
+      {
+         self->_state.bits |= CAAnimationFinalized;
+         nextState          = CAAnimationReturnStateFinalAnimation;
+         d                  = e;
+
+         // need to correct this in case we are finishing and now is infinity
+         // also it's more in tune with 't'
+         end                = self->_state.start + e;
+         delta              = end - (isinf( self->_state.previousFrameTimestamp)
+                                    ? end
+                                    : self->_state.previousFrameTimestamp);
+      }
    }
 
    //
@@ -422,17 +542,20 @@ struct CAAnimationFrameInfo
    {
       if( self->_state.bits & CAAnimationReverses)
       {
-         if( ! (self->_state.bits & CAAnimationHasReversed))
-            self->_state.bits |= CAAnimationHasReversed;
+         CAAnimationReturnStateLogDo( "Reverse")
+         {
+            if( ! (self->_state.bits & CAAnimationHasReversed))
+               self->_state.bits |= CAAnimationHasReversed;
 
-         self->_state.bits ^= CAAnimationIsReverse;
+            self->_state.bits ^= CAAnimationIsReverse;
+         }
       }
    }
 
    //
    // now compute t from 'f'
    //
-   if( nextState == CAAnimationStateFinalAnimation &&
+   if( nextState == CAAnimationReturnStateFinalAnimation &&
        (self->_state.bits & CAAnimationHasIntegerRepeat))
    {
       // the CAAnimationIsReverse meaning is reversed here
@@ -465,15 +588,27 @@ BOOL   CAAnimationDidAnimate( CAAnimation *self,
 {
    self->_state.previousFrameTimestamp         = now;
    self->_state.previousAnimationIndex         = info.i;
-   self->_state.previousNormalizedRelativeTime = info.t;
+//   self->_state.previousNormalizedRelativeTime = info.t;
 
    if( ! (self->_state.bits & CAAnimationDelegateDidStartNotified))
    {
-      self->_state.bits |= CAAnimationDelegateDidStartNotified;
+      CAAnimationReturnStateLogDo( "StartNotify")
+      {
+         self->_state.bits |= CAAnimationDelegateDidStartNotified;
+      }
       return( YES);
    }
    return( NO);
 }
+
+
+static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
+                                             CAAnimationReturnState state)
+{
+   CAAnimationLogVerbose( "%s", CAAnimationReturnStateUTF8String( state));
+   return( state);
+}
+
 
 
 // b animateObject:absoluteTime:animationRate:
@@ -486,23 +621,48 @@ BOOL   CAAnimationDidAnimate( CAAnimation *self,
    CAAnimationLogVerbose( "_bits=%s; object=%#@ now=%.6f start=%.6f animationRate=%.6f",
                   CAAnimationBitsUTF8String( self->_state.bits), object, now, self->_state.start, animationRate);
 
-   if( self->_state.bits & CAAnimationFinalized)
-   {
-      if( [self didEnd])
-         return( stateReturn( self, CAAnimationStateDone));
-
-      self->_state.bits &= ~CAAnimationFinalized;
-   }
-
    if( self->_state.bits & CAAnimationEnded)
    {
-      return( CAAnimationStateDone);
+      return( stateReturn( self, CAAnimationReturnStateDone));
    }
 
-   if( self->_state.bits & CAAnimationPreempt)
+   if( self->_state.bits & CAAnimationInterruptSignal)
    {
-      [self wasPreempted];
-      return( CAAnimationStateDone);
+      CAAnimationReturnStateLogDo( "InterruptSignal")
+      {
+         self->_state.bits &= ~CAAnimationInterruptSignal;
+         self->_state.bits |= CAAnimationFinalized;
+      }
+   }
+
+   if( self->_state.bits & CAAnimationFinalized)
+   {
+      CAAnimationReturnStateLogDo( "Finalized")
+      {
+         if( [self didEnd])
+         {
+            self->_state.bits |= CAAnimationEnded;
+            self->_state.bits &= ~CAAnimationAnimating|CAAnimationStarted;
+            return( stateReturn( self, CAAnimationReturnStateDone));
+         }
+
+         self->_state.bits &= ~CAAnimationFinalized;
+      }
+   }
+
+
+   if( self->_state.bits & CAAnimationFinishSignal)
+   {
+      CAAnimationReturnStateLogDo( "FinishSignal")
+      {
+         now                = INFINITY;  // finish up for sure
+         animationRate      = 0.0;
+         self->_state.bits |= CAAnimationAnimating \
+                              | CAAnimationStarted \
+                              | CAAnimationDelegateDidStartNotified \
+                              | CAAnimationDelegateWillStartNotified;
+         self->_state.bits &= ~CAAnimationFinishSignal;
+      }
    }
 
    if( ! (self->_state.bits & CAAnimationStarted))
@@ -511,24 +671,29 @@ BOOL   CAAnimationDidAnimate( CAAnimation *self,
    }
 
    if( now < self->_state.start)
-      return( CAAnimationStateActive);
+      return( stateReturn( self, CAAnimationReturnStateActive));
 
    if( self->_state.duration == 0.0f)
    {
       [self didEnd]; // ignore scrubbing
-      return( stateReturn( self, CAAnimationStateDone));
+      self->_state.bits |= CAAnimationEnded;
+      self->_state.bits &= ~CAAnimationAnimating|CAAnimationStarted;
+      return( stateReturn( self, CAAnimationReturnStateDone));
    }
 
    if( ! (self->_state.bits & CAAnimationAnimating))
    {
-      [self willStartAnimating];
-      self->_state.bits |= CAAnimationAnimating;
-
-      // kinda superflous check or ?
-      if( ! (self->_state.bits & CAAnimationDelegateWillStartNotified))
+      CAAnimationReturnStateLogDo( "Animating")
       {
-         self->_state.bits |= CAAnimationDelegateWillStartNotified;
-         [_delegate animationWillStart:self];
+         [self willStartAnimating];
+         self->_state.bits |= CAAnimationAnimating;
+
+         // kinda superflous check or ?
+         if( ! (self->_state.bits & CAAnimationDelegateWillStartNotified))
+         {
+            self->_state.bits |= CAAnimationDelegateWillStartNotified;
+            [_delegate animationWillStart:self];
+         }
       }
    }
 
@@ -567,21 +732,19 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
                                         mulle_absolutetime_t renderTime,
                                         mulle_absolutetime_t animationRate)
 {
-   id           object;
-   NSUInteger   state;
+   id     object;
+   BOOL   flag;
 
-   state = CAAnimationStateDone;
-   assert( ! state);
-
+   flag = NO;
    mulle_pointerarray_for( objects, object)
    {
-      state |= (NSUInteger) MulleObjCObjectPerformSelectorDoubleArgument2( object,
+      flag |= (NSUInteger) MulleObjCObjectPerformSelectorDoubleArgument2( object,
                                                                            sel,
                                                                            renderTime,
                                                                            animationRate);
    }
 
-   return( state != CAAnimationStateDone);
+   return( flag);
 }
 
 
@@ -596,6 +759,18 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
                                     renderTime,
                                     animationRate);
    return( flag);
+}
+
+
+- (char *) UTF8String
+{
+   char   *s;
+
+   s = MulleObjC_asprintf( "<%s %p: %s>",
+                           MulleObjCInstanceGetClassNameUTF8String( self),
+                           self,
+                           CAAnimationBitsUTF8String( self->_state.bits & 0xFF));
+   return( s);
 }
 
 @end

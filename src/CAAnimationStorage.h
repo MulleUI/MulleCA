@@ -46,8 +46,23 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 - (void) resetAnimationsForAnimationObject:(id) animationObject;
 - (void) removeAnimationsForAnimationObject:(id) animationObject;
 
+// return YES if animating
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime
                    animationRate:(mulle_relativetime_t) animationRate;
 
+- (CAAnimation *) animationWithAnimationID:(char *) s;
+
+- (char *) UTF8String;
+
+// debugs support
+- (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
+                                  stateBitsCleared:(NSUInteger) clrBits;
 PROTOCOLCLASS_END()
 
+
+@interface CAAnimation( CAAnimationStorageObject)
+
+- (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
+                                  stateBitsCleared:(NSUInteger) clrBits;
+
+@end
