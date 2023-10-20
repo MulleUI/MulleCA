@@ -79,6 +79,10 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endif()
    endif()
 
+   if( NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+      message( WARNING "Will also search system paths for dependencies")
+   endif()
+
    message( STATUS "DEPENDENCY_DIR=\"${DEPENDENCY_DIR}\"")
    list( APPEND ADDITIONAL_BIN_PATH "${DEPENDENCY_DIR}/bin")
 
