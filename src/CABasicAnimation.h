@@ -420,22 +420,22 @@ static inline struct CABasicAnimationOptions
 
 
 
-#define CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( vdelay, vduration, voffset, vrepeat, vbits, vcurve)  \
+#define CA_BASIC_ANIMATION_OPTIONS_DATA_CURVE( vdelay, vduration, voffset, vrepeat, vbits, vcurve)  \
    ((struct CABasicAnimationOptions)                                                                \
    {                                                                                                \
       /* base */                                                                                    \
-      .base = CA_ANIMATION_OPTIONS_INIT( (vdelay), (vduration), (voffset), (vrepeat), (vbits)),     \
+      .base = CA_ANIMATION_OPTIONS_DATA( (vdelay), (vduration), (voffset), (vrepeat), (vbits)),     \
       /* curve */                                                                                   \
       .curve = (vcurve),                                                                            \
       .tween = 0                                                                                    \
    })                                                                                  
 
 
-#define CA_BASIC_ANIMATION_OPTIONS_INIT_TWEEN( vdelay, vduration, voffset, vrepeat, vbits, vtween) \
+#define CA_BASIC_ANIMATION_OPTIONS_DATA_TWEEN( vdelay, vduration, voffset, vrepeat, vbits, vtween) \
    ((struct CABasicAnimationOptions)                                                               \
    {                                                                                               \
       /* base */                                                                                   \
-      .base = CA_ANIMATION_OPTIONS_INIT( (vdelay), (vduration), (voffset), (vrepeat), (vbits)),    \
+      .base = CA_ANIMATION_OPTIONS_DATA( (vdelay), (vduration), (voffset), (vrepeat), (vbits)),    \
       /* curve */                                                                                  \
       .curve = 0,                                                                                  \
       .tween = (vtween)                                                                            \

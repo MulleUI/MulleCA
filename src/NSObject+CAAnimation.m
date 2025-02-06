@@ -477,6 +477,7 @@ static void   animate_object_property( struct _mulle_objc_property *property,
    return( NO);
 }
 
+
 static mulle_objc_walkcommand_t
    caanimation_walkproperties_callback( struct _mulle_objc_property *property,
                                         struct _mulle_objc_infraclass *infra,
@@ -535,7 +536,7 @@ static mulle_objc_walkcommand_t
                        animate_float_property( property, ctx);
                        return( mulle_objc_walk_ok);
    case _C_STRUCT_B  : // drop down to following,
-      break;
+                       break;
 
    default           : goto type_fail;
    }

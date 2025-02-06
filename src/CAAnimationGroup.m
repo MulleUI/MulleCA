@@ -104,8 +104,7 @@
 
 
 - (void) animateObject:(id) object
-normalizedRelativeTime:(mulle_relativetime_t) t
-           elapsedTime:(mulle_relativetime_t) elapsedTime
+    animationFrameInfo:(struct CAAnimationFrameInfo *) info
 {
    // do nothing here
 }
@@ -149,6 +148,20 @@ normalizedRelativeTime:(mulle_relativetime_t) t
 {
    [self resetAllAnimations];
    [super reset];
+}
+
+
+- (void) mulleGainAccess
+{
+   [super mulleGainAccess];
+   [self mulleGainAccessToAnimations];
+}
+
+
+- (void) mulleRelinquishAccess
+{
+   [self  mulleRelinquishAccessToAnimations];
+   [super mulleRelinquishAccess];
 }
 
 @end

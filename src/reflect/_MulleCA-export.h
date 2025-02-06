@@ -9,8 +9,8 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_c_a_export_h__
-#define mulle_c_a_export_h__
+#ifndef _mulle_c_a__export_h__
+#define _mulle_c_a__export_h__
 
 
 #import "CAAnimationGroup.h"
@@ -19,6 +19,7 @@
 #import "CAAnimator.h"
 #import "CABasicAnimation.h"
 #import "CAImplicitlyAnimatableObject.h"
+#import "CALayer.h"
 #import "CATransaction.h"
 #import "CGGeometry+MulleObjC.h"
 #import "MulleEdgeInsets+MulleObjC.h"

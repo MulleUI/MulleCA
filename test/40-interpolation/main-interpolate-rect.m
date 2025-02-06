@@ -30,8 +30,8 @@ int   main( int argc, char *argv[])
 
    foo       = [Foo object];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( r))
-                                           startRectValue:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)
-                                             endRectValue:CGRectMake( 10.0f, 0.0f, 20.0f, -10.0f)
+                                            startRectValue:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)
+                                              endRectValue:CGRectMake( 10.0f, 0.0f, 20.0f, -10.0f)
                                                    options:NULL] autorelease];
 
    for( i = 0; i <= 5; i++)

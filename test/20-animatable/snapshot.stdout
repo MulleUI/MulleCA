@@ -1,0 +1,20 @@
+unobservedValue    : a
+name               : VfL Bochum
+doubleValue        : 18.48
+retainValue        : b
+copyValue          : c
+unobservedValue    : d
+dynamicName        : FC Wismut Aue
+dynamicDoubleValue : 1990.00
+dynamicRetainValue : e
+dynamicCopyValue   : f
+unobservedValue    : (nil)
+name               : VfL Bochum
+doubleValue        : 18.48
+retainValue        : b
+copyValue          : c
+unobservedValue    : (nil)
+dynamicName        : FC Wismut Aue
+dynamicDoubleValue : 1990.00
+dynamicRetainValue : e
+dynamicCopyValue   : f

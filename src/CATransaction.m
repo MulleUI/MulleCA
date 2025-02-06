@@ -94,9 +94,15 @@ mulle_thread_tss_t   CATransactionThreadKey;
 
    assert( _state == CATransactionStarted);
 
+
    group = _animationGroup;
    _state = CATransactionCommitting;
+
+   // if we set the transaction to NULL here already, this stops
+   // the snapshot generation
+   CATransactionSetCurrentTransaction( NULL);
    {
+
       mulle_pointerarray_for( &_animatedObjects, obj)
       {
          [obj commitImplicitAnimations:group];
@@ -144,12 +150,11 @@ mulle_thread_tss_t   CATransactionThreadKey;
 }
 
 
-
 // forward dynamic properties to animationGroup
 - (void *) forward:(void *) param
 {
    assert( _animationGroup);
-   return( mulle_objc_object_call_variablemethodid_inline( _animationGroup,
+   return( mulle_objc_object_call_variable_inline( _animationGroup,
                                                           (mulle_objc_methodid_t) _cmd,
                                                           param));
 }

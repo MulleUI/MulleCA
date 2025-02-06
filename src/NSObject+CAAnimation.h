@@ -38,6 +38,10 @@ void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext 
 
 - (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
                                       animationGroup:(CAAnimationGroup *) group;
+@end
+
+
+@interface NSObject( CAAnimationForward)
 
 // implement this on "value" objects class to create a CAAnimation to animate
 // from "startObject" to "endObject"
@@ -48,4 +52,5 @@ void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext 
                              property:(struct _mulle_objc_property *) property
                               options:(struct CABasicAnimationOptions *) animationOptions;
 @end
+
 

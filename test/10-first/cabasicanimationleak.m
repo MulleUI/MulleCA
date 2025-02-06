@@ -1,12 +1,25 @@
 #import <MulleCA/MulleCA.h>
 
-@interface Foo : CAImplicitlyAnimatableObject < NSCopying, CAInterpolatableValue>
-
+// this is just a fake CAInterpolatableValue, i doesn't interpolate
+// its not a value
+@interface Foo : NSObject <CAImplicitlyAnimatableObject, CAInterpolatableValue>
+{
+   CAImplicitlyAnimatableObjectIvars;
+   CAAnimationStorageObjectIvars;
+}
 @property( observable, retain) id    value;
 
-@end 
+CAImplicitlyAnimatableObjectInterface;
+CAAnimationStorageObjectInterface;
+
+@end
+
 
 @implementation Foo
+
+CAImplicitlyAnimatableObjectImplementation;
+CAAnimationStorageObjectImplementation;
+
 
 - (id) interpolateTo:(id) end
               factor:(double) x
@@ -21,6 +34,12 @@
 {
    return( self);
 }            
+
+
+- (id) copy
+{
+   return( [self retain]);
+}
 
 @end 
 

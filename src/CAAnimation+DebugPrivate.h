@@ -9,7 +9,7 @@ enum
 
 
 
-#if ! defined( CA_ANIMATION_DEBUG_DISABLED)
+#if ! defined( CA_ANIMATION_LOG_DISABLED)
 
 @interface NSObject( CAAnimationDebug)
 
@@ -22,7 +22,7 @@ enum
 do                                                                       \
 {                                                                        \
    assert( [self __isCAAnimation]);                                      \
-   if( self->_debugEnabled & CAAnimationDebug)                           \
+   if( self->_debuggingFlags & CAAnimationDebug)                         \
       mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,     \
                                        (char *) format, ## __VA_ARGS__); \
 }                                                                        \
@@ -32,7 +32,7 @@ while( 0)
 do                                                                       \
 {                                                                        \
    assert( [self __isCAAnimation]);                                      \
-   if( self->_debugEnabled & CAAnimationDebugVerbose)                    \
+   if( self->_debuggingFlags & CAAnimationDebugVerbose)                  \
       mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,     \
                                        (char *) format, ## __VA_ARGS__); \
 }                                                                        \
@@ -42,18 +42,18 @@ while( 0)
 do                                                                       \
 {                                                                        \
    assert( [self __isCAAnimation]);                                      \
-   if( self->_debugEnabled & CAAnimationDebugInterpolate)                \
+   if( self->_debuggingFlags & CAAnimationDebugInterpolate)              \
       mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,     \
                                        (char *) format, ## __VA_ARGS__); \
 }                                                                        \
 while( 0)
 
 
-#define CAAnimationReturnStateLog( format, ...)                                \
+#define CAAnimationReturnStateLog( format, ...)                          \
 do                                                                       \
 {                                                                        \
    assert( [self __isCAAnimation]);                                      \
-   if( self->_debugEnabled & CAAnimationDebugState)                      \
+   if( self->_debuggingFlags & CAAnimationDebugState)                    \
       mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,     \
                                        (char *) format, ## __VA_ARGS__); \
 }                                                                        \
@@ -62,9 +62,9 @@ while( 0)
 
 #else
 
-#define CAAnimationLog( format, ...)                  do {} while( 0)
-#define CAAnimationLogVerbose( format, ...)           do {} while( 0)
-#define CAAnimationInterpolateLog( format, ...)       do {} while( 0)
-#define CAAnimationReturnStateLog( format, ...)             do {} while( 0)
+#define CAAnimationLog( format, ...)              do {} while( 0)
+#define CAAnimationLogVerbose( format, ...)       do {} while( 0)
+#define CAAnimationInterpolateLog( format, ...)   do {} while( 0)
+#define CAAnimationReturnStateLog( format, ...)   do {} while( 0)
 
 #endif 

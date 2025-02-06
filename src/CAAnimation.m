@@ -139,7 +139,7 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
 
 static struct
 {
-   NSUInteger   _debugEnabled;
+   NSUInteger   _debuggingFlags;
 } Self;
 
 
@@ -152,26 +152,17 @@ static struct
    if( MulleObjCClassGetID( self) != @selector( CAAnimation))
       return;
 
-   s = getenv( "CAAnimationDebugEnabled");
+   s = getenv( MULLE_C_STRINGIFY( CAAnimation) "DebuggingFlags");
+   if( ! s)
+      s = getenv( "UIDebuggingFlags");
    if( s)
-      Self._debugEnabled = strtol( s, NULL, 0);
-   else
-   {
-#ifdef CA_ANIMATION_DEBUG_ENABLED
-      Self._debugEnabled = CA_ANIMATION_DEBUG_ENABLED;
-#endif
-   }
+      Self._debuggingFlags = strtol( s, NULL, 0);
 }
 
 
-+ (void) deinitialize
++ (void) setDebuggingFlags:(NSUInteger) flag  MULLE_OBJC_THREADSAFE_METHOD
 {
-}
-
-
-+ (void) setDebugEnabled:(NSUInteger) flag
-{
-   Self._debugEnabled = flag;
+   Self._debuggingFlags = flag;
 }
 
 
@@ -241,7 +232,11 @@ static inline void   resetAnimation( CAAnimation *self)
       return( nil);
    }
 
-   _debugEnabled        = Self._debugEnabled;
+#ifdef CA_ANIMATION_DEBUGGING_FLAGS
+   _debuggingFlags = CA_ANIMATION_DEBUGGING_FLAGS;
+#else
+   _debuggingFlags = Self._debuggingFlags;
+#endif
    _removedOnCompletion = YES;
 
    [self setAnimationOptions:options];
@@ -257,16 +252,31 @@ static inline void   resetAnimation( CAAnimation *self)
 }
 
 
-- (id) copy
+- (id) mutableCopy
 {
-   CAAnimation  *clone;
+   abort();
+//   CAAnimation  *clone;
+//
+//   clone = NSCopyObject( self, 0, NULL);
+//   // will have been retained by NSCopyObject, but we don't want it
+//   // (still in alloc/init) here so release is fine
+//   [clone->_animationObject release];
+//   clone->_animationObject = nil;  // or what ?
+//   return( clone);
+}
 
-   clone = NSCopyObject( self, 0, NULL);
-   // will have been retained by NSCopyObject, but we don't want it
-   // (still in alloc/init) here so release is fine
-   [clone->_animationObject release];
-   clone->_animationObject = nil;  // or what ?
-   return( clone);
+
+- (void) mulleGainAccess
+{
+   [super mulleGainAccess];
+   [self->_animationObject mulleGainAccess];
+}
+
+
+- (void) mulleRelinquishAccess
+{
+   [self->_animationObject mulleRelinquishAccess];
+   [super mulleRelinquishAccess];
 }
 
 
@@ -292,16 +302,16 @@ static inline void   resetAnimation( CAAnimation *self)
    return( NO);
 }
 
+
 //
 // this is called by the layer (ahem) animatableObject
 // which does the animation now
 //
 - (void) animateObject:(id) object
-normalizedRelativeTime:(double) t
-           elapsedTime:(mulle_relativetime_t) elapsed
+    animationFrameInfo:(struct CAAnimationFrameInfo *) info
 {
-   if( _animationFunction)
-      (*_animationFunction)( self, object, t, elapsed);
+   if( _animationFunction && info)
+      (*_animationFunction)( self, object, info);
 }
 
 
@@ -348,19 +358,17 @@ normalizedRelativeTime:(double) t
    if( finished && self->_state.bits & CAAnimationScrubbing)
       return( NO);
 
-   [_delegate animationDidStop:self
-                      finished:finished];
    return( YES);
 }
 
 
-#if ! defined( CA_ANIMATION_DEBUG_DISABLED)
+#if ! defined( CA_ANIMATION_LOG_DISABLED)
 
-#define CAAnimationReturnStateLogDo( text)                                          \
+#define CAAnimationReturnStateLogDo( text)                                    \
    for( NSUInteger loop__state = 0, old__bits = self->_state.bits;            \
         loop__state == 0;                                                     \
         ( ((old__bits != self->_state.bits &&                                 \
-            self->_debugEnabled & CAAnimationDebugState)                      \
+            self->_debuggingFlags & CAAnimationDebugState)                    \
            ? ( mulleui_log( "<%s %p>: '%s' %s",                               \
                        MulleObjCInstanceGetClassNameUTF8String( self),        \
                        self,                                                  \
@@ -425,7 +433,6 @@ struct CAAnimationFrameInfo
    int                           edge;
    mulle_relativetime_t          end;
    mulle_relativetime_t          delta;
-   mulle_relativetime_t          elapsedTime;
    mulle_relativetime_t          nextMidpoint;
    NSUInteger                    frameIndex;
    NSUInteger                    i;
@@ -436,7 +443,7 @@ struct CAAnimationFrameInfo
    delta       = now - (isinf( self->_state.previousFrameTimestamp)
                        ? now
                        : self->_state.previousFrameTimestamp);
-   elapsedTime = mulle_timeinterval_subtract( now, self->_state.start);
+   info.elapsedTime = mulle_timeinterval_subtract( now, self->_state.start);
 
    // READ: dox/indepth/CAAnimation-in-depth.html before dicking around with
    //       this code
@@ -472,19 +479,20 @@ struct CAAnimationFrameInfo
       //
 
       // which frame are we in ?
-      frameIndex = (NSUInteger) round( elapsedTime / animationRate);
+      frameIndex = (NSUInteger) round( info.elapsedTime / animationRate);
       // midpoint in the frame in seconds (like elapsedTime)
       midpoint   = (frameIndex * animationRate) + (animationRate / 2.0);
 
-      if( elapsedTime > midpoint)
-         elapsedTime = midpoint + (animationRate / 2.0);
+      if( info.elapsedTime  > midpoint)
+         info.elapsedTime = midpoint + (animationRate / 2.0);
       else
-         elapsedTime = midpoint - (animationRate / 2.0);
+         info.elapsedTime = midpoint - (animationRate / 2.0);
    }
 
-   d            = self->_offset + elapsedTime;
-   e            = (self->_repeatCount * self->_state.duration) + self->_offset;
    nextMidpoint = fmax( delta, animationRate) / 2.0;
+
+   d = self->_offset + info.elapsedTime;
+   e = (self->_repeatCount * self->_state.duration) + self->_offset;
 
    // when should we finish the animation ? The delta or animationRate give
    // a clue, when the next frame will hit. If we are close to the end, we
@@ -532,9 +540,11 @@ struct CAAnimationFrameInfo
    }
    else
    {
+      // if isinf( self->_state.duration) then f becomes 0
       f = fmod( d / self->_state.duration, 1.0);
    }
 
+   // if isinf( self->_state.duration) then i becomes 0 (also)
    i = (NSUInteger) floor( d / self->_state.duration);
    // do not use `d` or `e` past this point
    edge = i > self->_state.previousAnimationIndex;
@@ -603,9 +613,16 @@ BOOL   CAAnimationDidAnimate( CAAnimation *self,
 
 
 static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
-                                             CAAnimationReturnState state)
+                                                   CAAnimationReturnState state)
 {
    CAAnimationLogVerbose( "%s", CAAnimationReturnStateUTF8String( state));
+
+   // if we don't do the delegate call here, but in didEnd as used to,
+   // then the callback can not just call -resetAnimation to do another swing
+   if( state == CAAnimationReturnStateDone)
+      [self->_delegate animationDidStop:self
+                               finished:(self->_state.bits & CAAnimationInterruptSignal) ? NO : YES];
+
    return( state);
 }
 
@@ -643,6 +660,7 @@ static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
          {
             self->_state.bits |= CAAnimationEnded;
             self->_state.bits &= ~CAAnimationAnimating|CAAnimationStarted;
+
             return( stateReturn( self, CAAnimationReturnStateDone));
          }
 
@@ -711,8 +729,7 @@ static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
    }
 
    [self animateObject:object
-normalizedRelativeTime:info.t
-           elapsedTime:info.delta];
+    animationFrameInfo:&info];
 
    if( CAAnimationDidAnimate( self, now, info))
       [_delegate animationDidStart:self];

@@ -33,7 +33,7 @@ static mulle_absolutetime_t   timestamps[] =
 };
 
 static struct CABasicAnimationOptions
-   options = CA_BASIC_ANIMATION_OPTIONS_INIT_CURVE( 0,    // delay
+   options = CA_BASIC_ANIMATION_OPTIONS_DATA_CURVE( 0,    // delay
                                                     1,    // duration
                                                     0.0,  // initial elapsed
                                                     2.0,  // repeat

@@ -102,7 +102,7 @@
    NSUInteger    n;
    CAAnimation   **p, **sentinel;
 
-   mulle_flexarray_do( finishers, CAAnimation *, 32, 32)
+   mulle_alloca_do( finishers, CAAnimation *, 32)
    {
       n = [self getAnimations:finishers
                      maxCount:32
@@ -110,7 +110,7 @@
               animationObject:animationObject];
       if( n >= 32)
       {
-         mulle_flexarray_realloc( finishers, n);
+         mulle_alloca_do_realloc( finishers, n);
          n = [self getAnimations:finishers
                         maxCount:n
                      animationID:animationID
@@ -142,6 +142,19 @@
 {
    return( [self _numberOfAnimationsWithStateBitsSet:CAAnimationEnded
                                     stateBitsCleared:0]);
+}
+
+- (void) mulleGainAccess
+{
+   [super mulleGainAccess];
+   [self mulleGainAccessToAnimations];
+}
+
+
+- (void) mulleRelinquishAccess
+{
+   [self  mulleRelinquishAccessToAnimations];
+   [super mulleRelinquishAccess];
 }
 
 @end

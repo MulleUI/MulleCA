@@ -1,15 +1,22 @@
 #import <MulleCA/MulleCA.h>
 
 
-@interface Foo : CAImplicitlyAnimatableObject
+@interface Foo : NSObject <CAImplicitlyAnimatableObject>
+{
+   CAImplicitlyAnimatableObjectIvars;
+}
+@property( observable, assign) NSInteger    value;
 
-@property( observable, assign) NSInteger   value;
+CAImplicitlyAnimatableObjectInterface;
 
-@end 
+@end
 
-@implementation Foo 
-@end 
 
+@implementation Foo
+
+CAImplicitlyAnimatableObjectImplementation;
+
+@end
 
 
 int   main( int argc, char *argv[])
