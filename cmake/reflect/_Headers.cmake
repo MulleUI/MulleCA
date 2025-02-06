@@ -36,6 +36,7 @@ src/include-private.h
 #
 set( PRIVATE_HEADERS
 src/CAAnimation+DebugPrivate.h
+src/CALayer+DebugPrivate.h
 )
 
 #
@@ -66,6 +67,7 @@ src/CAAnimation.h
 src/CAAnimator.h
 src/CABasicAnimation.h
 src/CAImplicitlyAnimatableObject.h
+src/CALayer.h
 src/CATransaction.h
 src/CGGeometry+MulleObjC.h
 src/MulleCA.h

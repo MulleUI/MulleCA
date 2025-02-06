@@ -57,6 +57,10 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 // debugs support
 - (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
                                   stateBitsCleared:(NSUInteger) clrBits;
+
+- (void) mulleGainAccessToAnimations            MULLE_OBJC_THREADSAFE_METHOD;
+- (void) mulleRelinquishAccessToAnimations      MULLE_OBJC_THREADSAFE_METHOD;
+
 PROTOCOLCLASS_END()
 
 
@@ -66,3 +70,26 @@ PROTOCOLCLASS_END()
                                   stateBitsCleared:(NSUInteger) clrBits;
 
 @end
+
+
+#define CAAnimationStorageObjectIvars                      \
+   struct CAAnimationStorage   _animationStorage
+
+
+#define CAAnimationStorageObjectInterface                  \
+- (struct CAAnimationStorage *) animationStorage           \
+
+//
+// not sure,if this is a good idea
+//
+#define CAAnimationStorageObjectImplementation             \
+- (struct CAAnimationStorage *) animationStorage           \
+{                                                          \
+   return( &_animationStorage);                            \
+}                                                          \
+extern void   CAAnimationStorageImplementationDummyNotActuallyPresent( void)
+
+
+// the dummy is just there so we can add a semicolon
+
+

@@ -37,7 +37,7 @@
    NSUInteger   i;
 
    if( [self getSubviews:views
-                   range:NSMakeRange( 0, 4)] <= 0)
+                   range:NSRangeMake( 0, 4)] <= 0)
       return( YES);
 
    contentRect = [self contentRect];
@@ -151,7 +151,7 @@ int   main( int argc, char *argv[])
 
    [app addWindow:window];
 
-   return( [app run]);
+   return( [app runApp]);
 }
 
 

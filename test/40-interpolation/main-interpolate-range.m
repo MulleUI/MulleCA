@@ -29,8 +29,8 @@ int   main( int argc, char *argv[])
 
    foo       = [Foo object];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( r))
-                                           startRangeValue:NSMakeRange( 5, 1)
-                                             endRangeValue:NSMakeRange( 0, 11)
+                                           startRangeValue:NSRangeMake( 5, 1)
+                                             endRangeValue:NSRangeMake( 0, 11)
                                                    options:NULL] autorelease];
 
    for( i = 0; i <= 5; i++)

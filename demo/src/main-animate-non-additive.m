@@ -47,9 +47,9 @@ void   setupAnimation( UIWindow *window, CALayer *layer)
 
 void   setupSceneAndAnimation( UIWindow *window)
 {
-   CALayer   *layer;
+   CGGraphicsLayer   *layer;
 
-   layer = [CALayer layerWithFrame:CGRectMake( 100, 100, 100, 100)];
+   layer = [CGGraphicsLayer layerWithFrame:CGRectMake( 100, 100, 100, 100)];
    [layer setBackgroundColor:CGColorMakeWithHexColor( 0xFF0000FF)];
    [[window contentView] addLayer:layer];
 
@@ -77,7 +77,7 @@ int   main( int argc, char *argv[])
 
    [app addWindow:window];
 
-   return( [app run]);
+   return( [app runApp]);
 }
 
 

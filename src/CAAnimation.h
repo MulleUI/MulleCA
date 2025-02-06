@@ -76,6 +76,20 @@ extern NS_OPTIONS_TABLE( CAAnimationBits, 19);
 MULLE_CA_EXTERN_GLOBAL
 char  *CAAnimationBitsUTF8String( CAAnimationBits bits);
 
+
+// used during animation, so the animation code knows where it is
+// in temporal space so to speak
+struct CAAnimationFrameInfo
+{
+   double                 t;     // 0.0 - 1.0
+   NSUInteger             i;
+   NSUInteger             nextState;
+   mulle_relativetime_t   delta;
+   mulle_relativetime_t   elapsedTime;
+};
+
+
+
 //
 // If this were iOS and you would set CAAnimationReverses, the repeatCount
 // would be implicitly doubled. (e.g. a 0.2s autoreverses CAAnimation on iOS
@@ -92,10 +106,10 @@ struct CAAnimationOptions
 };
 
 
-#define CA_ANIMATION_OPTIONS_INIT( delay, duration, offset, repeat, bits)  \
+#define CA_ANIMATION_OPTIONS_DATA( delay, duration, offset, repeat, bits)  \
    ((struct CAAnimationOptions)                                            \
    {                                                                       \
-      MULLE_RELATIVETIMERANGE_INIT( (delay), (duration)),                  \
+      MULLE_RELATIVETIMERANGE_DATA( (delay), (duration)),                  \
       (offset),                                                            \
       (repeat),                                                            \
       (bits)                                                               \
@@ -194,6 +208,7 @@ static inline mulle_relativetime_t
 - (void) animationDidStart:(CAAnimation *) animation;
 - (void) animationDidStop:(CAAnimation *) animation
                  finished:(BOOL) flag;
+
 @end
 
 
@@ -229,7 +244,7 @@ static inline char   *CAAnimationReturnStateUTF8String( CAAnimationReturnState s
    case CAAnimationReturnStateStarted        : return( "CAAnimationReturnStateStarted");
    case CAAnimationReturnStateAnimating      : return( "CAAnimationReturnStateAnimating");
    case CAAnimationReturnStateFinalAnimation : return( "CAAnimationReturnStateFinalAnimation");
-   default                             : return( "???");
+   default                                   : return( "???");
    }
 }
 
@@ -242,16 +257,15 @@ static inline char   *CAAnimationShortStateUTF8String( CAAnimationReturnState st
    case CAAnimationReturnStateStarted        : return( "Started");
    case CAAnimationReturnStateAnimating      : return( "Animating");
    case CAAnimationReturnStateFinalAnimation : return( "FinalAnimation");
-   default                             : return( "???");
+   default                                   : return( "???");
    }
 }
 
 
 
-typedef void   CAAnimationFunction( CAAnimation *animation,
-                                    id object,
-                                    double normalizedRelativeTime,
-                                    mulle_relativetime_t elapsedTime);
+typedef void   CAAnimationFunction_t( CAAnimation *animation,
+                                      id object,
+                                      struct CAAnimationFrameInfo *info);
 
 
 struct CAAnimationMutableState
@@ -273,7 +287,7 @@ struct CAAnimationMutableState
 @property( getter=isRemovedOnCompletion) BOOL removedOnCompletion;
 
 //
-// Used, if part of a CAAnimationGroup.Not used, if animation is a
+// Used, if part of a CAAnimationGroup. Not used, if animation is a
 // CALayer "private" animation. Return self, if you want to animate your
 // custom class, that implements CAAnimation so it can be removed by
 // CAAnimationStorage
@@ -313,7 +327,7 @@ struct CAAnimationMutableState
 //
 
 // if there is an animationGroup it will retain us
-@interface CAAnimation : NSObject <NSCopying, CAAnimation>
+@interface CAAnimation : NSObject <CAAnimation>
 {
    struct mulle_relativetimerange   _relative;  // delay, copied from initialRenderdelay
    // mutating state
@@ -322,16 +336,17 @@ struct CAAnimationMutableState
    float                            _repeatCount;
 }
 
-@property NSUInteger  debugEnabled;
+@property( assign) NSUInteger  debuggingFlags   MULLE_OBJC_THREADSAFE_PROPERTY;
 
-
+// MEMO: these properties are used by CABasicAnimation, maybe they should be
+// moved there
 @property( getter=isRemovedOnCompletion) BOOL   removedOnCompletion;
 @property( retain) id                           animationObject;
 
 // contrary to Apple CoreAnimation, the delegate is not retained
 @property( assign) id <CAAnimationDelegate>     delegate;
 
-@property( assign) CAAnimationFunction          *animationFunction;
+@property( assign) CAAnimationFunction_t        *animationFunction;
 
 
 //
@@ -360,8 +375,7 @@ struct CAAnimationMutableState
 // t: >= 0.0 <= 1.0
 // time:
 - (void) animateObject:(id) object
-normalizedRelativeTime:(double) t
-           elapsedTime:(mulle_relativetime_t) time;
+    animationFrameInfo:(struct CAAnimationFrameInfo *) info;
 
 // animation passes a duration boundary
 //- (void) animationIndexWillChange;
@@ -370,16 +384,6 @@ normalizedRelativeTime:(double) t
 - (BOOL) hasEnded;
 
 @end
-
-
-// Use these functions for testing
-struct CAAnimationFrameInfo
-{
-   double                 t;
-   NSUInteger             i;
-   NSUInteger             nextState;
-   mulle_relativetime_t   delta;
-};
 
 
 void   CAAnimationStart( CAAnimation *self,

@@ -99,7 +99,7 @@ static CGFloat   paperjs_ease_in_out_quint(struct CAQuadratic *quadratic, CGFloa
 
 static void   setupScene( UIWindow *window)
 {
-   CALayer            *layers[ N_LAYERS];
+   CGGraphicsLayer    *layers[ N_LAYERS];
    CGRect             frame;
    CGRect             rects[ N_LAYERS];
    CGRect             rect;
@@ -116,7 +116,7 @@ static void   setupScene( UIWindow *window)
    for( i = 0; i < N_LAYERS; i++)
    {
       rect = CGSizePlaceInRect( SIZE, rects[ i], CGContentModeLeft);
-      layers[ i] = [CALayer layerWithFrame:rect];
+      layers[ i] = [CGGraphicsLayer layerWithFrame:rect];
       if( i < 4)
          [layers[ i] setBackgroundColor:CGColorMakeWithRGBA( 1.0, 0.0, 0.0, 1.0)];
       else
@@ -178,7 +178,7 @@ int   main( int argc, char *argv[])
 
       [app addWindow:window];
    }
-   return( [app run]);
+   return( [app runApp]);
 }
 
 

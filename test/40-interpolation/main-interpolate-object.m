@@ -51,6 +51,15 @@
 }
 
 
+- (id) copy
+{
+   Float   *copy;
+
+   copy = [Float new];
+   [copy setValue:_value];
+   return( copy);
+}
+
 @end
 
 

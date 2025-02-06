@@ -237,7 +237,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    struct mulle_pointerarray   deletions;
    id                          target;
    BOOL                        hasAnimations;
-   CAAnimationReturnState            state;
+   CAAnimationReturnState      state;
 
    storage = [self animationStorage];
 
@@ -315,6 +315,33 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    }
 
    return( count);
+}
+
+
+
+- (void) mulleGainAccessToAnimations
+{
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+
+   storage = [self animationStorage];
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      [animation mulleGainAccess];
+   }
+}
+
+
+- (void) mulleRelinquishAccessToAnimations
+{
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+
+   storage = [self animationStorage];
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      [animation mulleRelinquishAccess];
+   }
 }
 
 
