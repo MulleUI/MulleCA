@@ -66,15 +66,26 @@ CAAnimationStorageObjectImplementation;
 
 + (instancetype) layerWithFrame:(CGRect) frame
 {
-   return( [[[self alloc] initWithFrame:frame] autorelease]);
+   CALayer   *layer;
+
+   layer = [self alloc];
+   layer = [layer initWithFrame:frame];
+   layer = [layer autorelease];
+   return( layer);
 }
 
 
-- (instancetype) init
+// this method is shared by the designated intializer and copy so be extra
+// careful here. Also ensure that the logic is somewhat similar to UIView
+
+- (id) _initWithFrame:(CGRect) frame
 {
-   self = [super initNoLock];
+   self = [self initNoLock];
    if( ! self)
       return( self);
+
+   _frame               = frame;
+   CALayerLog( "frame %s", CGRectUTF8String( _frame));
 
    _bounds.size.width   = INFINITY;
    _canvas.size.width   = INFINITY;
@@ -97,15 +108,15 @@ CAAnimationStorageObjectImplementation;
 }
 
 
+- (instancetype) init
+{
+   return( [self initWithFrame:CGRectZero]);
+}
+
+
 - (instancetype) initWithFrame:(CGRect) frame
 {
-   self = [self init];
-   if( self)
-   {
-      _frame = frame;
-      CALayerLog( "frame %s", CGRectUTF8String( _frame));
-   }
-   return( self);
+   return( [self _initWithFrame:frame]);
 }
 
 
@@ -118,8 +129,10 @@ CAAnimationStorageObjectImplementation;
 
 - (void) dealloc
 {
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, NULL);
+   char  *s;
 
+   s = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   mulle_allocator_free( MulleObjCInstanceGetAllocator( self), s);
    [super dealloc];
 }
 
@@ -138,22 +151,28 @@ CAAnimationStorageObjectImplementation;
 }
 
 
-// - (id) mutableCopy
-// {
-//    CALayer   *clone;
-// 
-//    clone = [super mutableCopy];
-// 
-//    // copy these without the property accessors which do too much
-//    clone->_frame  = self->_frame;
-//    clone->_bounds = self->_bounds;
-//    clone->_canvas = self->_canvas;
-// 
-//    memset( &clone->_animationStorage, 0, sizeof( _animationStorage));
-//    clone->_debugNameUTF8String = NULL;
-//    
-//    return( clone);
-// }
+- (id) copy
+{
+   CALayer   *copy;
+
+   copy = [[[self class] alloc] _initWithFrame:self->_frame];
+   if( ! copy)
+      return( copy);
+
+   // copy these without the property accessors, which do too much
+   copy->_frame         = self->_frame;
+   copy->_bounds        = self->_bounds;
+   copy->_canvas        = self->_canvas;
+   copy->_opacity       = self->_opacity;
+   copy->_masksToBounds = self->_masksToBounds;
+
+   copy->_transform     = self->_transform;
+   copy->_clipRect      = self->_clipRect;
+   copy->_alpha         = self->_alpha;
+   copy->_hidden        = self->_hidden;
+
+   return( copy);
+}
 
 
 //
@@ -233,34 +252,35 @@ static inline CGRect   getCanvas( CALayer *self)
 }
 
 
-- (void) setDebugNameUTF8String:(char *) s
+- (char *) nameUTF8String
 {
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_debugNameUTF8String, s);
+   char  *s;
+
+   s = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   return( s);
 }
 
 
-- (char *) UTF8String
+- (void) setNameUTF8String:(char *) s
 {
-   char        *result;
-   char        *s;
-   auto char   buf[ 64];
-   size_t      len;
-   char        *format;
+   struct mulle_allocator       *allocator;
+   struct _mulle_objc_universe  *universe;
+   void                         *actual;
+   void                         *old;
 
-   s = MulleObjCClassGetNameUTF8String( NSClassFromObject( self));
-   sprintf( buf, "%p",  self);
+   // need universe allocator for abafree
+   universe  = _mulle_objc_object_get_universe( self);
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   old       = _mulle_atomic_pointer_read( &_atomicNameUTF8String);
+   if( s)
+      s = mulle_allocator_strdup( allocator, s);
 
-   format = "<%s %s>";
-   len    = _debugNameUTF8String ? strlen( _debugNameUTF8String) : 0;
-   if( len)
-   {
-      format = "<%s %s \"%s\">";
-      len   += 3; // < "">\0"
-   }
-   len    += strlen( s) + strlen( buf) + 4; // < "">\0"
-   result  = mulle_malloc( len);
-   sprintf( result, format, s, buf, _debugNameUTF8String);
-   return( MulleObjCAutoreleaseAllocation( result, NULL));
+   actual = __mulle_atomic_pointer_cas( &_atomicNameUTF8String, s, old);
+
+   if( actual == old)
+      mulle_allocator_abafree( allocator, old);
+   else
+      mulle_allocator_free( allocator, s);
 }
 
 

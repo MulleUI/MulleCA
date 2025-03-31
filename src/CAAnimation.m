@@ -218,7 +218,12 @@ static inline void   resetAnimation( CAAnimation *self)
 
 + (instancetype) animationWithAnimationOptions:(struct CAAnimationOptions *) options
 {
-   return( [[[self alloc] initWithAnimationOptions:options] autorelease]);
+   CAAnimation   *obj;
+
+   obj = [self alloc];
+   obj = [obj initWithAnimationOptions:options];
+   obj = [obj autorelease];
+   return( obj);
 }
 
 
@@ -779,7 +784,7 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
 }
 
 
-- (char *) UTF8String
+- (char *) threadSafeUTF8String
 {
    char   *s;
 

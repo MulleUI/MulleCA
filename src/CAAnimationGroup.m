@@ -69,7 +69,7 @@
    if( _animationWillStartSelector)
       [_animationDelegate performSelector:_animationWillStartSelector
                                withObject:(id) _animationID
-                               withObject:_context];
+                               withObject:_animationContext];
 }
 
 
@@ -138,7 +138,7 @@
       if( _animationDidStopSelector)
          [_animationDelegate performSelector:_animationDidStopSelector
                                   withObject:(id) _animationID
-                                  withObject:_context];
+                                  withObject:_animationContext];
    }
    return( state);
 }

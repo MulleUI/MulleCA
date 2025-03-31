@@ -180,23 +180,29 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    id <CAAnimation>            animation;
    struct CAAnimationStorage   *storage;
    struct mulle_allocator      *allocator;
-   NSUInteger                  index;
+   NSUInteger                  i, n;
+   NSUInteger                  removed;
 
    storage = [self animationStorage];
 
-   index = 0;
-   mulle_pointerarray_for( &storage->_animations, animation)
+   removed = 0;
+   // use a C for loop, as we are mutating the array inside it
+   n = mulle_pointerarray_get_count( &storage->_animations);
+   for( i = 0; i < n; i++)
    {
+      animation = mulle_pointerarray_get( &storage->_animations, i);
       if( [animation animationObject] == animationObject)
       {
-         assert( index == _mulle_pointerarray_find( &storage->_animations, animation));
-
          [animation autorelease];
-         mulle_pointerarray_set( &storage->_animations, (unsigned int) index, NULL);
-         storage->_numberOfAnimations--;
+
+         // we are zeroing in the middle off the enumeration, this will
+         // trigger a mutation check and crash, therefore we gotta be a bit
+         // sneaky (this is fine, since we are just autoreleasing)
+         mulle_pointerarray_set( &storage->_animations, (unsigned int) i, NULL);
+         removed++;
       }
-      ++index;
    }
+   storage->_numberOfAnimations -= removed;
 
    if( ! storage->_numberOfAnimations)
    {

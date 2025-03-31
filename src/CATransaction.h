@@ -133,7 +133,7 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //
 @interface CATransaction( CAAnimationGroupForwarding)
 
-@property( assign, dynamic) void                   *context;
+@property( assign, dynamic) void                   *animationContext;
 @property( assign, dynamic) id                     animationDelegate;
 @property( assign, dynamic) SEL                    animationWillStartSelector;
 @property( assign, dynamic) SEL                    animationDidStopSelector;

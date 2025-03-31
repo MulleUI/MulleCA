@@ -77,11 +77,21 @@ enum
 //
 // NSMutableCopying has been a source of pain for quite some time 
 //
-@interface CALayer : MulleObject < MulleAutolockingObjectProtocols, 
+// TODO: need an essay here why this is "autolocking". The views are
+// autolocking. As long as you talk with the layers through the view, via
+// fowarding this should not be a problem. You should not talk to the layers
+// directly from another thread.
+// CALayers are created with initNoLock, the UIView where you attach these
+// layers too will provide a lock. If you want to run a layer on its own
+// you need to shareLock it.
+//
+@interface CALayer : MulleObject < MulleAutolockingObjectProtocols,
+                                   NSCopying,
                                    CAImplicitlyAnimatableObject, 
                                    CAAnimationStorageObject>
 {
    CAAnimationStorageObjectIvars;
+   mulle_atomic_pointer_t            _atomicNameUTF8String;
 }
 
 @property( retain) id                  snapshot;
@@ -121,7 +131,7 @@ enum
 
 // hidden is non-observable why ?
 @property BOOL                         hidden;
-@property char                         *debugNameUTF8String;  // useful for debugging
+@property( dynamic) char               *nameUTF8String;  // useful for debugging
 
 @property( assign) NSUInteger  debuggingFlags      MULLE_OBJC_THREADSAFE_PROPERTY;
 
@@ -132,7 +142,10 @@ enum
 + (instancetype) layerWithFrame:(CGRect) frame;
 + (instancetype) layer;
 
-- (instancetype) init; // designated
+// MEMO: initNoLock is actually the designated inititalizer funneled into by
+// _initWithFrame which is hidden..
+//- (instancetype) initNoLock;                    // designated
+
 - (instancetype) initWithFrame:(CGRect) frame;
 
 - (void) dumpWithIndent:(NSUInteger) indent
