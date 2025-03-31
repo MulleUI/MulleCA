@@ -62,7 +62,7 @@
 @property( assign) SEL                     animationWillStartSelector;
 @property( assign) SEL                     animationDidStopSelector;
 
-@property( assign) void                    *context;
+@property( assign) void                    *animationContext;
 
 // ...
 @property( assign) mulle_relativetime_t    animationDelay;

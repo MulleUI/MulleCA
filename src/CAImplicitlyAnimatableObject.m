@@ -10,6 +10,8 @@
 #import "NSObject+CAAnimation.h"
 
 
+//#define TRACE_COPY_PROPERTY
+
 PROTOCOLCLASS_IMPLEMENTATION( CAImplicitlyAnimatableObject)
 
 //
@@ -49,12 +51,14 @@ static void
       {
          // value will be either space or the value, but that's what we push
          // in the setter
+#ifdef TRACE_COPY_PROPERTY
          mulle_fprintf( stderr, "%d [%s %s]: @dynamic copy of %td void * (%u bytes)\n",
                                         __LINE__,
                                         infra->base.name,
                                         property->name,
                                         n_metaabi_blocks * 5,
                                         size);
+#endif
          value = _mulle_objc_object_call( self, property->getter, space);
          _mulle_objc_object_call( clone, property->setter, value);
       }
@@ -71,10 +75,12 @@ static void
    mode = property->bits & (_mulle_objc_property_retain|_mulle_objc_property_copy);
    if( mode)
    {
+#ifdef TRACE_COPY_PROPERTY
       mulle_fprintf( stderr, "%d %s->%s: ivar based copy/retain of object\n",
                                      __LINE__,
                                      infra->base.name,
                                      property->name);
+#endif
       value = mulle_objc_object_get_property_value( self, property->getter, offset, mode);
       mulle_objc_object_set_property_value( clone, property->getter, offset, value, mode);
       return;
@@ -86,12 +92,13 @@ static void
    signature = _mulle_objc_ivar_get_signature( ivar);
    mulle_objc_signature_supply_size_and_alignment( signature, &size, NULL);
 
+#ifdef TRACE_COPY_PROPERTY
    mulle_fprintf( stderr, "%d %s->%s: ivar based memcpy of %td bytes\n",
                                   __LINE__,
                                   infra->base.name,
                                   property->name,
                                   size);
-
+#endif
    src_ivar = &((char *) self)[ offset];
    dst_ivar = &((char *) clone)[ offset];
 
@@ -123,6 +130,9 @@ static mulle_objc_walkcommand_t
    self  = pair->self;
    assert( clone != self);
 
+   // MEMO: gotta assert somehow that we don't walk properties that have been
+   //       overridden already (would copy twice, or if we copy twice that it
+   //       is harmless)
    _mulle_objc_infraclass_copy_property_value( infra, property, clone, self);
 
    return( mulle_objc_walk_ok);
@@ -187,7 +197,7 @@ id   _CAImplicitlyAnimatableInstanceSnapshot( id self)
    id   manager;
    id   snapshot;
 
-   // -willCh  ange is is called frequently, so use C as much as possible.
+   // -willChange is is called frequently, so use C as much as possible.
    //
    // Generally keep this snappy, as it can bottleneck. We especially don't
    // want this in a classcluster to have to ask [self snapshotPointer] or
