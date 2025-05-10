@@ -761,9 +761,9 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
    mulle_pointerarray_for( objects, object)
    {
       flag |= (NSUInteger) MulleObjCObjectPerformSelectorDoubleArgument2( object,
-                                                                           sel,
-                                                                           renderTime,
-                                                                           animationRate);
+                                                                          sel,
+                                                                          renderTime,
+                                                                          animationRate);
    }
 
    return( flag);
@@ -784,7 +784,7 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
 }
 
 
-- (char *) threadSafeUTF8String
+- (char *) UTF8String
 {
    char   *s;
 

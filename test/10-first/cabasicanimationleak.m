@@ -7,6 +7,8 @@
    CAImplicitlyAnimatableObjectIvars;
    CAAnimationStorageObjectIvars;
 }
+CAAnimationStorageObjectProperties;
+
 @property( observable, retain) id    value;
 
 CAImplicitlyAnimatableObjectInterface;

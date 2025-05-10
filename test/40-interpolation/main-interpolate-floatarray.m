@@ -25,7 +25,7 @@
    }
 
    _mulle__floatarray_reset( &_r);
-   _mulle__floatarray_add_array( &_r, &r, mulle_range_make_all(), NULL);
+   _mulle__floatarray_add_floatarray( &_r, &r, mulle_range_make_all(), NULL);
 
    sep = "";
    mulle__floatarray_for( &r, v)

@@ -16,7 +16,7 @@
 //
 struct CAAnimationStorage
 {
-   NSUInteger                  _numberOfAnimations;
+   NSUInteger                  _numberOfAnimations; // probably an optimization
    struct mulle_pointerarray   _animations;
 };
 
@@ -72,12 +72,33 @@ PROTOCOLCLASS_END()
 @end
 
 
-#define CAAnimationStorageObjectIvars                      \
+#define CAAnimationStorageObjectIvars \
    struct CAAnimationStorage   _animationStorage
 
+#define CAAnimationStorageObjectProperties
+
+// so do we want to copy the animations or not ? one a case per case
+// basis we may, so we implement it here and then just don't use it if you
+// don't want it
+#define CAAnimationStorageObjectCopy( dst, src)                            \
+   do                                                                      \
+   {                                                                       \
+      struct mulle_allocator      *allocator;                              \
+      struct CAAnimationStorage   *dstStorage = &(dst)->_animationStorage; \
+      struct CAAnimationStorage   *srcStorage = &(src)->_animationStorage; \
+                                                                           \
+      allocator = MulleObjCInstanceGetAllocator( dst);                     \
+      _mulle_pointerarray_init( &dstStorage->_animations, 0, allocator);   \
+      _mulle_pointerarray_add_pointerarray( &dstStorage->_animations,      \
+                                            &srcStorage->_animations,      \
+                                            mulle_range_make_all());       \
+      dstStorage->_numberOfAnimations = srcStorage->_numberOfAnimations;   \
+   }                                                                       \
+   while( 0)
 
 #define CAAnimationStorageObjectInterface                  \
 - (struct CAAnimationStorage *) animationStorage           \
+
 
 //
 // not sure,if this is a good idea
