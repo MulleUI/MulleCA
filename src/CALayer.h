@@ -71,11 +71,9 @@ enum
 
 //
 // The CALayer "private" animations are not stored or handled in a CAAnimator
-// object. They are triggered as part of the renderQueue creation. These
+// object. They are triggered as part of the drawingQueue creation. These
 // animations will run, separately from any "CAAnimator" animations. Therefore
 // making those animations "additive" should be good.
-//
-// NSMutableCopying has been a source of pain for quite some time 
 //
 // TODO: need an essay here why this is "autolocking". The views are
 // autolocking. As long as you talk with the layers through the view, via
@@ -93,6 +91,8 @@ enum
    CAAnimationStorageObjectIvars;
    mulle_atomic_pointer_t            _atomicNameUTF8String;
 }
+
+CAAnimationStorageObjectProperties;
 
 @property( retain) id                  snapshot;
 
@@ -142,7 +142,7 @@ enum
 + (instancetype) layerWithFrame:(CGRect) frame;
 + (instancetype) layer;
 
-// MEMO: initNoLock is actually the designated inititalizer funneled into by
+// MEMO: initNoLock is actually the designated initializer funneled into by
 // _initWithFrame which is hidden..
 //- (instancetype) initNoLock;                    // designated
 

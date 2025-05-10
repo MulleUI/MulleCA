@@ -13,7 +13,7 @@ enum
 
 @interface NSObject( CAAnimationDebug)
 
-- (BOOL) __isCAAnimation;
+- (BOOL) __isCAAnimation      MULLE_OBJC_THREADSAFE_METHOD;
 
 @end
 

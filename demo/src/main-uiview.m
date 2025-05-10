@@ -17,8 +17,8 @@
 #ifdef DEBUG
 - (void) setFrame:(CGRect) rect
 {
-   fprintf( stderr, "%s %s -> %s\n",
-               [self UTF8String],
+   mulle_fprintf( stderr, "%#@ %s -> %s\n",
+               self,
                CGRectUTF8String( _frame),
                CGRectUTF8String( rect));
    [super setFrame:rect];

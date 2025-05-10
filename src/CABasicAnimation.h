@@ -607,3 +607,27 @@ void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
 void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
                                                       id object,
                                                       double x);
+
+
+// useful for tests, to have this exposed
+// x can be < 0  and > 1 here
+static inline void
+   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double x)
+{
+   //
+   // TODO: make this thread local and ask inside accessors, which are
+   //      providing animations themselves.
+   //
+   // isAnimating++;
+   if( self)
+      (*((struct{ @defs( CABasicAnimation); } *) self)->_interpolate)( self, object, x);
+}
+
+
+static inline void
+   CABasicAnimationAnimateObjectAdditive( CABasicAnimation *self, id object, double x)
+{
+   if( self)
+      (*((struct{ @defs( CABasicAnimation); } *) self)->_interpolateAdditive)( self, object, x);
+}
+

@@ -20,7 +20,7 @@ enum
 do                                                                          \
 {                                                                           \
    assert( [self __isCALayer]);                                             \
-   if( self->_debuggingFlags & CALayerDebugVerbose)                         \
+   if( self->_debuggingFlags & CALayerDebug)                                \
       mulleui_log_object_method( self, (char *) __PRETTY_FUNCTION__,        \
                                        (char *) format, ## __VA_ARGS__);    \
 }                                                                           \

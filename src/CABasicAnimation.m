@@ -217,7 +217,7 @@ static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *s
    newValue = [value interpolatedValueWithDiff:diff
                                   previousDiff:self->_previous.objectValue];
 
-   CAAnimationInterpolateLog( "%#@ %s :: %@ - %@ + %@ -> %@",
+   CAAnimationInterpolateLog( "%#@ %s :: %#@ - %#@ + %#@ -> %#@",
                               object,
                               mulle_objc_property_get_name( self->_property),
                               value,
@@ -230,26 +230,6 @@ static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *s
    mulle_objc_object_call_variable( object, self->_property->setter, newValue);
 }
 
-
-// x can be < 0  and > 1 here
-static inline void
-   CABasicAnimationAnimateObject( CABasicAnimation *self, id object, double x)
-{
-   //
-   // TODO: make this thread local and ask inside accessors, which are
-   //      providing animations themselves.
-   //
-   // isAnimating++;
-
-   return( (*self->_interpolate)( self, object, x));
-}
-
-
-static inline void
-   CABasicAnimationAnimateObjectAdditive( CABasicAnimation *self, id object, double x)
-{
-    return( (*self->_interpolateAdditive)( self, object, x));
-}
 
 
 
@@ -532,7 +512,7 @@ static void   CABasicAnimationSetInterpolatedObject( CABasicAnimation *self,
                                                   factor:x
                                                 additive:NO];
 
-   CAAnimationInterpolateLog( "%#@ %s -> %@", object,
+   CAAnimationInterpolateLog( "%#@ %s -> %#@", object,
                                mulle_objc_property_get_name( self->_property),
                                newValue);
 
@@ -726,7 +706,7 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
 {
    struct CABasicAnimationTypeDefinition   *p;
 
-   if( ! range)
+   if( ! range || ! property)
    {
       [self release];
       return( nil);
@@ -751,12 +731,6 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
 
    self->_valueType           = type;
    self->_property            = property;
-
-   if( ! property)
-   {
-      [self release];
-      return( nil);
-   }
 
 #ifdef DEBUG
    {
@@ -886,14 +860,14 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
 
    n = mulle__floatarray_get_count( &start);
    _mulle__floatarray_init( &range.start.floatArray, n, allocator);
-   _mulle__floatarray_add_array( &range.start.floatArray,
+   _mulle__floatarray_add_floatarray( &range.start.floatArray,
                                  &start,
                                  mulle_range_make_all(),
                                  allocator);
 
    n = mulle__floatarray_get_count( &end);
    _mulle__floatarray_init( &range.end.floatArray, n, allocator);
-   _mulle__floatarray_add_array( &range.end.floatArray,
+   _mulle__floatarray_add_floatarray( &range.end.floatArray,
                                  &end,
                                  mulle_range_make_all(),
                                  allocator);
