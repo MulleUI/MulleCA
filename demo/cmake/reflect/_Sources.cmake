@@ -13,6 +13,7 @@ endif()
 set( SOURCES
 src/main-animate-additive.m
 src/main-animate-non-additive.m
+src/main-path.m
 src/main-tween.m
 src/main-uiview.m
 )

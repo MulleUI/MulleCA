@@ -20,6 +20,7 @@
 #import "CABasicAnimation.h"
 #import "CAImplicitlyAnimatableObject.h"
 #import "CALayer.h"
+#import "CAPathAnimation.h"
 #import "CATransaction.h"
 #import "CGGeometry+MulleObjC.h"
 #import "MulleEdgeInsets+MulleObjC.h"

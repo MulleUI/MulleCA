@@ -116,13 +116,20 @@ CAAnimationStorageObjectProperties;
 //
 @property( observable) CGRect          canvas;
 
+//
 // These properties are set by the UIView only! Don't touch them, as they will
 // get overwritten on the next render. Use opacity or frame/bounds for
-// Layer animation.
+// Layer animation. For rotation use CAShapeLayer (or rotate manually
+// in renderWithContext:)
+// CALayer does only rectangles by itself
 
 @property( assign) CGAffineTransform   transform;
 @property( assign) CGRect              clipRect;
 @property( assign) CGFloat             alpha;
+
+// useful for CAPathAnimations, not observable though. Position is based on anchorPoint relative to size and origin
+@property( assign) CGPoint             anchorPoint;
+@property( dynamic) CGPoint            position;
 
 // this is a bitfield that controls bounds/frame canvas/frame tracking
 @property( assign) NSUInteger          frameTracking;
@@ -156,6 +163,8 @@ CAAnimationStorageObjectProperties;
 // that subclasses draw anything
 
 CAAnimationStorageObjectInterface;
+
+
 
 @end
 
