@@ -68,6 +68,7 @@ src/CAAnimator.h
 src/CABasicAnimation.h
 src/CAImplicitlyAnimatableObject.h
 src/CALayer.h
+src/CAPathAnimation.h
 src/CATransaction.h
 src/CGGeometry+MulleObjC.h
 src/MulleCA.h

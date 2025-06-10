@@ -18,6 +18,7 @@ src/CAAnimator.m
 src/CABasicAnimation.m
 src/CAImplicitlyAnimatableObject.m
 src/CALayer.m
+src/CAPathAnimation.m
 src/CATransaction.m
 src/NSObject+CAAnimation.m
 )
