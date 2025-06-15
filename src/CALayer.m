@@ -96,7 +96,7 @@ CAAnimationStorageObjectImplementation;
    _alpha               = 1.0;
    _transform           = CGAffineTransformMakeIdentity();
    _masksToBounds       = YES;
-   _anchorPoint         = CGPointMake( 0.5, 0.5); // Default to center
+//   _anchorPoint         = CGPointMake( 0.5, 0.5); // Default to center
 
 #ifdef CALAYER_DEBUGGING_FLAGS
    _debuggingFlags      = CALAYER_DEBUGGING_FLAGS;
@@ -284,24 +284,6 @@ static inline CGRect   getCanvas( CALayer *self)
       _canvas.size.width = INFINITY;
    else
       _canvas.size = canvas.size;
-}
-
-
-// Dynamic position property implementation
-- (CGPoint) position
-{
-   CGPoint pos;
-   pos.x = _frame.origin.x + (_frame.size.width * _anchorPoint.x);
-   pos.y = _frame.origin.y + (_frame.size.height * _anchorPoint.y);
-   return pos;
-}
-
-- (void) setPosition:(CGPoint) position
-{
-   CGRect newFrame = _frame;
-   newFrame.origin.x = position.x - (_frame.size.width * _anchorPoint.x);
-   newFrame.origin.y = position.y - (_frame.size.height * _anchorPoint.y);
-   [self setFrame:newFrame];
 }
 
 

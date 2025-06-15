@@ -12,27 +12,28 @@ static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self, id 
 static void CAPathAnimationSetInterpolated4D(CABasicAnimation *self, id object, double x);
 static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self, id object, double x);
 
-CAAnimationValueType CAPathAnimationGetAnimationValueType(CAPathAnimationValueType pathValueType)
-{
-   switch (pathValueType)
-   {
-   case CAPathAnimationValuePoint:
-   case CAPathAnimationValueNormal:
-   case CAPathAnimationValueTangent:
-   case CAPathAnimationValuePointPlusNormal:
-      return CAAnimationValueCGFloat2;
 
-   case CAPathAnimationValueNormalAngle:
+CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueType pathValueType)
+{
+   switch( pathValueType)
+   {
+   case CAPathAnimationValueRotation:
+   case CAPathAnimationValueAngle:
    case CAPathAnimationValueTangentAngle:
    case CAPathAnimationValueXPosition:
    case CAPathAnimationValueYPosition:
    case CAPathAnimationValueDistance:
       return CAAnimationValueCGFloat;
 
-   case CAPathAnimationValueFrameOrigin:
-   case CAPathAnimationValueFrameSize:
-   case CAPathAnimationValueBoundsOrigin:
-   case CAPathAnimationValueBoundsSize:
+   case CAPathAnimationValuePosition:
+   case CAPathAnimationValueNormal:
+   case CAPathAnimationValueTangent:
+   case CAPathAnimationValuePositionPlusNormal:
+      return CAAnimationValueCGFloat2;
+
+   case CAPathAnimationValuePositionAsOrigin:
+   case CAPathAnimationValuePositionAsSize:
+   case CAPathAnimationValuePose:
       return CAAnimationValueCGRect;
 
    default:
@@ -88,7 +89,7 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType(CAPathAnimationValueTy
                           options:options];
    if (self)
    {
-      _path = path;
+      _path          = path;
       _pathValueType = pathValueType;
 
       // Choose interpolation functions based on value type
@@ -114,92 +115,17 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType(CAPathAnimationValueTy
    return self;
 }
 
-- (void) setPath:(CGPathRef) path
-{
-   _path = path;
-}
 
-- (CGPathRef) path
-{
-   return( _path);
-}
-
-- (void) setPathValueType:(CAPathAnimationValueType) pathValueType
-{
-   _pathValueType = pathValueType;
-}
-
-- (CAPathAnimationValueType) pathValueType
-{
-   return _pathValueType;
-}
 
 - (char *) UTF8String
 {
-   char *valueTypeNames[] = {
-      "Point", "Normal", "Tangent", "PointPlusNormal",
-      "NormalAngle", "TangentAngle", "XPosition", "YPosition", "Distance"
-   };
-   char *valueTypeName = (_pathValueType < 9) ? valueTypeNames[_pathValueType] : "Unknown";
-
    char *s = MulleObjC_asprintf("<%s %p: path=%p valueType=%s %s>",
                                 MulleObjCInstanceGetClassNameUTF8String(self),
                                 self,
                                 _path,
-                                valueTypeName,
+                                CAPathAnimationValueTypeUTF8String( _pathValueType),
                                 CAAnimationBitsUTF8String(self->_state.bits));
-   return s;
-}
-
-// 2D interpolation function
-static void CAPathAnimationSetInterpolated2D(CABasicAnimation *self,
-                                             id object,
-                                             double x)
-{
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
-
-   if (!pathAnim->_path)
-      return;
-
-   CGPathPointAndNormal pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
-   struct CGFloat2 value;
-
-   switch (pathAnim->_pathValueType)
-   {
-   case CAPathAnimationValuePoint:
-      value.v0 = pointAndNormal.point.x;
-      value.v1 = pointAndNormal.point.y;
-      break;
-
-   case CAPathAnimationValueNormal:
-      value.v0 = pointAndNormal.normal.dx;
-      value.v1 = pointAndNormal.normal.dy;
-      break;
-
-   case CAPathAnimationValueTangent:
-      // Tangent is perpendicular to normal
-      value.v0 = -pointAndNormal.normal.dy;
-      value.v1 = pointAndNormal.normal.dx;
-      break;
-
-   case CAPathAnimationValuePointPlusNormal:
-      value.v0 = pointAndNormal.point.x + pointAndNormal.normal.dx;
-      value.v1 = pointAndNormal.point.y + pointAndNormal.normal.dy;
-      break;
-
-   // REMOVED: CAPathAnimationValueFrameOrigin case - it belongs in 4D function
-
-   default:
-      value.v0 = pointAndNormal.point.x;
-      value.v1 = pointAndNormal.point.y;
-      break;
-   }
-
-   {
-      mulle_metaabi_union_void_return(struct CGFloat2) param;
-      param.p = value;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   return( s);
 }
 
 // 1D interpolation function
@@ -209,38 +135,41 @@ static void CAPathAnimationSetInterpolated1D(CABasicAnimation *self,
 {
    CAPathAnimation *pathAnim = (CAPathAnimation *)self;
 
-   if (!pathAnim->_path)
+   if( ! pathAnim->_path)
       return;
 
-   CGPathPointAndNormal pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
+   CAPose pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
    CGFloat value;
 
    switch (pathAnim->_pathValueType)
    {
-   case CAPathAnimationValueNormalAngle:
-      value = atan2(pointAndNormal.normal.dy, pointAndNormal.normal.dx);
+   case CAPathAnimationValueRotation:
+         value = CAPoseGetAngle( pose);
+         break;
+
+   case CAPathAnimationValueAngle:
+      value = CAPoseGetAngle( pose);
       break;
 
    case CAPathAnimationValueTangentAngle:
       // Tangent is perpendicular to normal
-      value = atan2(pointAndNormal.normal.dx, -pointAndNormal.normal.dy);
+      value = CAPoseGetRotation( pose);
       break;
 
    case CAPathAnimationValueXPosition:
-      value = pointAndNormal.point.x;
+      value = CAPoseGetPosition( pose).x;
       break;
 
    case CAPathAnimationValueYPosition:
-      value = pointAndNormal.point.y;
+      value = CAPoseGetPosition( pose).y;
       break;
 
    case CAPathAnimationValueDistance:
-      value = x * CGPathGetLength(pathAnim->_path);
+      value = x * CGPathGetLength( pathAnim->_path);
       break;
 
    default:
-      value = 0.0f;
-      break;
+      abort();
    }
 
    {
@@ -250,6 +179,128 @@ static void CAPathAnimationSetInterpolated1D(CABasicAnimation *self,
    }
 }
 
+
+// 1D additive interpolation
+static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self,
+                                                     id object,
+                                                     double x)
+{
+   CAPathAnimation       *pathAnim = (CAPathAnimation *)self;
+   CAPose  pose;
+   CGFloat               diff;
+   CGFloat               value;
+   CGFloat               newValue;
+   CGVector              tangent;
+
+   if (!pathAnim->_path)
+      return;
+
+   pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
+
+   // Calculate current difference based on path value type
+   switch (pathAnim->_pathValueType)
+   {
+   case CAPathAnimationValueRotation:
+      diff = CAPoseGetRotation(pose);
+      break;
+
+   case CAPathAnimationValueAngle:
+      diff = CAPoseGetAngle( pose);
+      break;
+
+   case CAPathAnimationValueTangentAngle:
+      // Tangent is perpendicular to normal
+      tangent = CGVectorMake(-pose.normal.dy, pose.normal.dx);
+      diff    = CGVectorGetAngle(tangent);
+      break;
+
+   case CAPathAnimationValueXPosition:
+      diff = pose.position.x;
+      break;
+
+   case CAPathAnimationValueYPosition:
+      diff = pose.position.y;
+      break;
+
+   case CAPathAnimationValueDistance:
+      diff = x * CGPathGetLength(pathAnim->_path);
+      break;
+
+   default:
+      abort();
+      break;
+   }
+
+   // Get current value from object
+   {
+      mulle_metaabi_union_void_parameter(CGFloat) param;
+      mulle_objc_object_call_variable(object, self->_property->getter, &param);
+      value = param.r;
+   }
+
+   // Calculate new value: current - previous + diff
+   newValue = value - self->_previous.floatValue + diff;
+
+   // Update previous diff
+   self->_previous.floatValue = diff;
+
+   // Set new value
+   {
+      mulle_metaabi_union_void_return(CGFloat) param;
+      param.p = newValue;
+      mulle_objc_object_call_variable(object, self->_property->setter, &param);
+   }
+}
+
+
+// 2D interpolation function
+static void CAPathAnimationSetInterpolated2D(CABasicAnimation *self,
+                                             id object,
+                                             double x)
+{
+   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
+
+   if( ! pathAnim->_path)
+      return;
+
+   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
+   struct CGFloat2 value;
+
+   switch (pathAnim->_pathValueType)
+   {
+   case CAPathAnimationValuePosition:
+      value.v0 = pose.position.x;
+      value.v1 = pose.position.y;
+      break;
+
+   case CAPathAnimationValueNormal:
+      value.v0 = pose.normal.dx;
+      value.v1 = pose.normal.dy;
+      break;
+
+   case CAPathAnimationValueTangent:
+      // Tangent is perpendicular to normal
+      value.v0 = -pose.normal.dy;
+      value.v1 = pose.normal.dx;
+      break;
+
+   case CAPathAnimationValuePositionPlusNormal:
+      value.v0 = pose.position.x + pose.normal.dx;
+      value.v1 = pose.position.y + pose.normal.dy;
+      break;
+
+   default:
+      abort();
+   }
+
+   {
+      mulle_metaabi_union_void_return(struct CGFloat2) param;
+      param.p = value;
+      mulle_objc_object_call_variable(object, self->_property->setter, &param);
+   }
+}
+
+
 // 2D additive interpolation
 static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
                                                      id object,
@@ -257,10 +308,10 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
 {
    CAPathAnimation *pathAnim = (CAPathAnimation *)self;
 
-   if (!pathAnim->_path)
+   if( ! pathAnim->_path)
       return;
 
-   CGPathPointAndNormal pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
+   CAPose pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
    struct CGFloat2 diff;
    struct CGFloat2 value;
    struct CGFloat2 newValue;
@@ -268,30 +319,30 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
    // Calculate current difference based on path value type
    switch (pathAnim->_pathValueType)
    {
-   case CAPathAnimationValuePoint:
-      diff.v0 = pointAndNormal.point.x;
-      diff.v1 = pointAndNormal.point.y;
+   case CAPathAnimationValuePosition:
+      diff.v0 = pose.position.x;
+      diff.v1 = pose.position.y;
       break;
 
    case CAPathAnimationValueNormal:
-      diff.v0 = pointAndNormal.normal.dx;
-      diff.v1 = pointAndNormal.normal.dy;
+      diff.v0 = pose.normal.dx;
+      diff.v1 = pose.normal.dy;
       break;
 
    case CAPathAnimationValueTangent:
       // Tangent is perpendicular to normal
-      diff.v0 = -pointAndNormal.normal.dy;
-      diff.v1 = pointAndNormal.normal.dx;
+      diff.v0 = -pose.normal.dy;
+      diff.v1 = pose.normal.dx;
       break;
 
-   case CAPathAnimationValuePointPlusNormal:
-      diff.v0 = pointAndNormal.point.x + pointAndNormal.normal.dx;
-      diff.v1 = pointAndNormal.point.y + pointAndNormal.normal.dy;
+   case CAPathAnimationValuePositionPlusNormal:
+      diff.v0 = pose.position.x + pose.normal.dx;
+      diff.v1 = pose.position.y + pose.normal.dy;
       break;
 
    default:
-      diff.v0 = pointAndNormal.point.x;
-      diff.v1 = pointAndNormal.point.y;
+      diff.v0 = pose.position.x;
+      diff.v1 = pose.position.y;
       break;
    }
 
@@ -317,104 +368,37 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
    }
 }
 
-// 1D additive interpolation
-static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self,
-                                                     id object,
-                                                     double x)
-{
-   CAPathAnimation       *pathAnim = (CAPathAnimation *)self;
-   CGPathPointAndNormal  pointAndNormal;
-   CGFloat               diff;
-   CGFloat               value;
-   CGFloat               newValue;
-   CGVector              tangent;
-
-   if (!pathAnim->_path)
-      return;
-
-   pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
-
-   // Calculate current difference based on path value type
-   switch (pathAnim->_pathValueType)
-   {
-   case CAPathAnimationValueNormalAngle:
-      diff = CGVectorGetAngle(pointAndNormal.normal);
-      break;
-
-   case CAPathAnimationValueTangentAngle:
-      // Tangent is perpendicular to normal
-      tangent = CGVectorMake(-pointAndNormal.normal.dy, pointAndNormal.normal.dx);
-      diff = CGVectorGetAngle(tangent);
-      break;
-
-   case CAPathAnimationValueXPosition:
-      diff = pointAndNormal.point.x;
-      break;
-
-   case CAPathAnimationValueYPosition:
-      diff = pointAndNormal.point.y;
-      break;
-
-   case CAPathAnimationValueDistance:
-      diff = x * CGPathGetLength(pathAnim->_path);
-      break;
-
-   default:
-      diff = 0.0f;
-      break;
-   }
-
-   // Get current value from object
-   {
-      mulle_metaabi_union_void_parameter(CGFloat) param;
-      mulle_objc_object_call_variable(object, self->_property->getter, &param);
-      value = param.r;
-   }
-
-   // Calculate new value: current - previous + diff
-   newValue = value - self->_previous.floatValue + diff;
-
-   // Update previous diff
-   self->_previous.floatValue = diff;
-
-   // Set new value
-   {
-      mulle_metaabi_union_void_return(CGFloat) param;
-      param.p = newValue;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
-}
 
 // 4D interpolation function for CGRect values
-static void CAPathAnimationSetInterpolated4D(CABasicAnimation *self,
-                                             id object,
-                                             double x)
+static void CAPathAnimationSetInterpolated4D( CABasicAnimation *self,
+                                              id object,
+                                              double x)
 {
    CAPathAnimation *pathAnim = (CAPathAnimation *)self;
 
    if (!pathAnim->_path)
       return;
 
-   CGPathPointAndNormal pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
+   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
    struct CGFloat4 value;
 
    switch (pathAnim->_pathValueType)
    {
-   case CAPathAnimationValueFrameOrigin:
+   case CAPathAnimationValuePositionAsOrigin:
       // Get current frame to preserve size
       {
          mulle_metaabi_union_void_parameter(struct CGFloat4) currentParam;
          mulle_objc_object_call_variable(object, self->_property->getter, &currentParam);
 
          // Set origin directly from path point, keep existing size
-         value.v0 = pointAndNormal.point.x; // frame.origin.x = path point x
-         value.v1 = pointAndNormal.point.y; // frame.origin.y = path point y
+         value.v0 = pose.position.x; // frame.origin.x = path point x
+         value.v1 = pose.position.y; // frame.origin.y = path point y
          value.v2 = currentParam.r.v2; // Keep existing width
          value.v3 = currentParam.r.v3; // Keep existing height
       }
       break;
 
-   case CAPathAnimationValueFrameSize:
+   case CAPathAnimationValuePositionAsSize:
       // Get current frame to preserve origin
       {
          mulle_metaabi_union_void_parameter(struct CGFloat4) currentParam;
@@ -422,23 +406,25 @@ static void CAPathAnimationSetInterpolated4D(CABasicAnimation *self,
 
          value.v0 = currentParam.r.v0; // Keep existing origin.x
          value.v1 = currentParam.r.v1; // Keep existing origin.y
-         value.v2 = pointAndNormal.point.x; // width from path
-         value.v3 = pointAndNormal.point.y; // height from path
+         value.v2 = pose.position.x; // width from path
+         value.v3 = pose.position.y; // height from path
       }
       break;
 
-   default:
-      // Get current frame for sensible defaults
+      case CAPathAnimationValuePose:
       {
          mulle_metaabi_union_void_parameter(struct CGFloat4) currentParam;
          mulle_objc_object_call_variable(object, self->_property->getter, &currentParam);
 
-         value.v0 = pointAndNormal.point.x;
-         value.v1 = pointAndNormal.point.y;
-         value.v2 = currentParam.r.v2; // Keep existing width
-         value.v3 = currentParam.r.v3; // Keep existing height
+         value.v0 = pose.position.x;
+         value.v1 = pose.position.y;
+         value.v2 = pose.normal.dx;
+         value.v3 = pose.normal.dy;
       }
       break;
+
+      default:
+         abort();
    }
 
    {
@@ -458,7 +444,7 @@ static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
    if (!pathAnim->_path)
       return;
 
-   CGPathPointAndNormal pointAndNormal = CGPathGetPointAndNormalAtFraction(pathAnim->_path, (float)x);
+   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
    struct CGFloat4 diff;
    struct CGFloat4 value;
    struct CGFloat4 newValue;
@@ -466,26 +452,29 @@ static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
    // Calculate current difference based on path value type
    switch (pathAnim->_pathValueType)
    {
-   case CAPathAnimationValueFrameOrigin:
-      diff.v0 = pointAndNormal.point.x; // No magic offset
-      diff.v1 = pointAndNormal.point.y;
+   case CAPathAnimationValuePositionAsOrigin:
+      diff.v0 = pose.position.x; // No magic offset
+      diff.v1 = pose.position.y;
       diff.v2 = 0; // Don't change size
       diff.v3 = 0;
       break;
 
-   case CAPathAnimationValueFrameSize:
+   case CAPathAnimationValuePositionAsSize:
       diff.v0 = 0; // Don't change origin
       diff.v1 = 0;
-      diff.v2 = pointAndNormal.point.x; // Size from path
-      diff.v3 = pointAndNormal.point.y;
+      diff.v2 = pose.position.x; // Size from path
+      diff.v3 = pose.position.y;
+      break;
+
+   case CAPathAnimationValuePose:
+      diff.v0 = pose.position.x;
+      diff.v1 = pose.position.y;
+      diff.v2 = pose.normal.dx;;
+      diff.v3 = pose.normal.dy;
       break;
 
    default:
-      diff.v0 = pointAndNormal.point.x;
-      diff.v1 = pointAndNormal.point.y;
-      diff.v2 = 0;
-      diff.v3 = 0;
-      break;
+      abort();
    }
 
    // Get current value from object

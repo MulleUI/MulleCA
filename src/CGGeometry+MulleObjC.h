@@ -215,3 +215,10 @@ static inline CAPolarPoint   MulleObjectGetCAPolarPoint( id obj, SEL sel)
    return( param.r.polar);
 }
 
+
+
+static inline char   *CAPoseUTF8String( CAPose value)
+{
+   return( CGFloat4UTF8String( CAPoseGetFloat4( value)));
+}
+
