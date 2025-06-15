@@ -34,19 +34,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="365c5aad-8cc7-4839-86e2-d5b233fe6f4a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/MulleCA.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MulleCA.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mulle/etc/env/environment-global.sh" beforeDir="false" afterPath="$PROJECT_DIR$/.mulle/etc/env/environment-global.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Headers.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Headers.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake/reflect/_Sources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake/reflect/_Sources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/cmake/reflect/_Sources.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/demo/cmake/reflect/_Sources.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main-uiview.m" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main-uiview.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CALayer.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CALayer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CALayer.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/CALayer.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reflect/_MulleCA-export.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/reflect/_MulleCA-export.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reflect/objc-loader.inc" beforeDir="false" afterPath="$PROJECT_DIR$/src/reflect/objc-loader.inc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CAPathAnimation.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CAPathAnimation.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CAPathAnimation.m" beforeDir="false" afterPath="$PROJECT_DIR$/src/CAPathAnimation.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -155,17 +147,17 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="CMake Application._3_MulleCA" />
+      <item itemvalue="CMake Application.MulleCA" />
       <item itemvalue="CMake Application.MulleCA__objc_loader_inc__" />
+      <item itemvalue="CMake Application._1_MulleCA" />
+      <item itemvalue="CMake Application._2_MulleCA" />
+      <item itemvalue="CMake Application._3_MulleCA" />
       <item itemvalue="CMake Application.mulle_sde_clean_all" />
       <item itemvalue="CMake Application.mulle_sde_clean_target" />
       <item itemvalue="CMake Application.mulle_sde_clean_tidy" />
       <item itemvalue="CMake Application.mulle_sde_craft_craftorder" />
       <item itemvalue="CMake Application.mulle_sde_reflect" />
       <item itemvalue="CMake Application.mulle_sde_upgrade" />
-      <item itemvalue="CMake Application._1_MulleCA" />
-      <item itemvalue="CMake Application._2_MulleCA" />
-      <item itemvalue="CMake Application.MulleCA" />
     </list>
   </component>
   <component name="TaskManager">
@@ -181,6 +173,8 @@
       <workItem from="1749548372555" duration="3699000" />
       <workItem from="1749554997708" duration="4693000" />
       <workItem from="1749561415190" duration="4550000" />
+      <workItem from="1749586593885" duration="4383000" />
+      <workItem from="1749728721817" duration="99000" />
     </task>
     <servers />
   </component>

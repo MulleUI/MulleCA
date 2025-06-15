@@ -127,10 +127,6 @@ CAAnimationStorageObjectProperties;
 @property( assign) CGRect              clipRect;
 @property( assign) CGFloat             alpha;
 
-// useful for CAPathAnimations, not observable though. Position is based on anchorPoint relative to size and origin
-@property( assign) CGPoint             anchorPoint;
-@property( dynamic) CGPoint            position;
-
 // this is a bitfield that controls bounds/frame canvas/frame tracking
 @property( assign) NSUInteger          frameTracking;
 
