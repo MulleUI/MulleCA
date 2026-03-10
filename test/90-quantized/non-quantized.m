@@ -40,7 +40,7 @@ int   main( int argc, char *argv[])
    mulle_absolutetime_t   now;
 
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
 
    // basic animation duration by default is 1
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))

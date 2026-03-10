@@ -15,7 +15,7 @@
 {
    Float   *p;
 
-   p = [self object];
+   p = [self instance];
    p->_value = v;
    return( p);
 }
@@ -95,7 +95,7 @@ int   main( int argc, char *argv[])
    Float              *start;
    Float              *end;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    start     = [Float objectWithFloat:-10.0f];
    end       = [Float objectWithFloat:+10.0f];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( f))

@@ -271,20 +271,6 @@ static inline void   resetAnimation( CAAnimation *self)
 }
 
 
-- (void) mulleGainAccess
-{
-   [super mulleGainAccess];
-   [self->_animationObject mulleGainAccess];
-}
-
-
-- (void) mulleRelinquishAccess
-{
-   [self->_animationObject mulleRelinquishAccess];
-   [super mulleRelinquishAccess];
-}
-
-
 - (void) animationIndexDidChange
 {
    // do nuthin

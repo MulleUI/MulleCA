@@ -29,7 +29,7 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
    struct _mulle_objc_property      *property;
 
-   foo = [Foo object];
+   foo = [Foo instance];
    [foo setX:10];       // initial value, don't care for plain
 
    options = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),

@@ -123,9 +123,9 @@ CAAnimationStorageObjectProperties;
 // in renderWithContext:)
 // CALayer does only rectangles by itself
 
-@property( assign) CGAffineTransform   transform;
-@property( assign) CGRect              clipRect;
-@property( assign) CGFloat             alpha;
+@property( assign) CGAffineTransform   transform;  // DO NOT TOUCH
+@property( assign) CGRect              clipRect;   // DO NOT TOUCH
+@property( assign) CGFloat             alpha;      // DO NOT TOUCH
 
 // this is a bitfield that controls bounds/frame canvas/frame tracking
 @property( assign) NSUInteger          frameTracking;
@@ -151,6 +151,8 @@ CAAnimationStorageObjectProperties;
 
 - (instancetype) initWithFrame:(CGRect) frame;
 
+- (void) layoutWithLayoutInfo:(struct UILayoutInfo *) info;
+
 - (void) dumpWithIndent:(NSUInteger) indent
                    FILE:(FILE *) fp;
 
@@ -159,8 +161,6 @@ CAAnimationStorageObjectProperties;
 // that subclasses draw anything
 
 CAAnimationStorageObjectInterface;
-
-
 
 @end
 

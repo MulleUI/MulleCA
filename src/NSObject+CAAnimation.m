@@ -50,7 +50,7 @@ void  CAAnimationPropertyDefinitionRegister( struct CAAnimationPropertyDefinitio
 
 
 void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext *ctx,
-                                             CAAnimation *animation)
+                                              CAAnimation *animation)
 {
    if( ctx->flags & add_to_self)
       [(id <CAAnimationStorageObject>) ctx->self addAnimation:animation];

@@ -77,11 +77,11 @@ void   setupSceneAndAnimation( UIWindow *window)
 
    view       = [CustomView viewWithFrame:CGRectMake( 100, 100, 200, 200)];
 
-   redView    = [CustomView object];
-   blueView   = [CustomView object];
-   greenView  = [CustomView object];
-   yellowView = [CustomView object];
-   greenView  = [CustomView object];
+   redView    = [CustomView instance];
+   blueView   = [CustomView instance];
+   greenView  = [CustomView instance];
+   yellowView = [CustomView instance];
+   greenView  = [CustomView instance];
 
    [view setNameUTF8String:"Container"];
 
@@ -106,7 +106,7 @@ void   setupSceneAndAnimation( UIWindow *window)
    // properly sized in the beginning
    [view layout];
 
-   ta = [CATransaction object];
+   ta = [CATransaction instance];
    [ta begin];
    {
       [ta setAnimationDelay:2.0];

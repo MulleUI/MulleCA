@@ -1,4 +1,4 @@
-      { @selector( MulleObjCLoader), @selector( MulleUIBase) },      // 47a9beb6;MulleObjCLoader;3ebba954;MulleUIBase
+      { @selector( MulleObjCDeps), @selector( MulleUIBase) },      // 47a9beb6;MulleObjCDeps;3ebba954;MulleUIBase
       { @selector( CAAnimation), @selector( CAAnimationStorageObject) },      // c85bd814;CAAnimation;51463a1c;CAAnimationStorageObject
       { @selector( CAAnimation), @selector( CAAnimator) },      // c85bd814;CAAnimation;dfaf788f;CAAnimator
       { @selector( CAAnimation), MULLE_OBJC_NO_CATEGORYID },      // c85bd814;CAAnimation;;

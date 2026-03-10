@@ -151,17 +151,17 @@
 }
 
 
-- (void) mulleGainAccess
+- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [super mulleGainAccess];
-   [self mulleGainAccessToAnimations];
+   [super mulleGainAccessWithUniquingSet:uniquing];
+   [self mulleGainAccessToAnimationsWithUniquingSet:uniquing];
 }
 
 
-- (void) mulleRelinquishAccess
+- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [self  mulleRelinquishAccessToAnimations];
-   [super mulleRelinquishAccess];
+   [self  mulleRelinquishAccessToAnimationsWithUniquingSet:uniquing];
+   [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }
 
 @end

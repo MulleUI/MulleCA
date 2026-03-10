@@ -27,5 +27,5 @@ src/NSObject+CAAnimation.m
 # contents selected with patternfile ??-source--stage2-sources
 #
 set( STAGE2_SOURCES
-src/MulleObjCLoader+MulleCA.m
+src/MulleObjCDeps+MulleCA.m
 )

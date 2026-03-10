@@ -21,7 +21,7 @@ struct huge_struct
 {
    SimpleStaticString  *obj;
 
-   obj = [self object];
+   obj = [self instance];
    obj->_s = s;
    return( obj);
 }
@@ -121,7 +121,7 @@ int   main( void)
    e = [SimpleStaticString stringWithStaticUTF8String:"e"];
    f = [SimpleStaticString stringWithStaticUTF8String:"f"];
 
-   object = [TestClass object];
+   object = [TestClass instance];
 
    [object setAnUnobservedValue:a];
    strcpy( value.bytes, "VfL Bochum");

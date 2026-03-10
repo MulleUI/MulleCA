@@ -33,7 +33,7 @@ int   main( int argc, char *argv[])
    struct CABasicAnimationOptions   options;
    struct _mulle_objc_property      *property;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    // though this looks a little wordy, its easier to figure out
    // what what is
    options   = (struct CABasicAnimationOptions)

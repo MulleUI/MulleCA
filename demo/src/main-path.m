@@ -2,6 +2,7 @@
 
 #include <math.h>
 
+#define DO_FRAME_ANIMATION   0  // Set to 1 to enable 2 animations as frame only
 #define DO_PATH_ANIMATION    1  // Set to 1 to enable animations
 #define DO_COLOR_ANIMATION   1  // Set to 1 to enable animations
 
@@ -13,7 +14,7 @@
 #define TRACE           0
 
 
-@interface Layer : CGGraphicsLayer
+@interface Layer : CAShapeLayer
 @end
 
 
@@ -59,10 +60,16 @@
                            CGAffineTransformUTF8String( &xform));
 #endif
 
+#ifdef DEBUG_BOUNDS
+   CGContextStrokeRectWithColor( context, [self bounds], 1.0f, CGColorMakeChartreuse());
+   CGContextStrokeRectWithColor( context, [self canvas], 1.0f, CGColorMakeDodgerBlue());
+#endif
+
    return( [super drawInContext:context]);
 }
 
 @end
+
 
 // Helper function to create a simple circle path
 static CGPath *createCirclePath( CGPoint center, CGFloat radius)
@@ -77,9 +84,9 @@ static CGPath *createCirclePath( CGPoint center, CGFloat radius)
 // Helper function to create a figure-8 path using two connected arcs
 static CGPath *createFigure8Path( CGPoint center, CGFloat radius)
 {
-   CGPoint        lowerCenter;
-   CGPath * path;
-   CGPoint        upperCenter;
+   CGPoint   lowerCenter;
+   CGPath    *path;
+   CGPoint   upperCenter;
 
    path = CGPathCreate( NULL);
 
@@ -100,6 +107,7 @@ static CGPath *createFigure8Path( CGPoint center, CGFloat radius)
 }
 
 // Helper function to create a sine wave path
+// why not use bezier ? anyway...
 static CGPath *createSineWavePath( CGRect bounds)
 {
    CGFloat          amplitude;
@@ -129,6 +137,7 @@ static CGPath *createSineWavePath( CGRect bounds)
       point = CGPointMake( x, y);
       CGPathAddLineToPoint( path, point);
    }
+   // CGPathCloseSubpath( path);
 
    return( path);
 }
@@ -161,7 +170,29 @@ static CGPath   *createStarPath( CGPoint center, CGFloat radius)
    {
       CGPathAddLineToPoint( path, points[i]);
    }
-   CGPathAddLineToPoint( path, points[0]); // Close the star
+   CGPathCloseSubpath( path);
+   //CGPathAddLineToPoint( path, points[0]); // Close the star
+
+   return( path);
+}
+
+
+static CGPath   *createTrianglePath( CGRect bounds)
+{
+   CGPath   *path;
+   CGPoint  p1;
+   CGPoint  p2;
+   CGPoint  p3;
+
+   path = CGPathCreate( NULL);
+   p1   = CGPointMake( CGRectGetMidX( bounds), CGRectGetMinY( bounds));
+   p2   = CGPointMake( CGRectGetMaxX( bounds), CGRectGetMaxY( bounds));
+   p3   = CGPointMake( CGRectGetMinX( bounds), CGRectGetMaxY( bounds));
+
+   CGPathMoveToPoint(path, p1);
+   CGPathAddLineToPoint(path, p2);
+   CGPathAddLineToPoint(path, p3);
+   CGPathCloseSubpath(path);
 
    return( path);
 }
@@ -264,9 +295,13 @@ static BOOL   drawPaths( CGGraphicsLayer *layer, CGContext *context)
 
       CGContextBeginPath( context);
       CGContextAddCGPath( context, path);
+      CGContextFillColor( context, CGColorMakeWithRGBA( 0.7, 0.7, 0.7, 1.0));
+      CGContextFill( context);
+
       CGContextStrokeColor( context, CGColorMakeWithRGBA( 0.3, 0.3, 0.3, 1.0)); // Dark gray
       CGContextStrokeWidth( context, 1.0);
       CGContextStroke( context);
+
       CGPathDestroy( path);
    }
 
@@ -308,12 +343,16 @@ static void   setupScene( UIWindow *window)
 
       layer = [Layer layerWithFrame:frame];
       [layer setNameUTF8String:label];
-      [layer setBackgroundColor:CGColorMakeWithRGBA( 1.0, 0.0, 0.0, 1.0)];
+      [layer setPath:createTrianglePath( [layer canvas])];
+#ifdef DEBUG_BOUNDS
+      // [layer setMasksToBounds:NO];
+      [layer setBackgroundColor:CGColorMakeWithRGBA( 0.3, 0.3, 0.3, 0.5)];
+#endif
       [view addLayer:layer];
 
 #if DO_COLOR_ANIMATION
       // Color animation (keep this - it's working)
-      colorProperty = MulleObjCInstanceSearchProperty( layer, @selector( backgroundColor));
+      colorProperty = MulleObjCInstanceSearchProperty( layer, @selector( fillColor));
       if( colorProperty)
       {
          colorOptions = CABasicAnimationOptionsMakeEaseInOut(
@@ -332,20 +371,17 @@ static void   setupScene( UIWindow *window)
 #endif
 
 #if DO_PATH_ANIMATION
-      // Path animation - use position for first 2, frame for last 2
+      pathProperty  = MulleObjCInstanceSearchProperty( layer, @selector( pose));
+      pathValueType = CAPathAnimationValuePose;
+#if DO_FRAME_ANIMATION
       if( i < 2)
       {
          // First two layers (circle, figure-8): animate pose (center follows path + rotation)
-         pathProperty  = MulleObjCInstanceSearchProperty( layer, @selector( pose));
-         pathValueType = CAPathAnimationValuePose;
-      }
-      else
-      {
          // Last two layers (sine wave, star): animate frame origin
          pathProperty  = MulleObjCInstanceSearchProperty( layer, @selector( frame));
          pathValueType = CAPathAnimationValuePositionAsOrigin;
       }
-
+#endif
       if( pathProperty && path)
       {
          pathOptions = CABasicAnimationOptionsMakeEaseInOut(

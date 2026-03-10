@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-gfx no-header`
 //    rename              : `mulle-sde dependency|library set mulle-gfx include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-gfx <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-gfx [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-gfx [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-gfx [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-gfx [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-gfx no-platform-<uname>`

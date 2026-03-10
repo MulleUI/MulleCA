@@ -690,13 +690,159 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
    char *property_signature;
 
    property_signature = _mulle_objc_property_get_signature( property);
-   if( _mulle_objc_ivarsignature_is_compatible( property_signature, signature))
+   if( _mulle_objc_ivarsignature_is_binary_compatible( property_signature, signature))
       return;
    MulleUICLog( "Value encoding \"%s\" may not match encoding \"%s\" of property \"%s\"",
                            signature,
                            property_signature,
                            _mulle_objc_property_get_name( property));
 }
+
+
+// Convenience factory methods
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                             valueType:(CAAnimationValueType) type
+                            valueRange:(struct CAAnimationValueRange *) range
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                                valueType:type
+                               valueRange:range
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startRectValue:(CGRect) start
+                          endRectValue:(CGRect) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                           startRectValue:start
+                             endRectValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                  startEdgeInsetsValue:(MulleEdgeInsets) start
+                    endEdgeInsetsValue:(MulleEdgeInsets) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                     startEdgeInsetsValue:start
+                       endEdgeInsetsValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startSizeValue:(CGSize) start
+                          endSizeValue:(CGSize) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                           startSizeValue:start
+                             endSizeValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startPointValue:(CGPoint) start
+                         endPointValue:(CGPoint) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                          startPointValue:start
+                            endPointValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startFloatValue:(CGFloat) start
+                         endFloatValue:(CGFloat) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                          startFloatValue:start
+                            endFloatValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startFloat2Value:(CGFloat2) start
+                        endFloat2Value:(CGFloat2) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                         startFloat2Value:start
+                           endFloat2Value:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startFloat4Value:(CGFloat4) start
+                        endFloat4Value:(CGFloat4) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                         startFloat4Value:start
+                           endFloat4Value:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                  startFloatArrayValue:(struct mulle__floatarray) start
+                    endFloatArrayValue:(struct mulle__floatarray) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                     startFloatArrayValue:start
+                       endFloatArrayValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startObjectValue:(id <CAInterpolatableValue>) start
+                        endObjectValue:(id <CAInterpolatableValue>) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                         startObjectValue:start
+                           endObjectValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startRangeValue:(NSRange) start
+                         endRangeValue:(NSRange) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                          startRangeValue:start
+                            endRangeValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                     startIntegerValue:(NSInteger) start
+                       endIntegerValue:(NSInteger) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                        startIntegerValue:start
+                          endIntegerValue:end
+                                  options:options] autorelease];
+}
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startBOOLValue:(BOOL) start
+                          endBOOLValue:(BOOL) end
+                               options:(struct CABasicAnimationOptions *) options
+{
+   return [[[self alloc] initWithProperty:property
+                           startBOOLValue:start
+                             endBOOLValue:end
+                                  options:options] autorelease];
+}
+
 
 
 - (id) initWithProperty:(struct _mulle_objc_property *) property
@@ -722,8 +868,8 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
    //
    self->_start               = range->start;
    self->_end                 = range->end;
-   self->_quadratic           = CAQuadraticForAnimationCurve( options->curve);
-   self->_tween               = options->tween ? options->tween : CAQuadraticGetValue;
+   self->_quadratic           = CACubicForAnimationCurve( options->curve);
+   self->_tween               = options->tween ? options->tween : CACubicGetValue;
 
    p                          = CABasicAnimationTypeDefinitionGet( type);
    self->_interpolate         = p->interpolate;
@@ -1042,27 +1188,32 @@ static void   releaseStartEnd( CABasicAnimation *self)
 }
 
 
-- (void) mulleGainAccess
+- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [super mulleGainAccess];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [super mulleGainAccessWithUniquingSet:uniquing];
+
    if( self->_valueType == CAAnimationValueObject)
    {
-      [self->_start.objectValue mulleGainAccess];
-      [self->_end.objectValue mulleGainAccess];
-      [self->_previous.objectValue mulleGainAccess];  // ???
+      [self->_start.objectValue mulleGainAccessWithUniquingSet:uniquing];
+      [self->_end.objectValue mulleGainAccessWithUniquingSet:uniquing];
+      [self->_previous.objectValue mulleGainAccessWithUniquingSet:uniquing];  // ???
    }
 }
 
 
-- (void) mulleRelinquishAccess
+- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
    if( self->_valueType == CAAnimationValueObject)
    {
-      [self->_previous.objectValue mulleRelinquishAccess]; // ???
-      [self->_end.objectValue mulleRelinquishAccess];
-      [self->_start.objectValue mulleRelinquishAccess];
+      [self->_previous.objectValue mulleRelinquishAccessWithUniquingSet:uniquing]; // ???
+      [self->_end.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
+      [self->_start.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
    }
-   [super mulleRelinquishAccess];
+   [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }
 
 

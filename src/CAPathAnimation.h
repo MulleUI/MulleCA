@@ -74,4 +74,5 @@ static inline char  *CAPathAnimationValueTypeUTF8String( CAPathAnimationValueTyp
 @end
 
 // Convenience function to get the CAAnimationValueType for a given path value type
+MULLE_CA_GLOBAL
 CAAnimationValueType CAPathAnimationGetAnimationValueType(CAPathAnimationValueType pathValueType);

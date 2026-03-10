@@ -39,7 +39,7 @@ int   main( int argc, char *argv[])
    mulle_absolutetime_t             now;
    struct CABasicAnimationOptions   options;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
 
    // basic animation duration by default is 1
    options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.15, 1), 0.0, NO);

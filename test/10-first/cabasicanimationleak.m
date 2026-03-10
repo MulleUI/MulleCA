@@ -56,8 +56,8 @@ int   main( int argc, char *argv[])
    struct _mulle_objc_property             *property;
 
    // Foo is value and property container (hacky)
-   foo       = [Foo object];
-   bar       = [Foo object];
+   foo       = [Foo instance];
+   bar       = [Foo instance];
    property  = MulleObjCInstanceSearchProperty( foo, @selector( value));
    animation = [[[CABasicAnimation alloc] initWithProperty:property
                                           startObjectValue:foo 

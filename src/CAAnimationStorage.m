@@ -324,8 +324,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-
-- (void) mulleGainAccessToAnimations
+- (void) mulleGainAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
    CAAnimation                 *animation;
    struct CAAnimationStorage   *storage;
@@ -333,12 +332,13 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    storage = [self animationStorage];
    mulle_pointerarray_for( &storage->_animations, animation)
    {
-      [animation mulleGainAccess];
+      if( mulle_pointerset_insert( uniquing, animation))
+         [animation mulleGainAccessWithUniquingSet:uniquing];
    }
 }
 
 
-- (void) mulleRelinquishAccessToAnimations
+- (void) mulleRelinquishAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
    CAAnimation                 *animation;
    struct CAAnimationStorage   *storage;
@@ -346,7 +346,8 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
    storage = [self animationStorage];
    mulle_pointerarray_for( &storage->_animations, animation)
    {
-      [animation mulleRelinquishAccess];
+      if( mulle_pointerset_insert( uniquing, animation))
+         [animation mulleRelinquishAccessWithUniquingSet:uniquing];
    }
 }
 

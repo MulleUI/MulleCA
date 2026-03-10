@@ -5,19 +5,19 @@
 // These curves are part of the demo only.
 //
             // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quad(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_quad(struct CACubic *quadratic, CGFloat t)
 {
     return t * t;
 }
 
             // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quad(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_out_quad(struct CACubic *quadratic, CGFloat t)
 {
    return t * (2 - t);
 }
 
             // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quad(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_out_quad(struct CACubic *quadratic, CGFloat t)
 {
    return t < 0.5
               ? 2 * t * t
@@ -25,20 +25,20 @@ static CGFloat   paperjs_ease_in_out_quad(struct CAQuadratic *quadratic, CGFloat
 }
 
             // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_cubic(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_cubic(struct CACubic *quadratic, CGFloat t)
 {
    return t * t * t;
 }
 
             // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_cubic(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_out_cubic(struct CACubic *quadratic, CGFloat t)
 {
    CGFloat  t_1 = t - 1.0;
    return t_1 * t_1 * t_1 + 1;
 }
 
             // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_cubic(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_out_cubic(struct CACubic *quadratic, CGFloat t)
 {
     return t < 0.5
         ? 4 * t * t * t
@@ -46,20 +46,20 @@ static CGFloat   paperjs_ease_in_out_cubic(struct CAQuadratic *quadratic, CGFloa
 }
 
             // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quart(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_quart(struct CACubic *quadratic, CGFloat t)
 {
                 return t * t * t * t;
 }
 
             // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quart(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_out_quart(struct CACubic *quadratic, CGFloat t)
 {
    CGFloat  t_1 = t - 1.0;
    return 1 - t_1 * t_1 * t_1 * t_1;
 }
 
             // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quart(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_out_quart(struct CACubic *quadratic, CGFloat t)
 {
    CGFloat  t_1 = t - 1.0;
     return t < 0.5
@@ -68,13 +68,13 @@ static CGFloat   paperjs_ease_in_out_quart(struct CAQuadratic *quadratic, CGFloa
 }
 
             // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quint(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_quint(struct CACubic *quadratic, CGFloat t)
 {
    return t * t * t * t * t;
 }
 
             // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quint(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_out_quint(struct CACubic *quadratic, CGFloat t)
 {
    CGFloat  t_1 = t - 1.0;
 
@@ -82,7 +82,7 @@ static CGFloat   paperjs_ease_out_quint(struct CAQuadratic *quadratic, CGFloat t
 }
 
             // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quint(struct CAQuadratic *quadratic, CGFloat t)
+static CGFloat   paperjs_ease_in_out_quint(struct CACubic *quadratic, CGFloat t)
 {
    CGFloat  t_1 = t - 1.0;
 
@@ -110,7 +110,7 @@ static void   setupScene( UIWindow *window)
    frame = [[window contentView] contentRect];
    frame = UIEdgeInsetsInsetRect( frame, UIEdgeInsetsMake( 10, 10, 10, 10));
 
-   ta = [CATransaction object];
+   ta = [CATransaction instance];
 
    CGRectPartitionVertically( frame, 0, N_LAYERS, rects);
    for( i = 0; i < N_LAYERS; i++)

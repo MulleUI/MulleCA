@@ -47,7 +47,7 @@ int   main( int argc, char *argv[])
    NSInteger              i;
    mulle_absolutetime_t   now;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
                                          startIntegerValue:-10
                                            endIntegerValue:+10

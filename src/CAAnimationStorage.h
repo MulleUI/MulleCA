@@ -58,8 +58,8 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 - (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
                                   stateBitsCleared:(NSUInteger) clrBits;
 
-- (void) mulleGainAccessToAnimations            MULLE_OBJC_THREADSAFE_METHOD;
-- (void) mulleRelinquishAccessToAnimations      MULLE_OBJC_THREADSAFE_METHOD;
+- (void) mulleGainAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing         MULLE_OBJC_THREADSAFE_METHOD;
+- (void) mulleRelinquishAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing   MULLE_OBJC_THREADSAFE_METHOD;
 
 PROTOCOLCLASS_END()
 

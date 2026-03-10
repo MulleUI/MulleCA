@@ -2,7 +2,7 @@
 #define mulle_core_animation_include_h__
 
 /* This is a central include file to keep dependencies out of the library
-   C files. It is usally included by .h files only.
+   C files. It is usually included by .h files only.
 
    The advantage is that now .c and .h files become motile. They can
    be moved to other projects and don't need to be edited. Also less typing...
@@ -22,8 +22,18 @@
    sourcetree, then you don't need it.
  */
 #include "_MulleCA-include.h"
-#ifndef MULLE_CA_EXTERN_GLOBAL
-# define MULLE_CA_EXTERN_GLOBAL MULLE_C_EXTERN_GLOBAL
+
+
+#ifdef MULLE_CA_BUILD
+# define MULLE_CA_GLOBAL        MULLE_C_GLOBAL
+# define MULLE_CA_GLOBAL_VAR    MULLE_C_GLOBAL_VAR
+#else
+# if defined( MULLE_CA_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_CA_INCLUDE_STATIC))
+#  define MULLE_CA_GLOBAL       MULLE_C_EXTERN_GLOBAL
+# else
+#  define MULLE_CA_GLOBAL       extern
+# endif
+# define MULLE_CA_GLOBAL_VAR
 #endif
 
 
