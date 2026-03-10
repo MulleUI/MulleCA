@@ -25,10 +25,10 @@ int   main( int argc, char *argv[])
    CAAnimationGroup   *group;
    Foo                *foo;
 
-   foo = [Foo object];
+   foo = [Foo instance];
    [foo setValue:0];
 
-   transaction = [CATransaction object];
+   transaction = [CATransaction instance];
    assert( transaction);
 
    [transaction begin];

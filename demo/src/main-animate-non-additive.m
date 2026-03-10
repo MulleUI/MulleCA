@@ -12,7 +12,7 @@ void   setupAnimation( UIWindow *window, CALayer *layer)
    CATransaction      *ta;
    CAAnimationGroup   *group;
 
-     ta = [CATransaction object];
+     ta = [CATransaction instance];
 
     [ta begin];
     {

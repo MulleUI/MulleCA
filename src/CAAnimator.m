@@ -144,17 +144,21 @@
                                     stateBitsCleared:0]);
 }
 
-- (void) mulleGainAccess
+- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [super mulleGainAccess];
-   [self mulleGainAccessToAnimations];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [super mulleGainAccessWithUniquingSet:uniquing];
+   [self mulleGainAccessToAnimationsWithUniquingSet:uniquing];
 }
 
 
-- (void) mulleRelinquishAccess
+- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [self  mulleRelinquishAccessToAnimations];
-   [super mulleRelinquishAccess];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [self mulleRelinquishAccessToAnimationsWithUniquingSet:uniquing];
+   [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }
 
 @end

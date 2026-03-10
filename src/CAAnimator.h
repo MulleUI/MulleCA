@@ -7,14 +7,16 @@
 #import "CAAnimationStorage.h"
 
 //
-// The CAAnimator just stores CAAnimations and when asked to animate,
-// animates them. CAAnimationGroups are CAAnimations, that get created by
-// CATransactions.
+// The CAAnimator stores CAAnimations (via CAAnimationStorageObject) and when 
+// asked to animate, animates them. CAAnimationGroups are CAAnimations, that 
+// get created by CATransactions.
 //
-//                          .------------.
-//                    .-----| CAAnimator |
-//                    |     '------------'
-//                    v           |
+//                          .-------------.
+//                          | CAAnimator  |
+//                       0  .-------------.
+//                    .-----| _animations |  (CAAnimationStorageObject)
+//                    |     '-------------'
+//                    v           | 1
 //          .------------------.  |    .-------------.
 //        .-| CAAnimationGroup |  '--->| CAAnimation |
 //        | '------------------'       '-------------'

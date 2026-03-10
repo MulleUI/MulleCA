@@ -27,7 +27,7 @@ int   main( int argc, char *argv[])
    CABasicAnimation   *animation;
    NSInteger          i;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( p))
                                            startPointValue:CGPointMake( -10.0f, 20.0f)
                                              endPointValue:CGPointMake( 10.0f, 0.0f)

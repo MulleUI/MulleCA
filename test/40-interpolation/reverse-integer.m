@@ -30,7 +30,7 @@ int   main( int argc, char *argv[])
    NSInteger                        i;
    struct CABasicAnimationOptions   options;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    // though this looks a little wordy, its easier to figure out
    // what what is
    options   = (struct CABasicAnimationOptions)

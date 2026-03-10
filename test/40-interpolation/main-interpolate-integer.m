@@ -27,7 +27,7 @@ int   main( int argc, char *argv[])
    CABasicAnimation   *animation;
    NSInteger          i;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
    animation = [[[CABasicAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( foo, @selector( i))
                                          startIntegerValue:-10
                                            endIntegerValue:+10

@@ -18,7 +18,7 @@ int   main( void)
    /*
     * animator now runs animation with our fake timestamps
     */
-   animator = [CAAnimator object];
+   animator = [CAAnimator instance];
 
    print_animator( animator);
 

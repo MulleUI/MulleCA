@@ -74,9 +74,10 @@ CAAnimationStorageObjectImplementation;
 }
 
 
+//
 // this method is shared by the designated intializer and copy so be extra
 // careful here. Also ensure that the logic is somewhat similar to UIView
-
+//
 - (id) _initWithFrame:(CGRect) frame
 {
    self = [self initNoLock];
@@ -138,20 +139,33 @@ CAAnimationStorageObjectImplementation;
 }
 
 
-- (void) mulleGainAccess
+- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [super mulleGainAccess];
-   [self mulleGainAccessToAnimations];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [super mulleGainAccessWithUniquingSet:uniquing];
+
+   [self mulleGainAccessToAnimationsWithUniquingSet:uniquing];
 }
 
 
-- (void) mulleRelinquishAccess
+- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
 {
-   [self  mulleRelinquishAccessToAnimations];
-   [super mulleRelinquishAccess];
+   assert( mulle_pointerset_get( uniquing, self) == self);
+
+   [self  mulleRelinquishAccessToAnimationsWithUniquingSet:uniquing];
+   [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }
 
 
+//
+// CALayer copy idea is that we use _initWithFrame: to get a default
+// initialized object, this object should not have set paints or other
+// retainable/copyiable properties (else we would need to release them
+// again in -copy to copy over info)
+// Default paints and so forth, should be set in initWithFrame: which then
+// calls _initWithFrame:
+//
 - (id) copy
 {
    CALayer   *copy;
@@ -219,7 +233,7 @@ CAAnimationStorageObjectImplementation;
 
 + (instancetype) layer
 {
-   return( [self object]);
+   return( [self instance]);
 }
 
 
@@ -278,12 +292,23 @@ static inline CGRect   getCanvas( CALayer *self)
 {
    [self willChange]; // seems needed
 
+   // some times you use negative origins for the canvas to draw in a more
+   // "mathy" way with a circle center at 0,0
+   //NSParameterAssert( CGPointEqualToPoint( canvas.origin, CGPointZero));
+
    _canvas.origin = canvas.origin;
    if( (_frameTracking & CALayerCanvasSizeTracksFrameSize) &&
          CGSizeEqualToSize( _frame.size, canvas.size))
       _canvas.size.width = INFINITY;
    else
       _canvas.size = canvas.size;
+}
+
+
+- (void) layoutWithLayoutInfo:(struct UILayoutInfo *) info
+{
+   // the default does nothing
+   assert( info);
 }
 
 
@@ -337,6 +362,8 @@ static inline CGRect   getCanvas( CALayer *self)
 
    fprintf( fp, "\n");
 }
+
+
 
 
 //

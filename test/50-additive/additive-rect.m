@@ -35,7 +35,7 @@ int   main( int argc, char *argv[])
    NSInteger                        i;
    struct CABasicAnimationOptions   options;
 
-   foo = [Foo object];
+   foo = [Foo instance];
    [foo setR:CGRectMake( -10.0f, 20.0f, 0.0f, 10.0f)];
 
    options   = CABasicAnimationOptionsMakeCurve( mulle_relativetimerange_make( 0, 1),

@@ -6,7 +6,7 @@ int   main( int argc, char *argv[])
    CATransaction      *transaction;
    CAAnimationGroup   *group;
 
-   transaction = [CATransaction object];
+   transaction = [CATransaction instance];
    assert( transaction);
 
    [transaction begin];

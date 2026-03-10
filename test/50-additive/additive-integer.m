@@ -28,7 +28,7 @@ int   main( int argc, char *argv[])
    NSInteger                        i;
    struct CABasicAnimationOptions   options;
 
-   foo = [Foo object];
+   foo = [Foo instance];
    [foo setI:-10];
 
    options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),

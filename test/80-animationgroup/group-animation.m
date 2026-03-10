@@ -43,7 +43,7 @@ int   main( void)
 
    // create object, get property, create an animation for this property
 
-   foo      = [Foo object];
+   foo      = [Foo instance];
    property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
 
    options  = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),
@@ -55,7 +55,7 @@ int   main( void)
                                                    options:&options] autorelease];
    [animation setAnimationObject:foo];
 
-   group = [CAAnimationGroup object];
+   group = [CAAnimationGroup instance];
 
    // weird delegate interface
    [group setAnimationDelegate:foo];
@@ -66,7 +66,7 @@ int   main( void)
    /*
     * animator now runs animation with our fake timestamps
     */
-   animator = [CAAnimator object];
+   animator = [CAAnimator instance];
    [animator addAnimation:group];
 
    for( timestamp = 0.0; timestamp <= 1.2; timestamp += 0.2)

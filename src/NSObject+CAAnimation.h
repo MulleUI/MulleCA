@@ -26,10 +26,10 @@ struct CAAnimationPropertyDefinition
                               struct CAPropertyAnimationContext *);
 };
 
-MULLE_CA_EXTERN_GLOBAL
+MULLE_CA_GLOBAL
 void  CAAnimationPropertyDefinitionRegister( struct CAAnimationPropertyDefinition *p);
 
-MULLE_CA_EXTERN_GLOBAL
+MULLE_CA_GLOBAL
 void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext *ctx,
                                               CAAnimation *animation);
 
@@ -41,7 +41,7 @@ void  CAPropertyAnimationContextAddAnimation( struct CAPropertyAnimationContext 
 @end
 
 
-@interface NSObject( CAAnimationForward)
+@interface NSObject( CAAnimation_Forward)
 
 // implement this on "value" objects class to create a CAAnimation to animate
 // from "startObject" to "endObject"

@@ -39,7 +39,7 @@ int   main( int argc, char *argv[])
    mulle_absolutetime_t             now;
    struct CABasicAnimationOptions   options;
 
-   foo       = [Foo object];
+   foo       = [Foo instance];
 
    options   = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0.1, 1), 0.0, NO);
    fprintf( stderr, "%s\n", CABasicAnimationOptionsUTF8String( &options));

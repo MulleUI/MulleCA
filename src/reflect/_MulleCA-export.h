@@ -24,7 +24,7 @@
 #import "CATransaction.h"
 #import "CGGeometry+MulleObjC.h"
 #import "MulleEdgeInsets+MulleObjC.h"
-#import "MulleObjCLoader+MulleCA.h"
+#import "MulleObjCDeps+MulleCA.h"
 #import "NSObject+CAAnimation.h"
 
 

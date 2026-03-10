@@ -21,12 +21,12 @@
 // (NSUInteger) round( CAInterpolate( startLength, endLength, x));
 // mode is any of 0, CAAnimationStickyArrayCenter CAAnimationStickyArrayEnd
 //
-MULLE_CA_EXTERN_GLOBAL
+MULLE_CA_GLOBAL
 NSInteger   CAArrayIndexForInterpolation( NSUInteger startLength,
                                           NSUInteger length,
                                           NSUInteger mode);
 
-MULLE_CA_EXTERN_GLOBAL
+MULLE_CA_GLOBAL
 NSInteger   CAInterpolatedArrayIndex( NSUInteger startLength,
                                       NSUInteger endLength,
                                       double x,
@@ -81,15 +81,15 @@ static inline char  *CAAnimationCurveUTF8String(CAAnimationCurve curve)
 }
 
 
-static inline CAQuadratic
-   CAQuadraticForAnimationCurve( CAAnimationCurve curvetype)
+static inline CACubic
+   CACubicForAnimationCurve( CAAnimationCurve curvetype)
 {
    switch( curvetype)
    {
-   case CAAnimationCurveEaseInOut : return( CAQuadraticEaseInOut);
-   case CAAnimationCurveEaseOut   : return( CAQuadraticEaseOut);
-   case CAAnimationCurveEaseIn    : return( CAQuadraticEaseIn);
-   default                        : return( CAQuadraticLinear);
+   case CAAnimationCurveEaseInOut : return( CACubicEaseInOut);
+   case CAAnimationCurveEaseOut   : return( CACubicEaseOut);
+   case CAAnimationCurveEaseIn    : return( CACubicEaseIn);
+   default                        : return( CACubicLinear);
    }
 }
 
@@ -120,7 +120,7 @@ typedef NS_ENUM( NSInteger, CAAnimationValueType)
 
 
 
-MULLE_CA_EXTERN_GLOBAL
+MULLE_CA_GLOBAL
 char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value);
 
 struct CABasicAnimationOptions;
@@ -496,8 +496,75 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 
 @property( readonly) struct _mulle_objc_property   *property;
 @property( readonly) CATweenFunction               *tween;
-@property( readonly) CAQuadratic                   quadratic;
+@property( readonly) CACubic                   quadratic;
 @property( readonly) CAAnimationValueType          valueType;
+
+
+// Convenience factory methods
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                             valueType:(CAAnimationValueType) type
+                            valueRange:(struct CAAnimationValueRange *) range
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startRectValue:(CGRect) start
+                          endRectValue:(CGRect) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                  startEdgeInsetsValue:(MulleEdgeInsets) start
+                    endEdgeInsetsValue:(MulleEdgeInsets) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startSizeValue:(CGSize) start
+                          endSizeValue:(CGSize) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startPointValue:(CGPoint) start
+                         endPointValue:(CGPoint) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startFloatValue:(CGFloat) start
+                         endFloatValue:(CGFloat) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startFloat2Value:(CGFloat2) start
+                        endFloat2Value:(CGFloat2) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startFloat4Value:(CGFloat4) start
+                        endFloat4Value:(CGFloat4) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                  startFloatArrayValue:(struct mulle__floatarray) start
+                    endFloatArrayValue:(struct mulle__floatarray) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                      startObjectValue:(id <CAInterpolatableValue>) start
+                        endObjectValue:(id <CAInterpolatableValue>) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                       startRangeValue:(NSRange) start
+                         endRangeValue:(NSRange) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                     startIntegerValue:(NSInteger) start
+                       endIntegerValue:(NSInteger) end
+                               options:(struct CABasicAnimationOptions *) options;
+
++ (instancetype) animationWithProperty:(struct _mulle_objc_property *) property
+                        startBOOLValue:(BOOL) start
+                          endBOOLValue:(BOOL) end
+                               options:(struct CABasicAnimationOptions *) options;
 
 //
 // You can reuse an existing CAAnimation by calling init again

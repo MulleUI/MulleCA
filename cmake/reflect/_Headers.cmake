@@ -12,6 +12,7 @@ endif()
 
 set( INCLUDE_DIRS
 src/reflect
+src/generic
 src
 )
 
@@ -27,8 +28,8 @@ src/reflect/_MulleCA-include-private.h
 # contents selected with patternfile ??-header--private-generic-headers
 #
 set( PRIVATE_GENERIC_HEADERS
-src/import-private.h
-src/include-private.h
+src/generic/import-private.h
+src/generic/include-private.h
 )
 
 #
@@ -53,8 +54,8 @@ src/reflect/_MulleCA-provide.h
 # contents selected with patternfile ??-header--public-generic-headers
 #
 set( PUBLIC_GENERIC_HEADERS
-src/import.h
-src/include.h
+src/generic/import.h
+src/generic/include.h
 )
 
 #
@@ -73,7 +74,7 @@ src/CATransaction.h
 src/CGGeometry+MulleObjC.h
 src/MulleCA.h
 src/MulleEdgeInsets+MulleObjC.h
-src/MulleObjCLoader+MulleCA.h
+src/MulleObjCDeps+MulleCA.h
 src/NSObject+CAAnimation.h
 )
 
