@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
 
    // Test 1: NULL path
    printf("Test 4a: NULL path... ");
-   animation = [[CAPathAnimation alloc] initWithProperty:@property(center)
+   animation = [[CAPathAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( testObject, @selector( center))
                                                     path:NULL
+                                           pathValueType:CAPathAnimationValuePosition
                                                  options:&options];
    if (animation == nil) {
       printf("OK (correctly rejected)\n");
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
 
    animation = [[CAPathAnimation alloc] initWithProperty:NULL
                                                     path:path
+                                           pathValueType:CAPathAnimationValuePosition
                                                  options:&options];
    if (animation == nil) {
       printf("OK (correctly rejected)\n");
@@ -69,12 +71,21 @@ int main(int argc, char *argv[])
    path = CGPathCreateMutable();
    CGPathMoveToPoint(path, CGPointMake(5, 5)); // Just a move, no actual path
 
-   animation = [[CAPathAnimation alloc] initWithProperty:@property(center)
+   animation = [[CAPathAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( testObject, @selector( center))
                                                     path:path
+                                           pathValueType:CAPathAnimationValuePosition
                                                  options:&options];
    if (animation != nil) {
       printf("OK (accepted empty path)\n");
       [animation release];
    } else {
       printf("ERROR: Should accept empty path\n");
-      return
+      return 1;
+   }
+
+   CGPathDestroy(path);
+   [testObject release];
+
+   printf("All edge case tests passed!\n");
+   return 0;
+}
