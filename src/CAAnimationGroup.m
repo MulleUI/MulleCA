@@ -106,6 +106,8 @@
 - (void) animateObject:(id) object
     animationFrameInfo:(struct CAAnimationFrameInfo *) info
 {
+   MULLE_C_UNUSED( object);
+   MULLE_C_UNUSED( info);
    // do nothing here
 }
 

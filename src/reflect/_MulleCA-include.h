@@ -14,19 +14,6 @@
 #ifndef _mulle_ca_include_h__
 #define _mulle_ca_include_h__
 
-// To remove the following dependency (headers and library) completely:
-//   `mulle-sde dependency remove mulle-gfx`
-// (Use 76AC82D4-48AB-4751-BCC0-81FBA02488AC instead of mulle-gfx, if there are duplicate entries)
-//
-// You can tweak the following #include with these commands:
-//    remove #include: `mulle-sde dependency mark mulle-gfx no-header`
-//    rename              : `mulle-sde dependency|library set mulle-gfx include whatever.h`
-//    reorder             : `mulle-sde dependency move mulle-gfx <up|down>`
-//    toggle objc         : `mulle-sde dependency mark mulle-gfx [no-]import`
-//    toggle public       : `mulle-sde dependency mark mulle-gfx [no-]public`
-//    toggle optional     : `mulle-sde dependency mark mulle-gfx [no-]require`
-//    remove for platform : `mulle-sde dependency mark mulle-gfx no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-gfx/mulle-gfx.h>   // mulle-gfx
+/* no headers */
 
 #endif

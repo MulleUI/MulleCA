@@ -50,8 +50,9 @@ int main(int argc, char *argv[])
    initialCenter = CGPointMake(100, 200); // Start at (100, 200)
    [testObject setCenter:initialCenter];
 
-   animation = [[CAPathAnimation alloc] initWithProperty:@property(center)
+   animation = [[CAPathAnimation alloc] initWithProperty:MulleObjCInstanceSearchProperty( testObject, @selector( center))
                                                     path:path
+                                           pathValueType:CAPathAnimationValuePosition
                                                  options:&options];
 
    if (!animation) {
