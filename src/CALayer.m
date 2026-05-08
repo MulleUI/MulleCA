@@ -2,6 +2,7 @@
 
 #import "CALayer.h"
 #import "CALayer+DebugPrivate.h"
+#import "NSObject+CAAnimation.h"
 
 
 #pragma clang diagnostic ignored "-Wparentheses"

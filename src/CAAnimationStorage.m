@@ -11,7 +11,7 @@
 #endif
 
 
-PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
+@implementation  CAAnimationStorageObject
 
 - (id) initAnimationStorage
 {
@@ -352,7 +352,7 @@ PROTOCOLCLASS_IMPLEMENTATION( CAAnimationStorageObject)
 }
 
 
-PROTOCOLCLASS_END()
+@end
 
 
 @implementation CAAnimation( CAAnimationStorageObject)

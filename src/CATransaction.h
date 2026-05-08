@@ -45,7 +45,7 @@
 // to constituent CAAnimations. Example: is the delay additive ?
 //
 
-@protocol CAImplicitlyAnimatableObject;
+@mixin CAImplicitlyAnimatableObject;
 
 
 typedef NS_ENUM( NSUInteger, CATransactionState)
@@ -164,18 +164,16 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //
 // on a per-thread basis
 //
+MULLE_CA_GLOBAL_VAR extern mulle_thread_tss_t   CATransactionThreadKey;
+
 static inline id   CATransactionGetCurrentTransaction( void)
 {
-   extern mulle_thread_tss_t   CATransactionThreadKey;
-
    return( mulle_thread_tss_get( CATransactionThreadKey));
 }
 
 
 static inline void   CATransactionSetCurrentTransaction( id p)
 {
-   extern mulle_thread_tss_t   CATransactionThreadKey;
-
    mulle_thread_tss_set( CATransactionThreadKey, p);
 }
 
