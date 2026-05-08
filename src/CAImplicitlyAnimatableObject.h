@@ -62,11 +62,11 @@
 //                                     char, long, long long, long double
 //                                     <type> *, union {} ...
 //
-PROTOCOLCLASS_INTERFACE( CAImplicitlyAnimatableObject, MullePropertyObserving)
+@mixin CAImplicitlyAnimatableObject < MullePropertyObserving>
 
 @property( dynamic, retain) id   snapshot;
 
-
+@required
 - (void) generateAnimationsForPropertiesWithSnapshot:(id) snapshot
                                       animationGroup:(CAAnimationGroup *) group;
 
@@ -77,7 +77,7 @@ PROTOCOLCLASS_INTERFACE( CAImplicitlyAnimatableObject, MullePropertyObserving)
 - (void) commitImplicitAnimations:(CAAnimationGroup *) animationGroup; // either UIView class or CATransaction
 - (void) forgetImplicitAnimations;
 
-PROTOCOLCLASS_END()
+@end
 
 
 #define CAImplicitlyAnimatableObjectIvars       \

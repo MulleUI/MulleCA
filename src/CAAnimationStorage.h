@@ -21,8 +21,9 @@ struct CAAnimationStorage
 };
 
 
-PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
+@mixin CAAnimationStorageObject
 
+@required
 - (struct CAAnimationStorage *) animationStorage;
 
 @optional
@@ -50,9 +51,9 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime
                    animationRate:(mulle_relativetime_t) animationRate;
 
-- (CAAnimation *) animationWithAnimationID:(char *) s;
+// NYI
+//- (CAAnimation *) animationWithAnimationID:(char *) s;
 
-- (char *) UTF8String;
 
 // debugs support
 - (NSUInteger) _numberOfAnimationsWithStateBitsSet:(NSUInteger) setBits
@@ -61,7 +62,7 @@ PROTOCOLCLASS_INTERFACE0( CAAnimationStorageObject)
 - (void) mulleGainAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing         MULLE_OBJC_THREADSAFE_METHOD;
 - (void) mulleRelinquishAccessToAnimationsWithUniquingSet:(struct mulle_pointerset *) uniquing   MULLE_OBJC_THREADSAFE_METHOD;
 
-PROTOCOLCLASS_END()
+@end
 
 
 @interface CAAnimation( CAAnimationStorageObject)

@@ -20,6 +20,7 @@
 
 @implementation CATransaction
 
+MULLE_CA_GLOBAL_VAR
 mulle_thread_tss_t   CATransactionThreadKey;
 
 

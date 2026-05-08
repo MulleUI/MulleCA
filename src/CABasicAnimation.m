@@ -869,7 +869,9 @@ static void  assert_property_is_compatible( struct _mulle_objc_property *propert
    self->_start               = range->start;
    self->_end                 = range->end;
    self->_quadratic           = CACubicForAnimationCurve( options->curve);
-   self->_tween               = options->tween ? options->tween : CACubicGetValue;
+   self->_tween               = options->tween ? options->tween : CATweenForAnimationCurve( options->curve);
+   if( ! self->_tween)
+      self->_tween            = CACubicGetValue;
 
    p                          = CABasicAnimationTypeDefinitionGet( type);
    self->_interpolate         = p->interpolate;

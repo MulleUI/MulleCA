@@ -49,7 +49,7 @@ export MULLE_MATCH_TO_C_C_HEADERS="CGGeometry+CAAnimation.h:CAPolarPoint.h"
 #
 #
 #
-export MULLE_CRAFT_PLATFORMS="${MULLE_UNAME}:windows"
+export MULLE_CRAFT_PLATFORMS="${MULLE_UNAME}"
 
 
 #

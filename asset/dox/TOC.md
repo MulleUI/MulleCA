@@ -150,6 +150,7 @@ MulleCA is a real-time property animation library for mulle-objc that enables sm
   - `CAAnimationCurveEaseIn` - Slow start, fast end
   - `CAAnimationCurveEaseOut` - Fast start, slow end
   - `CAAnimationCurveLinear` - Constant speed
+  - `CAAnimationCurveEase(In|Out|InOut)(Quad|Cubic|Quart|Quint|Sine|Expo|Circ|Back|Bounce|Elastic)` - Extended easing families
 
 #### Factory Methods (Type-Specific)
 - **Purpose:** Convenience constructors for common value types

@@ -2,100 +2,10 @@
 
 
 //
-// These curves are part of the demo only.
+// Show built-in curves and tween functions.
 //
-            // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quad(struct CACubic *quadratic, CGFloat t)
-{
-    return t * t;
-}
-
-            // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quad(struct CACubic *quadratic, CGFloat t)
-{
-   return t * (2 - t);
-}
-
-            // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quad(struct CACubic *quadratic, CGFloat t)
-{
-   return t < 0.5
-              ? 2 * t * t
-              : -1 + 2 * (2 - t) * t;
-}
-
-            // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_cubic(struct CACubic *quadratic, CGFloat t)
-{
-   return t * t * t;
-}
-
-            // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_cubic(struct CACubic *quadratic, CGFloat t)
-{
-   CGFloat  t_1 = t - 1.0;
-   return t_1 * t_1 * t_1 + 1;
-}
-
-            // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_cubic(struct CACubic *quadratic, CGFloat t)
-{
-    return t < 0.5
-        ? 4 * t * t * t
-        : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-}
-
-            // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quart(struct CACubic *quadratic, CGFloat t)
-{
-                return t * t * t * t;
-}
-
-            // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quart(struct CACubic *quadratic, CGFloat t)
-{
-   CGFloat  t_1 = t - 1.0;
-   return 1 - t_1 * t_1 * t_1 * t_1;
-}
-
-            // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quart(struct CACubic *quadratic, CGFloat t)
-{
-   CGFloat  t_1 = t - 1.0;
-    return t < 0.5
-        ? 8 * t * t * t * t
-        : 1 - 8 * t_1 * t_1 * t_1 * t_1;
-}
-
-            // accelerating from zero velocity
-static CGFloat   paperjs_ease_in_quint(struct CACubic *quadratic, CGFloat t)
-{
-   return t * t * t * t * t;
-}
-
-            // decelerating to zero velocity
-static CGFloat   paperjs_ease_out_quint(struct CACubic *quadratic, CGFloat t)
-{
-   CGFloat  t_1 = t - 1.0;
-
-   return 1 + t_1 * t_1 * t_1 * t_1 * t_1;
-}
-
-            // acceleration until halfway, then deceleration
-static CGFloat   paperjs_ease_in_out_quint(struct CACubic *quadratic, CGFloat t)
-{
-   CGFloat  t_1 = t - 1.0;
-
-   return t < 0.5
-            ? 16 * t * t * t * t * t
-            : 1 + 16 * t_1 * t_1 * t_1 * t_1 * t_1;
-}
-
-
-
-
-#define N_LAYERS     4 + 12
-#define SIZE         CGSizeMake( 10, 10)
+#define N_LAYERS     4 + 30
+#define SIZE         CGSizeMake( 8, 8)
 
 static void   setupScene( UIWindow *window)
 {
@@ -137,18 +47,36 @@ static void   setupScene( UIWindow *window)
          case  2 : [ta setAnimationCurve:UIViewAnimationCurveEaseOut]; break;
          case  3 : [ta setAnimationCurve:UIViewAnimationCurveLinear]; break;
 
-         case  4 : [ta setAnimationTweenFunction:paperjs_ease_in_quad]; break;
-         case  5 : [ta setAnimationTweenFunction:paperjs_ease_out_quad]; break;
-         case  6 : [ta setAnimationTweenFunction:paperjs_ease_in_out_quad]; break;
-         case  7 : [ta setAnimationTweenFunction:paperjs_ease_in_cubic]; break;
-         case  8 : [ta setAnimationTweenFunction:paperjs_ease_out_cubic]; break;
-         case  9 : [ta setAnimationTweenFunction:paperjs_ease_in_out_cubic]; break;
-         case 10 : [ta setAnimationTweenFunction:paperjs_ease_in_quart]; break;
-         case 11 : [ta setAnimationTweenFunction:paperjs_ease_out_quart]; break;
-         case 12 : [ta setAnimationTweenFunction:paperjs_ease_in_out_quart]; break;
-         case 13 : [ta setAnimationTweenFunction:paperjs_ease_in_quint]; break;
-         case 14 : [ta setAnimationTweenFunction:paperjs_ease_out_quint]; break;
-         case 15 : [ta setAnimationTweenFunction:paperjs_ease_in_out_quint]; break;
+         case  4 : [ta setAnimationCurve:CAAnimationCurveEaseInQuad]; break;
+         case  5 : [ta setAnimationCurve:CAAnimationCurveEaseOutQuad]; break;
+         case  6 : [ta setAnimationCurve:CAAnimationCurveEaseInOutQuad]; break;
+         case  7 : [ta setAnimationCurve:CAAnimationCurveEaseInCubic]; break;
+         case  8 : [ta setAnimationCurve:CAAnimationCurveEaseOutCubic]; break;
+         case  9 : [ta setAnimationCurve:CAAnimationCurveEaseInOutCubic]; break;
+         case 10 : [ta setAnimationCurve:CAAnimationCurveEaseInQuart]; break;
+         case 11 : [ta setAnimationCurve:CAAnimationCurveEaseOutQuart]; break;
+         case 12 : [ta setAnimationCurve:CAAnimationCurveEaseInOutQuart]; break;
+         case 13 : [ta setAnimationCurve:CAAnimationCurveEaseInQuint]; break;
+         case 14 : [ta setAnimationCurve:CAAnimationCurveEaseOutQuint]; break;
+         case 15 : [ta setAnimationCurve:CAAnimationCurveEaseInOutQuint]; break;
+         case 16 : [ta setAnimationCurve:CAAnimationCurveEaseInSine]; break;
+         case 17 : [ta setAnimationCurve:CAAnimationCurveEaseOutSine]; break;
+         case 18 : [ta setAnimationCurve:CAAnimationCurveEaseInOutSine]; break;
+         case 19 : [ta setAnimationCurve:CAAnimationCurveEaseInExpo]; break;
+         case 20 : [ta setAnimationCurve:CAAnimationCurveEaseOutExpo]; break;
+         case 21 : [ta setAnimationCurve:CAAnimationCurveEaseInOutExpo]; break;
+         case 22 : [ta setAnimationCurve:CAAnimationCurveEaseInCirc]; break;
+         case 23 : [ta setAnimationCurve:CAAnimationCurveEaseOutCirc]; break;
+         case 24 : [ta setAnimationCurve:CAAnimationCurveEaseInOutCirc]; break;
+         case 25 : [ta setAnimationCurve:CAAnimationCurveEaseInBack]; break;
+         case 26 : [ta setAnimationCurve:CAAnimationCurveEaseOutBack]; break;
+         case 27 : [ta setAnimationCurve:CAAnimationCurveEaseInOutBack]; break;
+         case 28 : [ta setAnimationCurve:CAAnimationCurveEaseInBounce]; break;
+         case 29 : [ta setAnimationCurve:CAAnimationCurveEaseOutBounce]; break;
+         case 30 : [ta setAnimationCurve:CAAnimationCurveEaseInOutBounce]; break;
+         case 31 : [ta setAnimationCurve:CAAnimationCurveEaseInElastic]; break;
+         case 32 : [ta setAnimationCurve:CAAnimationCurveEaseOutElastic]; break;
+         case 33 : [ta setAnimationCurve:CAAnimationCurveEaseInOutElastic]; break;
          }
          rect = CGSizePlaceInRect( SIZE, rects[ i], CGContentModeRight);
          [layers[ i] setFrame:rect];
@@ -218,4 +146,3 @@ int   main( int argc, char *argv[])
 //                 "▀╦,       M ╙▌  ▀       `█W▐▌       wæQ▄▀╙
 //                     ╙▀W╥,╓╣   ╙█║        ╫M  █    ,╓▄╝╙`
 //                          ╙╙▀%▄▄▄▌,≤▄_▄≡,▐▓▓▄▄#ª▀"`
-

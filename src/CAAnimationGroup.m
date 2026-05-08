@@ -169,7 +169,7 @@
 @end
 
 
-@implementation CAAnimationGroup( CAAnimation)
+@implementation CAAnimationGroup( CAAnimationOptions)
 
 static inline void  setupAnimationOptions( CAAnimationGroup *self,
                                            struct CAAnimationOptions *options)
@@ -193,7 +193,7 @@ static inline void  setupAnimationOptions( CAAnimationGroup *self,
 @end
 
 
-@implementation CAAnimationGroup( CABasicAnimation)
+@implementation CAAnimationGroup( CABasicAnimationOptions)
 
 - (void) setupBasicAnimationOptions:(struct CABasicAnimationOptions *) options
 {

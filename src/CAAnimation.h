@@ -71,7 +71,10 @@ typedef NS_OPTIONS( NSUInteger, CAAnimationBits)
 // 19
 };
 
-extern NS_OPTIONS_TABLE( CAAnimationBits, 19);
+
+MULLE_CA_GLOBAL
+NS_OPTIONS_TABLE( CAAnimationBits, 19);
+
 
 MULLE_CA_GLOBAL
 char  *CAAnimationBitsUTF8String( CAAnimationBits bits);

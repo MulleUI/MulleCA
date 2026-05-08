@@ -12,7 +12,7 @@
 
 //#define TRACE_COPY_PROPERTY
 
-PROTOCOLCLASS_IMPLEMENTATION( CAImplicitlyAnimatableObject)
+@implementation  CAImplicitlyAnimatableObject
 
 //
 // This function depends on "clone" being of the exact same class as "self"
@@ -251,4 +251,4 @@ id   _CAImplicitlyAnimatableInstanceSnapshot( id self)
    [manager removeAnimatableObject:self];   
 }
 
-PROTOCOLCLASS_END()
+@end
