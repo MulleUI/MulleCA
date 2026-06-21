@@ -237,13 +237,11 @@
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) now
                    animationRate:(mulle_relativetime_t) animationRate
 {
-   CAAnimation                 *animation;
-   NSUInteger                  n_deletions;
-   struct CAAnimationStorage   *storage;
-   struct mulle_pointerarray   deletions;
-   id                          target;
    BOOL                        hasAnimations;
+   CAAnimation                 *animation;
    CAAnimationReturnState      state;
+   id                          target;
+   struct CAAnimationStorage   *storage;
 
    storage = [self animationStorage];
 
@@ -255,12 +253,16 @@
    if( ! storage->_numberOfAnimations)
       return( NO);
 
-   // assume deletion is a rare occurrence
-   mulle_pointerarray_init( &deletions, 0, NULL);
+   // iterate over a copy so animations can add and remove others and
+   // themselves.
+   mulle_pointerarray_do_flexible( tmp, storage->_numberOfAnimations)
    {
+      _mulle_pointerarray_add_pointerarray( tmp, &storage->_animations, mulle_range_make_all());
+
+
       hasAnimations = NO;
       // animate all animations, collect those that are finished
-      mulle_pointerarray_for( &storage->_animations, animation)
+      mulle_pointerarray_for( tmp, animation)
       {
          target = [animation animationObject];
          state  = [animation animateObject:target ? target : self
@@ -274,32 +276,17 @@
 #ifdef DEBUG_VERBOSE
                MulleUILog( "schedule animation %#@ for deletion", animation);
 #endif
-               mulle_pointerarray_add( &deletions, animation);
+               [self removeAnimation:animation];
             }
          }
          else
             hasAnimations = YES;
       }
-
-      // remove finished animations
-      n_deletions = mulle_pointerarray_get_count( &deletions);
-      if( n_deletions)
-      {
-         // likely quite common, and this is easier
-         if( n_deletions == storage->_numberOfAnimations)
-         {
-            [self removeAllAnimations];
-         }
-         else
-         {
-            mulle_pointerarray_for( &deletions, animation)
-            {
-               [self removeAnimation:animation];
-            }
-         }
-      }
    }
-   mulle_pointerarray_done( &deletions);
+
+   // animations may have been added during didStop: callbacks
+   if( ! hasAnimations && storage->_numberOfAnimations)
+      hasAnimations = YES;
 
    return( hasAnimations);
 }

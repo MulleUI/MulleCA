@@ -1,0 +1,13 @@
+CAPathAnimation Test 2: Curved Path
+===================================
+Animating along curved path:
+ 0: t=0.000 center=( 100.00,   0.00) OK (dist=100.0)
+ 1: t=0.125 center=(  99.70,   7.71) OK (dist=100.0)
+ 2: t=0.250 center=(  96.73,  25.37) OK (dist=100.0)
+ 3: t=0.375 center=(  87.57,  48.29) OK (dist=100.0)
+ 4: t=0.500 center=(  70.71,  70.71) OK (dist=100.0)
+ 5: t=0.625 center=(  48.29,  87.57) OK (dist=100.0)
+ 6: t=0.750 center=(  25.37,  96.73) OK (dist=100.0)
+ 7: t=0.875 center=(   7.71,  99.70) OK (dist=100.0)
+ 8: t=1.000 center=(  -0.00, 100.00) OK (dist=100.0)
+Test 2: PASSED

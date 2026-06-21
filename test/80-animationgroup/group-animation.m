@@ -1,31 +1,56 @@
 #import <MulleCA/MulleCA.h>
 
-// the object class with a property we want to animate
-@interface Foo : NSObject
 
-@property NSUInteger   someIntegerValue;
+static CAAnimation   *s_group;
+static CAAnimation   *s_animX;
+static CAAnimation   *s_animY;
+
+
+static char  *nameForAnimation( CAAnimation *animation)
+{
+   if( animation == s_group)
+      return( "group");
+   if( animation == s_animX)
+      return( "x");
+   if( animation == s_animY)
+      return( "y");
+   return( "?");
+}
+
+
+@interface Foo : NSObject <CAAnimationDelegate>
+
+@property( assign) NSInteger   x;
+@property( assign) NSInteger   y;
 
 @end
 
 
 @implementation Foo
 
-- (void) setSomeIntegerValue:(NSUInteger) value
+- (void) setX:(NSInteger) value
 {
-   printf( "%td\n", value);
-   _someIntegerValue = value;
+   _x = value;
 }
 
-- (void) start:(char *) animationID
-        object:(id) obj
+- (void) setY:(NSInteger) value
 {
-   printf( "start\n");
+   _y = value;
 }
 
-- (void) stop:(char *) animationID
-        object:(id) obj
+- (void) animationWillStart:(CAAnimation *) animation
 {
-   printf( "stop\n");
+   mulle_printf( "willStart %s\n", nameForAnimation( animation));
+}
+
+- (void) animationDidStart:(CAAnimation *) animation
+{
+}
+
+- (void) animationDidStop:(CAAnimation *) animation
+                 finished:(BOOL) finished
+{
+   mulle_printf( "didStop %s\n", nameForAnimation( animation));
 }
 
 @end
@@ -35,41 +60,46 @@ int   main( void)
 {
    CAAnimator                       *animator;
    CAAnimationGroup                 *group;
-   CABasicAnimation                 *animation;
+   CABasicAnimation                 *animX;
+   CABasicAnimation                 *animY;
    Foo                              *foo;
    mulle_absolutetime_t             timestamp;
    struct _mulle_objc_property      *property;
    struct CABasicAnimationOptions   options;
 
-   // create object, get property, create an animation for this property
+   foo     = [Foo instance];
+   options = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),
+                                                1.0,
+                                                NO);
 
-   foo      = [Foo instance];
-   property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
+   property = MulleObjCInstanceSearchProperty( foo, @selector( x));
+   animX    = [[[CABasicAnimation alloc] initWithProperty:property
+                                        startIntegerValue:0
+                                          endIntegerValue:100
+                                                  options:&options] autorelease];
+   [animX setAnimationObject:foo];
+   [animX setDelegate:foo];
+   s_animX = (CAAnimation *) animX;
 
-   options  = CABasicAnimationOptionsMakeLinear( mulle_relativetimerange_make( 0, 1),
-                                                 1.0,
-                                                 NO);
-   animation = [[[CABasicAnimation alloc] initWithProperty:property
-                                         startIntegerValue:0
-                                           endIntegerValue:1000
-                                                   options:&options] autorelease];
-   [animation setAnimationObject:foo];
+   property = MulleObjCInstanceSearchProperty( foo, @selector( y));
+   animY    = [[[CABasicAnimation alloc] initWithProperty:property
+                                        startIntegerValue:0
+                                          endIntegerValue:200
+                                                  options:&options] autorelease];
+   [animY setAnimationObject:foo];
+   [animY setDelegate:foo];
+   s_animY = (CAAnimation *) animY;
 
-   group = [CAAnimationGroup instance];
+   group   = [CAAnimationGroup instance];
+   s_group = (CAAnimation *) group;
+   [group setDelegate:foo];
+   [group addAnimation:animX];
+   [group addAnimation:animY];
 
-   // weird delegate interface
-   [group setAnimationDelegate:foo];
-   [group setAnimationWillStartSelector:@selector( start:object:)];
-   [group setAnimationDidStopSelector:@selector( stop:object:)];
-   [group addAnimation:animation];
-
-   /*
-    * animator now runs animation with our fake timestamps
-    */
    animator = [CAAnimator instance];
    [animator addAnimation:group];
 
-   for( timestamp = 0.0; timestamp <= 1.2; timestamp += 0.2)
+   for( timestamp = 0.0; timestamp <= 2.0; timestamp += 0.5)
       [animator animateWithAbsoluteTime:timestamp
                          animationRate:0.0];
    return( 0);

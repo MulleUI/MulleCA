@@ -140,7 +140,7 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
 static struct
 {
    NSUInteger   _debuggingFlags;
-} Self;
+} ClassStatic;
 
 
 // this will be called for subclasses as well, does it matter ?
@@ -156,13 +156,13 @@ static struct
    if( ! s)
       s = getenv( "UIDebuggingFlags");
    if( s)
-      Self._debuggingFlags = strtol( s, NULL, 0);
+      ClassStatic._debuggingFlags = strtol( s, NULL, 0);
 }
 
 
 + (void) setDebuggingFlags:(NSUInteger) flag  MULLE_OBJC_THREADSAFE_METHOD
 {
-   Self._debuggingFlags = flag;
+   ClassStatic._debuggingFlags = flag;
 }
 
 
@@ -196,8 +196,9 @@ static inline void   resetAnimation( CAAnimation *self)
    assert( (options->bits & (CAAnimationAdditive|CAAnimationCumulative)) !=
            CAAnimationCumulative);
 
-   // use INFINITY for repeatCount
-   assert( ! isinf( self->_relative.duration));
+   // use INFINITY for repeatCount, not duration (unless it's the
+   // CAAnimationSequence sentinel meaning "auto-size to children")
+   // assert( ! isinf( self->_relative.duration));
 
    self->_relative            = options->timeRange;
    self->_state.bits          = options->bits & ~0xFFFF;  // mask off our internal state bits
@@ -213,6 +214,18 @@ static inline void   resetAnimation( CAAnimation *self)
    self->_repeatCount = options->repeatCount <= 0.0 ? 1.0 : options->repeatCount;
    if( (NSInteger) self->_repeatCount == self->_repeatCount)
       self->_state.bits |= CAAnimationHasIntegerRepeat;
+}
+
+
+- (struct mulle_relativetimerange *) relativeTimeRange
+{
+   return( &_relative);
+}
+
+
+- (float) repeatCount
+{
+   return( _repeatCount);
 }
 
 
@@ -240,7 +253,7 @@ static inline void   resetAnimation( CAAnimation *self)
 #ifdef CA_ANIMATION_DEBUGGING_FLAGS
    _debuggingFlags = CA_ANIMATION_DEBUGGING_FLAGS;
 #else
-   _debuggingFlags = Self._debuggingFlags;
+   _debuggingFlags = ClassStatic._debuggingFlags;
 #endif
    _removedOnCompletion = YES;
 
@@ -330,6 +343,20 @@ static inline void   resetAnimation( CAAnimation *self)
 }
 
 
+- (void) cancel
+{
+   struct CAAnimationFrameInfo   info;
+
+   // write start value (t=0) even if already ended
+   memset( &info, 0, sizeof( info));
+   [self animateObject:[self animationObject]
+    animationFrameInfo:&info];
+
+   // then mark as interrupted
+   self->_state.bits |= CAAnimationInterruptSignal;
+}
+
+
 - (void) willStartAnimating
 {
    CAAnimationLog("");
@@ -355,6 +382,10 @@ static inline void   resetAnimation( CAAnimation *self)
 
 #if ! defined( CA_ANIMATION_LOG_DISABLED)
 
+//
+// there is no "resource" allocated so we need no confined loop and break
+// protection
+//
 #define CAAnimationReturnStateLogDo( text)                                    \
    for( NSUInteger loop__state = 0, old__bits = self->_state.bits;            \
         loop__state == 0;                                                     \
@@ -368,10 +399,7 @@ static inline void   resetAnimation( CAAnimation *self)
                                                       self->_state.bits)), 0) \
            : 0),                                                              \
           loop__state = 1)                                                    \
-      )                                                                       \
-      for( int  break_protect ## __j = 0;    /* break protection */           \
-           break_protect ## __j < 1;                                          \
-           break_protect ## __j++)
+      )
 
 #else
 
@@ -606,13 +634,33 @@ BOOL   CAAnimationDidAnimate( CAAnimation *self,
 static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
                                                    CAAnimationReturnState state)
 {
+   BOOL   finished;
+
    CAAnimationLogVerbose( "%s", CAAnimationReturnStateUTF8String( state));
 
    // if we don't do the delegate call here, but in didEnd as used to,
    // then the callback can not just call -resetAnimation to do another swing
    if( state == CAAnimationReturnStateDone)
+   {
+      finished = (self->_state.bits & CAAnimationInterruptSignal) ? NO : YES;
+      CAAnimationLog( "delegate didStop: %p finished=%d",
+                      self->_delegate,
+                      finished);
       [self->_delegate animationDidStop:self
-                               finished:(self->_state.bits & CAAnimationInterruptSignal) ? NO : YES];
+                               finished:finished];
+      if( finished)
+      {
+         // little bonus: if the user specified this as the invocation selector
+         // we fill the first argument thusly... We could do this unconditionally
+         // though...
+         if( [self->_finishedInvocation selector] == @selector( animationDidStop:userInfo:))
+         {
+            [self->_finishedInvocation setArgument:&self
+                                           atIndex:2]; // Arguments start at index 2
+         }
+         [self->_finishedInvocation invoke];
+      }
+   }
 
    return( state);
 }
@@ -638,7 +686,6 @@ static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
    {
       CAAnimationReturnStateLogDo( "InterruptSignal")
       {
-         self->_state.bits &= ~CAAnimationInterruptSignal;
          self->_state.bits |= CAAnimationFinalized;
       }
    }
@@ -701,6 +748,7 @@ static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
          if( ! (self->_state.bits & CAAnimationDelegateWillStartNotified))
          {
             self->_state.bits |= CAAnimationDelegateWillStartNotified;
+            CAAnimationLog( "delegate willStart: %p", _delegate);
             [_delegate animationWillStart:self];
          }
       }
@@ -723,7 +771,10 @@ static inline CAAnimationReturnState  stateReturn( CAAnimation *self,
     animationFrameInfo:&info];
 
    if( CAAnimationDidAnimate( self, now, info))
+   {
+      CAAnimationLog( "delegate didStart: %p", _delegate);
       [_delegate animationDidStart:self];
+   }
 
    return( stateReturn( self, info.nextState));
 }

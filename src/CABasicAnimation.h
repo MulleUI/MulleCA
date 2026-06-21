@@ -67,33 +67,33 @@ typedef NS_ENUM( NSUInteger, CAAnimationCurve)
    CAAnimationCurveLinear,
 
    // append-only: keep legacy values above stable
-   CAAnimationCurveEaseInQuad,
-   CAAnimationCurveEaseOutQuad,
-   CAAnimationCurveEaseInOutQuad,
+   CAAnimationCurveEaseInQuadratic,
+   CAAnimationCurveEaseOutQuadratic,
+   CAAnimationCurveEaseInOutQuadratic,
 
    CAAnimationCurveEaseInCubic,
    CAAnimationCurveEaseOutCubic,
    CAAnimationCurveEaseInOutCubic,
 
-   CAAnimationCurveEaseInQuart,
-   CAAnimationCurveEaseOutQuart,
-   CAAnimationCurveEaseInOutQuart,
+   CAAnimationCurveEaseInQuartic,
+   CAAnimationCurveEaseOutQuartic,
+   CAAnimationCurveEaseInOutQuartic,
 
-   CAAnimationCurveEaseInQuint,
-   CAAnimationCurveEaseOutQuint,
-   CAAnimationCurveEaseInOutQuint,
+   CAAnimationCurveEaseInQuintic,
+   CAAnimationCurveEaseOutQuintic,
+   CAAnimationCurveEaseInOutQuintic,
 
    CAAnimationCurveEaseInSine,
    CAAnimationCurveEaseOutSine,
    CAAnimationCurveEaseInOutSine,
 
-   CAAnimationCurveEaseInExpo,
-   CAAnimationCurveEaseOutExpo,
-   CAAnimationCurveEaseInOutExpo,
+   CAAnimationCurveEaseInExponential,
+   CAAnimationCurveEaseOutExponential,
+   CAAnimationCurveEaseInOutExponential,
 
-   CAAnimationCurveEaseInCirc,
-   CAAnimationCurveEaseOutCirc,
-   CAAnimationCurveEaseInOutCirc,
+   CAAnimationCurveEaseInCircular,
+   CAAnimationCurveEaseOutCircular,
+   CAAnimationCurveEaseInOutCircular,
 
    CAAnimationCurveEaseInBack,
    CAAnimationCurveEaseOutBack,
@@ -113,41 +113,41 @@ static inline char  *CAAnimationCurveUTF8String(CAAnimationCurve curve)
 {
    switch( curve)
    {
-   case CAAnimationCurveEaseInOut : return( "CAAnimationCurveEaseInOut");
-   case CAAnimationCurveEaseIn    : return( "CAAnimationCurveEaseIn");
-   case CAAnimationCurveEaseOut   : return( "CAAnimationCurveEaseOut");
-   case CAAnimationCurveLinear    : return( "CAAnimationCurveLinear");
-   case CAAnimationCurveEaseInQuad      : return( "CAAnimationCurveEaseInQuad");
-   case CAAnimationCurveEaseOutQuad     : return( "CAAnimationCurveEaseOutQuad");
-   case CAAnimationCurveEaseInOutQuad   : return( "CAAnimationCurveEaseInOutQuad");
-   case CAAnimationCurveEaseInCubic     : return( "CAAnimationCurveEaseInCubic");
-   case CAAnimationCurveEaseOutCubic    : return( "CAAnimationCurveEaseOutCubic");
-   case CAAnimationCurveEaseInOutCubic  : return( "CAAnimationCurveEaseInOutCubic");
-   case CAAnimationCurveEaseInQuart     : return( "CAAnimationCurveEaseInQuart");
-   case CAAnimationCurveEaseOutQuart    : return( "CAAnimationCurveEaseOutQuart");
-   case CAAnimationCurveEaseInOutQuart  : return( "CAAnimationCurveEaseInOutQuart");
-   case CAAnimationCurveEaseInQuint     : return( "CAAnimationCurveEaseInQuint");
-   case CAAnimationCurveEaseOutQuint    : return( "CAAnimationCurveEaseOutQuint");
-   case CAAnimationCurveEaseInOutQuint  : return( "CAAnimationCurveEaseInOutQuint");
-   case CAAnimationCurveEaseInSine      : return( "CAAnimationCurveEaseInSine");
-   case CAAnimationCurveEaseOutSine     : return( "CAAnimationCurveEaseOutSine");
-   case CAAnimationCurveEaseInOutSine   : return( "CAAnimationCurveEaseInOutSine");
-   case CAAnimationCurveEaseInExpo      : return( "CAAnimationCurveEaseInExpo");
-   case CAAnimationCurveEaseOutExpo     : return( "CAAnimationCurveEaseOutExpo");
-   case CAAnimationCurveEaseInOutExpo   : return( "CAAnimationCurveEaseInOutExpo");
-   case CAAnimationCurveEaseInCirc      : return( "CAAnimationCurveEaseInCirc");
-   case CAAnimationCurveEaseOutCirc     : return( "CAAnimationCurveEaseOutCirc");
-   case CAAnimationCurveEaseInOutCirc   : return( "CAAnimationCurveEaseInOutCirc");
-   case CAAnimationCurveEaseInBack      : return( "CAAnimationCurveEaseInBack");
-   case CAAnimationCurveEaseOutBack     : return( "CAAnimationCurveEaseOutBack");
-   case CAAnimationCurveEaseInOutBack   : return( "CAAnimationCurveEaseInOutBack");
-   case CAAnimationCurveEaseInBounce    : return( "CAAnimationCurveEaseInBounce");
-   case CAAnimationCurveEaseOutBounce   : return( "CAAnimationCurveEaseOutBounce");
-   case CAAnimationCurveEaseInOutBounce : return( "CAAnimationCurveEaseInOutBounce");
-   case CAAnimationCurveEaseInElastic   : return( "CAAnimationCurveEaseInElastic");
-   case CAAnimationCurveEaseOutElastic  : return( "CAAnimationCurveEaseOutElastic");
-   case CAAnimationCurveEaseInOutElastic: return( "CAAnimationCurveEaseInOutElastic");
-   default                        : return( "???");
+   case CAAnimationCurveEaseInOut            : return( "CAAnimationCurveEaseInOut");
+   case CAAnimationCurveEaseIn               : return( "CAAnimationCurveEaseIn");
+   case CAAnimationCurveEaseOut              : return( "CAAnimationCurveEaseOut");
+   case CAAnimationCurveLinear               : return( "CAAnimationCurveLinear");
+   case CAAnimationCurveEaseInQuadratic      : return( "CAAnimationCurveEaseInQuadratic");
+   case CAAnimationCurveEaseOutQuadratic     : return( "CAAnimationCurveEaseOutQuadratic");
+   case CAAnimationCurveEaseInOutQuadratic   : return( "CAAnimationCurveEaseInOutQuadratic");
+   case CAAnimationCurveEaseInCubic          : return( "CAAnimationCurveEaseInCubic");
+   case CAAnimationCurveEaseOutCubic         : return( "CAAnimationCurveEaseOutCubic");
+   case CAAnimationCurveEaseInOutCubic       : return( "CAAnimationCurveEaseInOutCubic");
+   case CAAnimationCurveEaseInQuartic        : return( "CAAnimationCurveEaseInQuartic");
+   case CAAnimationCurveEaseOutQuartic       : return( "CAAnimationCurveEaseOutQuartic");
+   case CAAnimationCurveEaseInOutQuartic     : return( "CAAnimationCurveEaseInOutQuartic");
+   case CAAnimationCurveEaseInQuintic        : return( "CAAnimationCurveEaseInQuintic");
+   case CAAnimationCurveEaseOutQuintic       : return( "CAAnimationCurveEaseOutQuintic");
+   case CAAnimationCurveEaseInOutQuintic     : return( "CAAnimationCurveEaseInOutQuintic");
+   case CAAnimationCurveEaseInSine           : return( "CAAnimationCurveEaseInSine");
+   case CAAnimationCurveEaseOutSine          : return( "CAAnimationCurveEaseOutSine");
+   case CAAnimationCurveEaseInOutSine        : return( "CAAnimationCurveEaseInOutSine");
+   case CAAnimationCurveEaseInExponential    : return( "CAAnimationCurveEaseInExponential");
+   case CAAnimationCurveEaseOutExponential   : return( "CAAnimationCurveEaseOutExponential");
+   case CAAnimationCurveEaseInOutExponential : return( "CAAnimationCurveEaseInOutExponential");
+   case CAAnimationCurveEaseInCircular       : return( "CAAnimationCurveEaseInCircular");
+   case CAAnimationCurveEaseOutCircular      : return( "CAAnimationCurveEaseOutCircular");
+   case CAAnimationCurveEaseInOutCircular    : return( "CAAnimationCurveEaseInOutCircular");
+   case CAAnimationCurveEaseInBack           : return( "CAAnimationCurveEaseInBack");
+   case CAAnimationCurveEaseOutBack          : return( "CAAnimationCurveEaseOutBack");
+   case CAAnimationCurveEaseInOutBack        : return( "CAAnimationCurveEaseInOutBack");
+   case CAAnimationCurveEaseInBounce         : return( "CAAnimationCurveEaseInBounce");
+   case CAAnimationCurveEaseOutBounce        : return( "CAAnimationCurveEaseOutBounce");
+   case CAAnimationCurveEaseInOutBounce      : return( "CAAnimationCurveEaseInOutBounce");
+   case CAAnimationCurveEaseInElastic        : return( "CAAnimationCurveEaseInElastic");
+   case CAAnimationCurveEaseOutElastic       : return( "CAAnimationCurveEaseOutElastic");
+   case CAAnimationCurveEaseInOutElastic     : return( "CAAnimationCurveEaseInOutElastic");
+   default                                   : return( "???");
    }
 }
 
@@ -170,37 +170,37 @@ static inline CATweenFunction   *
 {
    switch( curvetype)
    {
-   case CAAnimationCurveEaseInQuad      : return( CATweenEaseInQuad);
-   case CAAnimationCurveEaseOutQuad     : return( CATweenEaseOutQuad);
-   case CAAnimationCurveEaseInOutQuad   : return( CATweenEaseInOutQuad);
-   case CAAnimationCurveEaseInCubic     : return( CATweenEaseInCubic);
-   case CAAnimationCurveEaseOutCubic    : return( CATweenEaseOutCubic);
-   case CAAnimationCurveEaseInOutCubic  : return( CATweenEaseInOutCubic);
-   case CAAnimationCurveEaseInQuart     : return( CATweenEaseInQuart);
-   case CAAnimationCurveEaseOutQuart    : return( CATweenEaseOutQuart);
-   case CAAnimationCurveEaseInOutQuart  : return( CATweenEaseInOutQuart);
-   case CAAnimationCurveEaseInQuint     : return( CATweenEaseInQuint);
-   case CAAnimationCurveEaseOutQuint    : return( CATweenEaseOutQuint);
-   case CAAnimationCurveEaseInOutQuint  : return( CATweenEaseInOutQuint);
-   case CAAnimationCurveEaseInSine      : return( CATweenEaseInSine);
-   case CAAnimationCurveEaseOutSine     : return( CATweenEaseOutSine);
-   case CAAnimationCurveEaseInOutSine   : return( CATweenEaseInOutSine);
-   case CAAnimationCurveEaseInExpo      : return( CATweenEaseInExpo);
-   case CAAnimationCurveEaseOutExpo     : return( CATweenEaseOutExpo);
-   case CAAnimationCurveEaseInOutExpo   : return( CATweenEaseInOutExpo);
-   case CAAnimationCurveEaseInCirc      : return( CATweenEaseInCirc);
-   case CAAnimationCurveEaseOutCirc     : return( CATweenEaseOutCirc);
-   case CAAnimationCurveEaseInOutCirc   : return( CATweenEaseInOutCirc);
-   case CAAnimationCurveEaseInBack      : return( CATweenEaseInBack);
-   case CAAnimationCurveEaseOutBack     : return( CATweenEaseOutBack);
-   case CAAnimationCurveEaseInOutBack   : return( CATweenEaseInOutBack);
-   case CAAnimationCurveEaseInBounce    : return( CATweenEaseInBounce);
-   case CAAnimationCurveEaseOutBounce   : return( CATweenEaseOutBounce);
-   case CAAnimationCurveEaseInOutBounce : return( CATweenEaseInOutBounce);
-   case CAAnimationCurveEaseInElastic   : return( CATweenEaseInElastic);
-   case CAAnimationCurveEaseOutElastic  : return( CATweenEaseOutElastic);
-   case CAAnimationCurveEaseInOutElastic: return( CATweenEaseInOutElastic);
-   default                              : return( NULL);
+   case CAAnimationCurveEaseInQuadratic      : return( CATweenEaseInQuadratic);
+   case CAAnimationCurveEaseOutQuadratic     : return( CATweenEaseOutQuadratic);
+   case CAAnimationCurveEaseInOutQuadratic   : return( CATweenEaseInOutQuadratic);
+   case CAAnimationCurveEaseInCubic          : return( CATweenEaseInCubic);
+   case CAAnimationCurveEaseOutCubic         : return( CATweenEaseOutCubic);
+   case CAAnimationCurveEaseInOutCubic       : return( CATweenEaseInOutCubic);
+   case CAAnimationCurveEaseInQuartic        : return( CATweenEaseInQuartic);
+   case CAAnimationCurveEaseOutQuartic       : return( CATweenEaseOutQuartic);
+   case CAAnimationCurveEaseInOutQuartic     : return( CATweenEaseInOutQuartic);
+   case CAAnimationCurveEaseInQuintic        : return( CATweenEaseInQuintic);
+   case CAAnimationCurveEaseOutQuintic       : return( CATweenEaseOutQuintic);
+   case CAAnimationCurveEaseInOutQuintic     : return( CATweenEaseInOutQuintic);
+   case CAAnimationCurveEaseInSine           : return( CATweenEaseInSine);
+   case CAAnimationCurveEaseOutSine          : return( CATweenEaseOutSine);
+   case CAAnimationCurveEaseInOutSine        : return( CATweenEaseInOutSine);
+   case CAAnimationCurveEaseInExponential    : return( CATweenEaseInExponential);
+   case CAAnimationCurveEaseOutExponential   : return( CATweenEaseOutExponential);
+   case CAAnimationCurveEaseInOutExponential : return( CATweenEaseInOutExponential);
+   case CAAnimationCurveEaseInCircular       : return( CATweenEaseInCircular);
+   case CAAnimationCurveEaseOutCircular      : return( CATweenEaseOutCircular);
+   case CAAnimationCurveEaseInOutCircular    : return( CATweenEaseInOutCircular);
+   case CAAnimationCurveEaseInBack           : return( CATweenEaseInBack);
+   case CAAnimationCurveEaseOutBack          : return( CATweenEaseOutBack);
+   case CAAnimationCurveEaseInOutBack        : return( CATweenEaseInOutBack);
+   case CAAnimationCurveEaseInBounce         : return( CATweenEaseInBounce);
+   case CAAnimationCurveEaseOutBounce        : return( CATweenEaseOutBounce);
+   case CAAnimationCurveEaseInOutBounce      : return( CATweenEaseInOutBounce);
+   case CAAnimationCurveEaseInElastic        : return( CATweenEaseInElastic);
+   case CAAnimationCurveEaseOutElastic       : return( CATweenEaseOutElastic);
+   case CAAnimationCurveEaseInOutElastic     : return( CATweenEaseInOutElastic);
+   default                                   : return( NULL);
    }
 }
 
@@ -359,6 +359,12 @@ struct CABasicAnimationOptions
 };
 
 
+//
+// Note on autoreverses: with autoreverses=YES the animation reverses direction
+// on each repeat. To get a full out-and-back cycle (ending at the start value),
+// use repeatCount=2. With repeatCount=1 and autoreverses, the animation only
+// goes forward (no reversal occurs).
+//
 static inline struct CABasicAnimationOptions
    CABasicAnimationOptionsMake( struct CAAnimationOptions base,
                                 CAAnimationCurve curve,
@@ -609,7 +615,7 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 
 @property( readonly) struct _mulle_objc_property   *property;
 @property( readonly) CATweenFunction               *tween;
-@property( readonly) CACubic                   quadratic;
+@property( readonly) CACubic                       quadratic;
 @property( readonly) CAAnimationValueType          valueType;
 
 

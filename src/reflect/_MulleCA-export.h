@@ -14,6 +14,7 @@
 
 
 #import "CAAnimationGroup.h"
+#import "CAAnimationSequence.h"
 #import "CAAnimationStorage.h"
 #import "CAAnimation.h"
 #import "CAAnimator.h"

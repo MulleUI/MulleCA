@@ -1,0 +1,5 @@
+t=0.0: 0
+t=0.5: 500
+after interrupt: 500
+t=0.6: didStop interrupted
+x=500

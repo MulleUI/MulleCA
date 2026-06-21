@@ -1,0 +1,3 @@
+before finish x=250
+didStop finished
+after finish x=1000

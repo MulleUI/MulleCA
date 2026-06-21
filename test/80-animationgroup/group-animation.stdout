@@ -1,8 +1,6 @@
-start
-0
-200
-400
-600
-800
-1000
-stop
+willStart group
+willStart x
+willStart y
+didStop x
+didStop y
+didStop group

@@ -1,0 +1,23 @@
+CAPathAnimation Test 1: Linear Path
+===================================
+ 0: t=0.000 center=(  0.00,  0.00) expected=(  0.00,  0.00) OK
+ 1: t=0.050 center=(  5.00,  5.00) expected=(  5.00,  5.00) OK
+ 2: t=0.100 center=(  9.99,  9.99) expected=( 10.00, 10.00) OK
+ 3: t=0.150 center=( 14.99, 14.99) expected=( 15.00, 15.00) OK
+ 4: t=0.200 center=( 19.98, 19.98) expected=( 20.00, 20.00) OK
+ 5: t=0.250 center=( 24.98, 24.98) expected=( 25.00, 25.00) OK
+ 6: t=0.300 center=( 29.97, 29.97) expected=( 30.00, 30.00) OK
+ 7: t=0.350 center=( 34.97, 34.97) expected=( 35.00, 35.00) OK
+ 8: t=0.400 center=( 39.97, 39.97) expected=( 40.00, 40.00) OK
+ 9: t=0.450 center=( 44.96, 44.96) expected=( 45.00, 45.00) OK
+10: t=0.500 center=( 49.96, 49.96) expected=( 50.00, 50.00) OK
+11: t=0.550 center=( 54.96, 54.96) expected=( 55.00, 55.00) OK
+12: t=0.600 center=( 59.96, 59.96) expected=( 60.00, 60.00) OK
+13: t=0.650 center=( 64.96, 64.96) expected=( 65.00, 65.00) OK
+14: t=0.700 center=( 69.96, 69.96) expected=( 70.00, 70.00) OK
+15: t=0.750 center=( 74.97, 74.97) expected=( 75.00, 75.00) OK
+16: t=0.800 center=( 79.97, 79.97) expected=( 80.00, 80.00) OK
+17: t=0.850 center=( 84.98, 84.98) expected=( 85.00, 85.00) OK
+18: t=0.900 center=( 89.98, 89.98) expected=( 90.00, 90.00) OK
+19: t=0.950 center=( 94.99, 94.99) expected=( 95.00, 95.00) OK
+Test 1: PASSED

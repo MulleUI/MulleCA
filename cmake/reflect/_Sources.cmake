@@ -12,6 +12,7 @@ endif()
 #
 set( SOURCES
 src/CAAnimationGroup.m
+src/CAAnimationSequence.m
 src/CAAnimationStorage.m
 src/CAAnimation.m
 src/CAAnimator.m

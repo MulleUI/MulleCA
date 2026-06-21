@@ -3,37 +3,51 @@
 #import "import-private.h"
 
 #import "CAAnimation+DebugPrivate.h"
+#include <mulle-objc-runtime/mulle-metaabi-call.h>
+
 
 // Forward declaration of our custom interpolation functions
-static void CAPathAnimationSetInterpolated2D(CABasicAnimation *self, id object, double x);
-static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self, id object, double x);
-static void CAPathAnimationSetInterpolated1D(CABasicAnimation *self, id object, double x);
-static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self, id object, double x);
-static void CAPathAnimationSetInterpolated4D(CABasicAnimation *self, id object, double x);
-static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self, id object, double x);
+static void   CAPathAnimationSetInterpolated2D( CABasicAnimation *self,
+                                                id object,
+                                                double x);
+static void   CAPathAnimationSetInterpolated2DAdditive( CABasicAnimation *self,
+                                                        id object,
+                                                        double x);
+static void   CAPathAnimationSetInterpolated1D( CABasicAnimation *self,
+                                                id object,
+                                                double x);
+static void   CAPathAnimationSetInterpolated1DAdditive( CABasicAnimation *self,
+                                                        id object,
+                                                        double x);
+static void   CAPathAnimationSetInterpolated4D( CABasicAnimation *self,
+                                                id object,
+                                                double x);
+static void   CAPathAnimationSetInterpolated4DAdditive( CABasicAnimation *self,
+                                                        id object,
+                                                        double x);
 
 
 CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueType pathValueType)
 {
    switch( pathValueType)
    {
-   case CAPathAnimationValueRotation:
-   case CAPathAnimationValueAngle:
-   case CAPathAnimationValueTangentAngle:
-   case CAPathAnimationValueXPosition:
-   case CAPathAnimationValueYPosition:
-   case CAPathAnimationValueDistance:
+   case CAPathAnimationValueRotation           :
+   case CAPathAnimationValueAngle              :
+   case CAPathAnimationValueTangentAngle       :
+   case CAPathAnimationValueXPosition          :
+   case CAPathAnimationValueYPosition          :
+   case CAPathAnimationValueDistance           :
       return CAAnimationValueCGFloat;
 
-   case CAPathAnimationValuePosition:
-   case CAPathAnimationValueNormal:
-   case CAPathAnimationValueTangent:
-   case CAPathAnimationValuePositionPlusNormal:
+   case CAPathAnimationValuePosition           :
+   case CAPathAnimationValueNormal             :
+   case CAPathAnimationValueTangent            :
+   case CAPathAnimationValuePositionPlusNormal :
       return CAAnimationValueCGFloat2;
 
-   case CAPathAnimationValuePositionAsOrigin:
-   case CAPathAnimationValuePositionAsSize:
-   case CAPathAnimationValuePose:
+   case CAPathAnimationValuePositionAsOrigin   :
+   case CAPathAnimationValuePositionAsSize     :
+   case CAPathAnimationValuePose               :
       return CAAnimationValueCGRect;
 
    default:
@@ -54,6 +68,7 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueT
                                   options:options] autorelease];
 }
 
+
 - (id) initWithProperty:(struct _mulle_objc_property *) property
                    path:(CGPathRef) path
           pathValueType:(CAPathAnimationValueType) pathValueType
@@ -69,7 +84,7 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueT
    }
 
    // Determine the animation value type based on path value type
-   animValueType = CAPathAnimationGetAnimationValueType(pathValueType);
+   animValueType = CAPathAnimationGetAnimationValueType( pathValueType);
 
    // Initialize with dummy start/end values
    if (animValueType == CAAnimationValueCGFloat2)
@@ -93,19 +108,19 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueT
       _pathValueType = pathValueType;
 
       // Choose interpolation functions based on value type
-      if (animValueType == CAAnimationValueCGFloat2)
+      if( animValueType == CAAnimationValueCGFloat2)
       {
-         _interpolate = CAPathAnimationSetInterpolated2D;
+         _interpolate         = CAPathAnimationSetInterpolated2D;
          _interpolateAdditive = CAPathAnimationSetInterpolated2DAdditive;
       }
       else if (animValueType == CAAnimationValueCGRect)
       {
-         _interpolate = CAPathAnimationSetInterpolated4D;
+         _interpolate         = CAPathAnimationSetInterpolated4D;
          _interpolateAdditive = CAPathAnimationSetInterpolated4DAdditive; // Need to implement this too
       }
       else
       {
-         _interpolate = CAPathAnimationSetInterpolated1D;
+         _interpolate         = CAPathAnimationSetInterpolated1D;
          _interpolateAdditive = CAPathAnimationSetInterpolated1DAdditive;
       }
 
@@ -129,23 +144,24 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueT
 }
 
 // 1D interpolation function
-static void CAPathAnimationSetInterpolated1D(CABasicAnimation *self,
-                                             id object,
-                                             double x)
+static void CAPathAnimationSetInterpolated1D( CABasicAnimation *self,
+                                              id object,
+                                              double x)
 {
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
+   CGFloat           value;
+   CAPathAnimation   *pathAnim = (CAPathAnimation *)self;
+   CAPose            pose;
 
    if( ! pathAnim->_path)
       return;
 
-   CAPose pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
-   CGFloat value;
+   pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
 
    switch (pathAnim->_pathValueType)
    {
    case CAPathAnimationValueRotation:
-         value = CAPoseGetAngle( pose);
-         break;
+      value = CAPoseGetAngle( pose);
+      break;
 
    case CAPathAnimationValueAngle:
       value = CAPoseGetAngle( pose);
@@ -172,11 +188,7 @@ static void CAPathAnimationSetInterpolated1D(CABasicAnimation *self,
       abort();
    }
 
-   {
-      mulle_metaabi_union_void_return(CGFloat) param;
-      param.p = value;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, value);
 }
 
 
@@ -192,7 +204,7 @@ static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self,
    CGFloat               newValue;
    CGVector              tangent;
 
-   if (!pathAnim->_path)
+   if( ! pathAnim->_path)
       return;
 
    pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
@@ -231,12 +243,7 @@ static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self,
       break;
    }
 
-   // Get current value from object
-   {
-      mulle_metaabi_union_void_parameter(CGFloat) param;
-      mulle_objc_object_call_variable(object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter, object);
 
    // Calculate new value: current - previous + diff
    newValue = value - self->_previous.floatValue + diff;
@@ -244,12 +251,7 @@ static void CAPathAnimationSetInterpolated1DAdditive(CABasicAnimation *self,
    // Update previous diff
    self->_previous.floatValue = diff;
 
-   // Set new value
-   {
-      mulle_metaabi_union_void_return(CGFloat) param;
-      param.p = newValue;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, newValue);
 }
 
 
@@ -258,13 +260,14 @@ static void CAPathAnimationSetInterpolated2D(CABasicAnimation *self,
                                              id object,
                                              double x)
 {
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
+   struct CGFloat2   value;
+   CAPose            pose;
+   CAPathAnimation   *pathAnim = (CAPathAnimation *)self;
 
    if( ! pathAnim->_path)
       return;
 
-   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
-   struct CGFloat2 value;
+   pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
 
    switch (pathAnim->_pathValueType)
    {
@@ -293,11 +296,7 @@ static void CAPathAnimationSetInterpolated2D(CABasicAnimation *self,
       abort();
    }
 
-   {
-      mulle_metaabi_union_void_return(struct CGFloat2) param;
-      param.p = value;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, value);
 }
 
 
@@ -306,15 +305,16 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
                                                      id object,
                                                      double x)
 {
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
+   struct CGFloat2   diff;
+   struct CGFloat2   value;
+   struct CGFloat2   newValue;
+   CAPathAnimation   *pathAnim = (CAPathAnimation *)self;
+   CAPose            pose;
 
    if( ! pathAnim->_path)
       return;
 
-   CAPose pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
-   struct CGFloat2 diff;
-   struct CGFloat2 value;
-   struct CGFloat2 newValue;
+   pose = CGPathGetPoseAtFraction( pathAnim->_path, (float) x);
 
    // Calculate current difference based on path value type
    switch (pathAnim->_pathValueType)
@@ -346,12 +346,7 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
       break;
    }
 
-   // Get current value from object
-   {
-      mulle_metaabi_union_void_parameter(struct CGFloat2) param;
-      mulle_objc_object_call_variable(object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter, object);
 
    // Calculate new value: current - previous + diff
    newValue.v0 = value.v0 - self->_previous.float2Value.v0 + diff.v0;
@@ -360,12 +355,8 @@ static void CAPathAnimationSetInterpolated2DAdditive(CABasicAnimation *self,
    // Update previous diff
    self->_previous.float2Value = diff;
 
-   // Set new value
-   {
-      mulle_metaabi_union_void_return(struct CGFloat2) param;
-      param.p = newValue;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, newValue);
 }
 
 
@@ -374,15 +365,16 @@ static void CAPathAnimationSetInterpolated4D( CABasicAnimation *self,
                                               id object,
                                               double x)
 {
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
+   struct CGFloat4   value;
+   CAPathAnimation   *pathAnim = (CAPathAnimation *)self;
+   CAPose            pose;
 
-   if (!pathAnim->_path)
+   if( ! pathAnim->_path)
       return;
 
-   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
-   struct CGFloat4 value;
+   pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
 
-   switch (pathAnim->_pathValueType)
+   switch( pathAnim->_pathValueType)
    {
    case CAPathAnimationValuePositionAsOrigin:
       // Get current frame to preserve size
@@ -427,27 +419,25 @@ static void CAPathAnimationSetInterpolated4D( CABasicAnimation *self,
          abort();
    }
 
-   {
-      mulle_metaabi_union_void_return(struct CGFloat4) param;
-      param.p = value;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, value);
 }
 
-// 4D additive interpolation
-static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
-                                                     id object,
-                                                     double x)
-{
-   CAPathAnimation *pathAnim = (CAPathAnimation *)self;
 
-   if (!pathAnim->_path)
+// 4D additive interpolation
+static void   CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
+                                                       id object,
+                                                       double x)
+{
+   struct CGFloat4   diff;
+   struct CGFloat4   value;
+   struct CGFloat4   newValue;
+   CAPose            pose;
+   CAPathAnimation   *pathAnim = (CAPathAnimation *) self;
+
+   if( ! pathAnim->_path)
       return;
 
-   CAPose pose = CGPathGetPoseAtFraction(pathAnim->_path, (float)x);
-   struct CGFloat4 diff;
-   struct CGFloat4 value;
-   struct CGFloat4 newValue;
+   pose = CGPathGetPoseAtFraction(pathAnim->_path, (float) x);
 
    // Calculate current difference based on path value type
    switch (pathAnim->_pathValueType)
@@ -477,12 +467,7 @@ static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
       abort();
    }
 
-   // Get current value from object
-   {
-      mulle_metaabi_union_void_parameter(struct CGFloat4) param;
-      mulle_objc_object_call_variable(object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter, object);
 
    // Calculate new value: current - previous + diff
    newValue.v0 = value.v0 - self->_previous.float4Value.v0 + diff.v0;
@@ -493,12 +478,7 @@ static void CAPathAnimationSetInterpolated4DAdditive(CABasicAnimation *self,
    // Update previous diff
    self->_previous.float4Value = diff;
 
-   // Set new value
-   {
-      mulle_metaabi_union_void_return(struct CGFloat4) param;
-      param.p = newValue;
-      mulle_objc_object_call_variable(object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( mulle_metaabi_void, object, self->_property->setter, newValue);
 }
 
 @end

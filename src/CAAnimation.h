@@ -211,7 +211,6 @@ static inline mulle_relativetime_t
 - (void) animationDidStart:(CAAnimation *) animation;
 - (void) animationDidStop:(CAAnimation *) animation
                  finished:(BOOL) flag;
-
 @end
 
 
@@ -303,19 +302,46 @@ struct CAAnimationMutableState
                animationRate:(mulle_relativetime_t) animationRate;
 
 
+//
+// Stopping animations mid-flight:
+//
+//   -interrupt  Stop immediately, leave the animated property at its current
+//              interpolated value. The delegate receives
+//              animationDidStop:finished:NO. Use this when the user cancels
+//              an action and the current visual state is acceptable.
+//
+//   -finish    Stop immediately, jump the animated property to its final end
+//              value. The delegate receives animationDidStop:finished:YES.
+//              Use this when you want the animation's intended result without
+//              waiting (e.g. a view is being removed and must reach its
+//              destination).
+//
+//   -cancel    Stop immediately, revert the animated property to its start
+//              value (interpolate at t=0). The delegate receives
+//              animationDidStop:finished:NO. For sequences and groups,
+//              children are cancelled in reverse order. Use this to undo
+//              an animation and snap back to the original state.
+//
+//   -reset     Reset the animation's internal timing state so it can be
+//              replayed from the beginning. Does NOT write to the animated
+//              object — the property keeps whatever value it currently has.
+//              No delegate callback. Use this to re-run an animation that
+//              has already completed (with removedOnCompletion == NO).
+//
+// These methods work on CAAnimation, CAAnimationSequence, and
+// CAAnimationGroup. For sequences and groups, the operation is forwarded
+// to all contained child animations.
+//
+
 // used if options are set to CAAnimationReverses (and CAAnimationRepeats)
 // will be called in addition to -animationIndexDidChange when animation
 // bounces
 - (void) reverse;
 
-// reset to start values
 - (void) reset;
-
-// keep at current values (and stop animating)
 - (void) interrupt;
-
-// set to end values (and stop animating)
 - (void) finish;
+- (void) cancel;
 
 // if an animation touches a UIView frame or bounds, default: NO
 - (BOOL) changesLayout;
@@ -348,6 +374,16 @@ struct CAAnimationMutableState
 
 // contrary to Apple CoreAnimation, the delegate is not retained
 @property( assign) id <CAAnimationDelegate>     delegate;
+
+// this invocation is triggered when the animation is finished
+// it's a convenience where you just want to have a small inline code 
+// @invocation and not a delegate. We could enforce, that the first argument
+// of the invocation must be this CAAnimation so we can set it when we call
+// back and also pass the state. We could check the target selector for
+// a known delegate type and if yes, set the invocation properly. The negative
+// would be that the caller cant pass "aux" state again.
+//
+@property( retain) NSInvocation                 *finishedInvocation;
 
 @property( assign) CAAnimationFunction_t        *animationFunction;
 

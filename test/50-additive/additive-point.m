@@ -14,7 +14,7 @@
 - (void) setP:(CGPoint) p
 {
    _p = p;  // don't need to store it for non additive
-   printf( "%.2f %.2f\n", p.x, p.y);
+   mulle_printf( "%.2f %.2f\n", p.x, p.y);
 }
 
 @end
@@ -42,7 +42,7 @@ int   main( int argc, char *argv[])
 
    for( i = 0; i <= 5; i++)
    {
-      printf( "%ld: ", i);
+      mulle_printf( "%ld: ", i);
       [animation animateObject:foo
                   absoluteTime:i / 5.0
                   animationRate:0.0];
