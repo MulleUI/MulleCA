@@ -5,11 +5,13 @@
       { @selector( CAAnimationGroup), @selector( CAAnimationOptions) },      // 7a38eb87;CAAnimationGroup;6b89eb95;CAAnimationOptions
       { @selector( CAAnimationGroup), @selector( CABasicAnimationOptions) },      // 7a38eb87;CAAnimationGroup;914dff9e;CABasicAnimationOptions
       { @selector( CAAnimationGroup), MULLE_OBJC_NO_CATEGORYID },      // 7a38eb87;CAAnimationGroup;;
+      { @selector( CAAnimationSequence), MULLE_OBJC_NO_CATEGORYID },      // 0720b0ca;CAAnimationSequence;;
       { @selector( CAAnimationStorageObject), MULLE_OBJC_NO_CATEGORYID },      // 51463a1c;CAAnimationStorageObject;;
       { @selector( CAAnimator), MULLE_OBJC_NO_CATEGORYID },      // dfaf788f;CAAnimator;;
       { @selector( CABasicAnimation), MULLE_OBJC_NO_CATEGORYID },      // 1462ac1b;CABasicAnimation;;
       { @selector( CALayer), MULLE_OBJC_NO_CATEGORYID },      // 55df8726;CALayer;;
       { @selector( CAPathAnimation), MULLE_OBJC_NO_CATEGORYID },      // 5c0d5a09;CAPathAnimation;;
+      { @selector( CATransaction), @selector( CAAnimationGroupForwarding) },      // acf47d79;CATransaction;058fdfbd;CAAnimationGroupForwarding
       { @selector( CATransaction), MULLE_OBJC_NO_CATEGORYID },      // acf47d79;CATransaction;;
       { @selector( NSObject), @selector( CAAnimation) },      // b3a66256;NSObject;c85bd814;CAAnimation
       { @selector( NSObject), @selector( CABasicAnimation) },      // b3a66256;NSObject;1462ac1b;CABasicAnimation

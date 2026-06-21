@@ -63,6 +63,7 @@ src/generic/include.h
 #
 set( PUBLIC_HEADERS
 src/CAAnimationGroup.h
+src/CAAnimationSequence.h
 src/CAAnimationStorage.h
 src/CAAnimation.h
 src/CAAnimator.h

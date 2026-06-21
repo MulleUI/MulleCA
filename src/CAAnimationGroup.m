@@ -10,160 +10,68 @@
 #import "CABasicAnimation.h"
 
 
-
-
 @interface CAAnimation( Private)
 
 - (void) willStartAnimating;
 - (BOOL) didEnd;
 
-// consider this "private"
 - (void) setAnimationOptions:(struct CAAnimationOptions *) options;
 
-// this is actually in our protocolclass, but compiler don't know it
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) time
                    animationRate:(mulle_relativetime_t) animationRate;
 @end
 
 
-
 @implementation CAAnimationGroup
 
-- (void) dealloc
+//
+// Override addAnimation: to NOT compute delays (parallel behavior).
+// Just add directly to storage without touching the animation's delay.
+//
+- (void) addAnimation:(id <CAAnimation>) animation
 {
-   [self removeAllAnimations];
-
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_animationID, NULL);
-   [super dealloc];
-}
-
-
-- (struct CAAnimationStorage *) animationStorage
-{
-   return( &_animationStorage);
-}
-
-
-- (void) setAnimationID:(char *) s
-{
-   MulleObjCObjectSetDuplicatedUTF8String( self, &_animationID, s);
-}
-
-
-- (char *) animationID
-{
-   return( _animationID);
-}
-
-
-- (BOOL) changesLayout
-{
-   return( [self hasLayoutChangingAnimations]);
-}
-
-/*
- *
- */
-- (void) willStartAnimating
-{
-   if( _animationWillStartSelector)
-      [_animationDelegate performSelector:_animationWillStartSelector
-                               withObject:(id) _animationID
-                               withObject:_animationContext];
-}
-
-
-- (void) finish
-{
-   id <CAAnimation>            animation;
    struct CAAnimationStorage   *storage;
 
-   [super finish];
+   assert( animation);
+
+   [(id) animation setRemovedOnCompletion:NO];
 
    storage = [self animationStorage];
-   mulle_pointerarray_for( &storage->_animations, animation)
-   {
-      [animation finish];
-   }
+   assert( _mulle_pointerarray_find( &storage->_animations, animation) == mulle_not_found_e);
+
+   _mulle_pointerarray_add( &storage->_animations, [(id) animation retain]);
+   storage->_numberOfAnimations++;
 }
 
 
-- (void) interrupt
+//
+// Override removeAnimation: to NOT shift other animations.
+//
+- (void) removeAnimation:(id <CAAnimation>) animation
 {
-   id <CAAnimation>            animation;
    struct CAAnimationStorage   *storage;
-
-   [super interrupt];
+   uintptr_t                   index;
 
    storage = [self animationStorage];
-   mulle_pointerarray_for( &storage->_animations, animation)
-   {
-      [animation interrupt];
-   }
+   index   = _mulle_pointerarray_find( &storage->_animations, animation);
+   if( index == mulle_not_found_e)
+      return;
+
+   _mulle_pointerarray_set( &storage->_animations, index, NULL);
+   storage->_numberOfAnimations--;
+   [(id) animation release];
 }
 
 
-- (void) animateObject:(id) object
-    animationFrameInfo:(struct CAAnimationFrameInfo *) info
+- (void) setAnimationDelegate:(id) delegate
 {
-   MULLE_C_UNUSED( object);
-   MULLE_C_UNUSED( info);
-   // do nothing here
+   [self setDelegate:delegate];
 }
 
 
-- (NSUInteger) animateObject:(id) object
-                absoluteTime:(mulle_absolutetime_t) now
-               animationRate:(mulle_relativetime_t) animationRate
+- (id) animationDelegate
 {
-   NSUInteger   state;
-   NSUInteger   bits;
-
-   CAAnimationLogVerbose( "object=%#@ now=%.6f (animations=%td)",
-                              object, now, [self numberOfAnimations]);
-
-   bits  = _state.bits;
-   state = [super animateObject:nil
-                   absoluteTime:now
-                  animationRate:animationRate];
-
-   // CAAnimationStorage animator
-   [self animateWithAbsoluteTime:now
-                   animationRate:animationRate];
-
-   // TODO: handle finish and interrupt here so that we are done too
-
-   // we like to call this after the constituent animations have run,
-   // so use a separate logic here than -didEnd
-   if( ((bits ^ _state.bits) & CAAnimationEnded) == CAAnimationEnded)
-   {
-      if( _animationDidStopSelector)
-         [_animationDelegate performSelector:_animationDidStopSelector
-                                  withObject:(id) _animationID
-                                  withObject:_animationContext];
-   }
-   return( state);
-}
-
-
-- (void) reset
-{
-   [self resetAllAnimations];
-   [super reset];
-}
-
-
-- (void) mulleGainAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
-{
-   [super mulleGainAccessWithUniquingSet:uniquing];
-   [self mulleGainAccessToAnimationsWithUniquingSet:uniquing];
-}
-
-
-- (void) mulleRelinquishAccessWithUniquingSet:(struct mulle_pointerset *) uniquing
-{
-   [self  mulleRelinquishAccessToAnimationsWithUniquingSet:uniquing];
-   [super mulleRelinquishAccessWithUniquingSet:uniquing];
+   return( [self delegate]);
 }
 
 @end
@@ -183,7 +91,6 @@ static inline void  setupAnimationOptions( CAAnimationGroup *self,
 }
 
 
-// rename to something else than set, here
 - (void) setupAnimationOptions:(struct CAAnimationOptions *) options
 {
    memset( options, 0, sizeof( *options));
@@ -206,4 +113,3 @@ static inline void  setupAnimationOptions( CAAnimationGroup *self,
 }
 
 @end
-

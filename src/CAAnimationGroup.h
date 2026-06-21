@@ -3,7 +3,7 @@
 //
 #import "import.h"
 
-#import "CAAnimationStorage.h"
+#import "CAAnimationSequence.h"
 
 @class CAAnimation;
 
@@ -46,23 +46,29 @@
 // accomplish anything.
 //
 // Animations are not clipped to the duration of the animation group.
+// However, the group is removed from the animator when its own duration
+// expires. Children are owned by the group, so they die with it.
+// Ensure group duration >= longest child duration, or children will
+// never finish.
 //
 // CAAnimationGroup inherits "animationObject". Currently it needs to be set
 // though it is unused...
 //
-@interface CAAnimationGroup : CAAnimation < CAAnimationStorageObject>
-{
-   struct CAAnimationStorage   _animationStorage;
-   char                        *_animationID;
-   BOOL                        _hasStarted;
-}
+// CAAnimationGroup is a CAAnimationSequence that does NOT manage delays.
+// All child animations run in parallel with their own timing.
+//
+// For completion notification, use the standard CAAnimation delegate:
+//    [group setDelegate:self];
+// and implement CAAnimationDelegate methods.
+//
 
-// properties of the group
-@property( assign) id                      animationDelegate;
-@property( assign) SEL                     animationWillStartSelector;
-@property( assign) SEL                     animationDidStopSelector;
+@class CAAnimationGroup;
 
-@property( assign) void                    *animationContext;
+@interface CAAnimationGroup : CAAnimationSequence
+
+// Adds animation to run in parallel (no delay computation).
+// Sets removedOnCompletion to NO (the group owns child lifecycle).
+- (void) addAnimation:(id <CAAnimation>) animation;
 
 // ...
 @property( assign) mulle_relativetime_t    animationDelay;
@@ -78,10 +84,6 @@
 @property( assign) CATweenFunction         *animationTweenFunction;
 @property( assign) BOOL                    animationAutoreverses;
 @property( assign) BOOL                    animationIsAdditive;
-
-// will be strcpy
-- (void) setAnimationID:(char *) s;
-- (char *) animationID;
 
 @end
 

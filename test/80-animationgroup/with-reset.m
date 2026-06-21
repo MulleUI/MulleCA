@@ -1,7 +1,7 @@
 #import <MulleCA/MulleCA.h>
 
 // the object class with a property we want to animate
-@interface Foo : NSObject
+@interface Foo : NSObject <CAAnimationDelegate>
 
 @property NSUInteger   someIntegerValue;
 
@@ -12,20 +12,23 @@
 
 - (void) setSomeIntegerValue:(NSUInteger) value
 {
-   printf( "%td\n", value);
+   mulle_printf( "%td\n", value);
    _someIntegerValue = value;
 }
 
-- (void) start:(char *) animationID
-        object:(id) obj
+- (void) animationWillStart:(CAAnimation *) animation
 {
-   printf( "start\n");
+   mulle_printf( "start\n");
 }
 
-- (void) stop:(char *) animationID
-        object:(id) obj
+- (void) animationDidStart:(CAAnimation *) animation
 {
-   printf( "stop\n");
+}
+
+- (void) animationDidStop:(CAAnimation *) animation
+                 finished:(BOOL) finished
+{
+   mulle_printf( "stop\n");
 }
 
 @end
@@ -58,11 +61,7 @@ int   main( void)
    [animation setRemovedOnCompletion:NO];
 
    group = [CAAnimationGroup animationWithAnimationOptions:&options.base];
-
-   // weird delegate interface
-   [group setAnimationDelegate:foo];
-   [group setAnimationWillStartSelector:@selector( start:object:)];
-   [group setAnimationDidStopSelector:@selector( stop:object:)];
+   [group setDelegate:foo];
    [group addAnimation:animation];
    [group setRemovedOnCompletion:NO];
 

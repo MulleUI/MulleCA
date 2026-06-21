@@ -161,3 +161,8 @@ mulle_thread_tss_t   CATransactionThreadKey;
 }
 
 @end
+
+
+// get property decls into runtime
+@implementation CATransaction( CAAnimationGroupForwarding)
+@end

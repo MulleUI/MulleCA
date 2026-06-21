@@ -22,7 +22,7 @@
 
 - (void) setPose:(CAPose) pose
 {
-#ifndef TRACE
+#if TRACE
    mulle_fprintf( stderr, "%#@: %s %s\n", self, __FUNCTION__, CAPoseUTF8String( pose));
 #endif
    [super setPose:pose];
@@ -30,7 +30,7 @@
 
 - (void) setFrame:(CGRect) frame
 {
-#ifndef TRACE
+#if TRACE
    mulle_fprintf( stderr, "%#@: %s %s\n", self, __FUNCTION__, CGRectUTF8String( frame));
 #endif
    [super setFrame:frame];
@@ -49,7 +49,7 @@
 
    xform = CGContextCurrentTransform( context);
 
-#ifndef TRACE
+#if TRACE
    mulle_fprintf( stderr, "%#@: %s f: %s  b: %s  c: %s  r: %.2g  xform: %s\n",
                            self,
                            __FUNCTION__,

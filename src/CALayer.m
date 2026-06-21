@@ -30,7 +30,7 @@
 static struct
 {
    NSUInteger   _debuggingFlags;
-} Self;
+} ClassStatic;
 
 
 + (void) initialize
@@ -46,7 +46,7 @@ static struct
    if( ! s)
       s = getenv( "UIDebuggingFlags");
    if( s)
-      Self._debuggingFlags = strtol( s, NULL, 0);
+      ClassStatic._debuggingFlags = strtol( s, NULL, 0);
 }
 
 
@@ -57,7 +57,7 @@ static struct
 
 + (void) setDebuggingFlags:(NSUInteger) flag  MULLE_OBJC_THREADSAFE_METHOD
 {
-   Self._debuggingFlags = flag;
+   ClassStatic._debuggingFlags = flag;
 }
 
 
@@ -103,7 +103,7 @@ CAAnimationStorageObjectImplementation;
 #ifdef CALAYER_DEBUGGING_FLAGS
    _debuggingFlags      = CALAYER_DEBUGGING_FLAGS;
 #else
-   _debuggingFlags      = Self._debuggingFlags;
+   _debuggingFlags      = ClassStatic._debuggingFlags;
 #endif
 
     //_pixelCenter     = CGPointMake( 0.5, 0.5);
@@ -220,6 +220,8 @@ CAAnimationStorageObjectImplementation;
    copy->_clipRect      = self->_clipRect;
    copy->_alpha         = self->_alpha;
    copy->_hidden        = self->_hidden;
+
+   copy->_tag           = self->_tag;
 
    return( copy);
 }
@@ -364,6 +366,14 @@ static inline CGRect   getCanvas( CALayer *self)
    fprintf( fp, "\n");
 }
 
+
+// for really stupid AIs...
+- (void) addSublayer:(CALayer *) layer
+{
+   mulle_fprintf( stderr, "Layers do not have sublayers. Add layers to the view.\n"
+                          "Also remember a layer NEVER references much less messages its view!\n");
+   abort();
+}
 
 
 

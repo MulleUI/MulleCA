@@ -1,0 +1,3 @@
+before interrupt x=150
+didStop interrupted
+after interrupt x=150

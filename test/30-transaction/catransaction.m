@@ -1,7 +1,7 @@
 #import <MulleCA/MulleCA.h>
 
 
-@interface Foo : NSObject <CAImplicitlyAnimatableObject>
+@interface Foo : NSObject <CAImplicitlyAnimatableObject, CAAnimationDelegate>
 {
    CAImplicitlyAnimatableObjectIvars;
 }
@@ -16,6 +16,21 @@ CAImplicitlyAnimatableObjectInterface;
 
 CAImplicitlyAnimatableObjectImplementation;
 
+- (void) animationWillStart:(CAAnimation *) animation
+{
+   mulle_printf( "willStart\n");
+}
+
+- (void) animationDidStart:(CAAnimation *) animation
+{
+}
+
+- (void) animationDidStop:(CAAnimation *) animation
+                 finished:(BOOL) finished
+{
+   mulle_printf( "didStop %s\n", finished ? "finished" : "interrupted");
+}
+
 @end
 
 
@@ -23,7 +38,9 @@ int   main( int argc, char *argv[])
 {
    CATransaction      *transaction;
    CAAnimationGroup   *group;
+   CAAnimator         *animator;
    Foo                *foo;
+   mulle_absolutetime_t  timestamp;
 
    foo = [Foo instance];
    [foo setValue:0];
@@ -33,11 +50,18 @@ int   main( int argc, char *argv[])
 
    [transaction begin];
    {
-      // if duration is 0.0, then no animations are generated
       [transaction setAnimationDuration:1.0];
       [foo setValue:1848];
    }
    group = [transaction commit];
-   printf( "%td\n", [group numberOfAnimations]);
+   [group setDelegate:foo];
+   mulle_printf( "%td\n", [group numberOfAnimations]);
+
+   animator = [CAAnimator instance];
+   [animator addAnimation:group];
+
+   for( timestamp = 0.0; timestamp <= 2.0; timestamp += 0.5)
+      [animator animateWithAbsoluteTime:timestamp
+                         animationRate:0.0];
    return( 0);
 }

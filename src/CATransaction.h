@@ -131,29 +131,27 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 // -[CATransaction begin] and will stop working after a -[CATransaction commit]
 // or -[CATransaction cancel]
 //
-@interface CATransaction( CAAnimationGroupForwarding)
+@interface CATransaction( CAAnimationGroupForwarding) < MulleObjCForwarding>
 
-@property( assign, dynamic) void                   *animationContext;
-@property( assign, dynamic) id                     animationDelegate;
-@property( assign, dynamic) SEL                    animationWillStartSelector;
-@property( assign, dynamic) SEL                    animationDidStopSelector;
-@property( assign, dynamic) char                   *animationID;
+@property( assign, forward) id                     animationDelegate;
+@property( assign, forward) void                   *animationContext;
+@property( assign, forward) char                   *animationID;
 
 // keep in order of CAAnimationParameters
-@property( assign, dynamic) mulle_relativetime_t   animationDelay;
-@property( assign, dynamic) mulle_relativetime_t   animationOffset;
-@property( assign, dynamic) mulle_relativetime_t   animationDuration;
-@property( assign, dynamic) float                  animationRepeatCount;
-@property( assign, dynamic) NSUInteger             animationCurve;
-@property( assign, dynamic) CATweenFunction        *animationTweenFunction;
-@property( assign, dynamic) BOOL                   animationAutoreverses;
+@property( assign, forward) mulle_relativetime_t   animationDelay;
+@property( assign, forward) mulle_relativetime_t   animationOffset;
+@property( assign, forward) mulle_relativetime_t   animationDuration;
+@property( assign, forward) float                  animationRepeatCount;
+@property( assign, forward) NSUInteger             animationCurve;
+@property( assign, forward) CATweenFunction        *animationTweenFunction;
+@property( assign, forward) BOOL                   animationAutoreverses;
 
 //
 // For CALayer, implicit additive animations are "added" to the layer.
 // If not additive, all animations are removed prior. An addirtive animation
 // does not use "fixed" values, but rather interpolates from the current value.
 //
-@property( assign, dynamic) BOOL                     animationIsAdditive;
+@property( assign, forward) BOOL                   animationIsAdditive;
 
 // will be strcpy
 - (void) setAnimationID:(char *) s;
@@ -190,6 +188,20 @@ static inline void   CATransactionSetCurrentTransaction( id p)
         ! name ## __once__;                                                              \
         CATransactionSetCurrentTransaction( name ## __suspend__),                        \
         name ## __once__ = (CATransaction *) 0x1)                                        \
+      MULLE_C_CONFINED_LOOP                                                              \
       for( int name ## __break_protect__ = 0;                                            \
            ! name ## __break_protect__;                                                  \
            name ## __break_protect__ = 1) 
+
+
+
+  #define CATransactionDo( ta, group)               \
+     for( int group ## __once__ = ([ta begin], 0);  \
+          ! group ## __once__;                      \
+          group = [ta commit],                      \
+          group ## __once__ = 1)                    \
+        MULLE_C_CONFINED_LOOP                       \
+        for( int group ## __break_protect__ = 0;    \
+             ! group ## __break_protect__;          \
+             group ## __break_protect__ = 1)
+

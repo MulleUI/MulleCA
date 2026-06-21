@@ -4,6 +4,11 @@
 #import "CAAnimation+DebugPrivate.h"
 
 #include <assert.h>
+#include <mulle-objc-runtime/mulle-metaabi-call.h>
+
+#ifndef mulle_metaabi_call
+#define mulle_metaabi_call   mulle_metaabi_object_call
+#endif
 
 
 char  *CAAnimationFloatArrayUTF8String( struct mulle__floatarray value)
@@ -59,9 +64,7 @@ static void
    diff     = (NSInteger) round( CAInterpolateAdditive( self->_start.integerValue,
                                                         self->_end.integerValue,
                                                         x));
-   value    = (NSInteger) mulle_objc_object_call_variable( object,
-                                                           self->_property->getter,
-                                                           object);
+   mulle_metaabi_call( &value, object, self->_property->getter);
 
    newValue                     = value -  self->_previous.integerValue + diff;
    self->_previous.integerValue = diff;
@@ -72,7 +75,7 @@ static void
                                 mulle_objc_property_get_name( self->_property),
                                 newValue);
 
-   mulle_objc_object_call_variable( object, self->_property->setter, (void *) newValue);
+   mulle_metaabi_call( , object, self->_property->setter, newValue);
 }
 
 
@@ -85,12 +88,7 @@ void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
    CGFloat   newValue;
 
    diff = CAInterpolateAdditive( self->_start.floatValue, self->_end.floatValue, x);
-   {
-      mulle_metaabi_union_void_parameter( CGFloat)   param;
-
-      mulle_objc_object_call_variable( object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter);
 
    newValue = value - self->_previous.floatValue + diff;
 
@@ -104,13 +102,7 @@ void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
 
    self->_previous.floatValue = diff;
 
-   {
-      mulle_metaabi_union_void_return( CGFloat)   param;
-
-      param.p = newValue;
-
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, newValue);
 }
 
 
@@ -125,12 +117,7 @@ void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
    diff.v0 = CAInterpolateAdditive( self->_start.float2Value.v0, self->_end.float2Value.v0, x);
    diff.v1 = CAInterpolateAdditive( self->_start.float2Value.v1, self->_end.float2Value.v1, x);
 
-   {
-      mulle_metaabi_union_void_parameter( struct CGFloat2)   param;
-
-      mulle_objc_object_call_variable( object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter);
 
    newValue.v0 = value.v0 - self->_previous.float2Value.v0 + diff.v0;
    newValue.v1 = value.v1 - self->_previous.float2Value.v1 + diff.v1;
@@ -138,15 +125,10 @@ void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
    self->_previous.float2Value.v0 = diff.v0;
    self->_previous.float2Value.v1 = diff.v1;
 
-   {
-      mulle_metaabi_union_void_return( struct CGFloat2)   param;
-
-      CAAnimationLogVerbose( "%#@ %s -> %s", object,
-                               mulle_objc_property_get_name( self->_property),
-                               CGFloat2UTF8String( newValue));
-      param.p = newValue;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   CAAnimationLogVerbose( "%#@ %s -> %s", object,
+                          mulle_objc_property_get_name( self->_property),
+                         CGFloat2UTF8String( newValue));
+   mulle_metaabi_call( , object, self->_property->setter, newValue);
 }
 
 
@@ -164,12 +146,7 @@ void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
    diff.v2 = CAInterpolateAdditive( self->_start.float4Value.v2, self->_end.float4Value.v2, x);
    diff.v3 = CAInterpolateAdditive( self->_start.float4Value.v3, self->_end.float4Value.v3, x);
 
-   {
-      mulle_metaabi_union_void_parameter( struct CGFloat4)   param;
-
-      mulle_objc_object_call_variable( object, self->_property->getter, &param);
-      value = param.r;
-   }
+   mulle_metaabi_call( &value, object, self->_property->getter);
 
    newValue.v0 = value.v0 - self->_previous.float4Value.v0 + diff.v0;
    newValue.v1 = value.v1 - self->_previous.float4Value.v1 + diff.v1;
@@ -181,16 +158,10 @@ void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
    self->_previous.float4Value.v2 = diff.v2;
    self->_previous.float4Value.v3 = diff.v3;
 
-   {
-      mulle_metaabi_union_void_return( struct CGFloat4)   param;
-
-      CAAnimationInterpolateLog( "%#@ %s -> %s", object,
-                               mulle_objc_property_get_name( self->_property),
-                               CGFloat4UTF8String( newValue));
-
-      param.p = newValue;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   CAAnimationInterpolateLog( "%#@ %s -> %s", object,
+                            mulle_objc_property_get_name( self->_property),
+                            CGFloat4UTF8String( newValue));
+   mulle_metaabi_call( , object, self->_property->setter, newValue);
 }
 
 
@@ -211,9 +182,9 @@ static void   CABasicAnimationSetInterpolatedObjectAdditive( CABasicAnimation *s
                                               factor:x
                                             additive:YES];
 
-   value    = mulle_objc_object_call_variable( object,
-                                               self->_property->getter,
-                                               object);
+   value = mulle_objc_object_call_variable( object,
+                                            self->_property->getter,
+                                            object);
    newValue = [value interpolatedValueWithDiff:diff
                                   previousDiff:self->_previous.objectValue];
 
@@ -237,22 +208,20 @@ static void   CABasicAnimationSetInterpolatedBOOL( CABasicAnimation *self,
                                                    id object,
                                                    double x)
 {
+   BOOL    previous;
    BOOL    value;
    double  interpolated;
 
    interpolated = round( CAInterpolate( self->_start.boolValue, self->_end.boolValue, x));
    value        = interpolated >= 1.0 ? YES : NO;
 
+   mulle_metaabi_call( &previous, object, self->_property->getter);
    CAAnimationInterpolateLog( "%#@ %s :: %s -> %s",
                               object,
                               mulle_objc_property_get_name( self->_property),
-                              mulle_objc_object_call_variable( object,
-                                                               self->_property->getter,
-                                                               object) ? "YES" : "NO",
+                              previous ? "YES" : "NO",
                               value ? "YES" : "NO");
-   mulle_objc_object_call_variable( object,
-                                    self->_property->setter,
-                                    (void *) (intptr_t) value);
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -260,23 +229,21 @@ static void   CABasicAnimationSetInterpolatedInteger( CABasicAnimation *self,
                                                       id object,
                                                       double x)
 {
+   NSInteger   previous;
    NSInteger   value;
 
    value = (NSInteger) round( CAInterpolate( self->_start.integerValue,
                                              self->_end.integerValue,
                                              x));
+   mulle_metaabi_call( &previous, object, self->_property->getter);
    CAAnimationInterpolateLog( "%g: %#@ %s: %td -> %td",
                               x,
                               object,
                               mulle_objc_property_get_name( self->_property),
-                              (intptr_t) mulle_objc_object_call_variable( object,
-                                                                          self->_property->getter,
-                                                                          object),
+                              previous,
                               value);
 
-   mulle_objc_object_call_variable( object,
-                                            self->_property->setter,
-                                            (void *) value);
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -307,12 +274,7 @@ static void   CABasicAnimationSetInterpolatedRange( CABasicAnimation *self,
       value.length   = self->_start.rangeValue.length +
                        (NSUInteger) floor( (self->_end.rangeValue.length -
                                             self->_start.rangeValue.length) * x);
-   {
-      mulle_metaabi_union_void_return( NSRange)   param;
-
-      param.p = value;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -323,12 +285,7 @@ static void   CABasicAnimationSetInterpolatedFloat( CABasicAnimation *self,
    CGFloat   value;
 
    value = CAInterpolate( self->_start.floatValue, self->_end.floatValue, x);
-   {
-      mulle_metaabi_union_void_return( CGFloat)   param;
-
-      param.p = value;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -340,12 +297,7 @@ static void   CABasicAnimationSetInterpolatedFloat2( CABasicAnimation *self,
 
    value.v0 = CAInterpolate( self->_start.float2Value.v0, self->_end.float2Value.v0, x);
    value.v1 = CAInterpolate( self->_start.float2Value.v1, self->_end.float2Value.v1, x);
-   {
-      mulle_metaabi_union_void_return( struct CGFloat2)   param;
-
-      param.p = value;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -362,30 +314,23 @@ static void   CABasicAnimationSetInterpolatedFloat4( CABasicAnimation *self,
 
    if( self->_debuggingFlags & CAAnimationDebugVerbose)
    {
-      mulle_metaabi_union_void_parameter( struct CGFloat4)   param;
+      struct CGFloat4   previous;
 
-      mulle_objc_object_call_variable( object,
-                                               self->_property->getter,
-                                               &param);
+      mulle_metaabi_call( &previous, object, self->_property->getter);
       CAAnimationInterpolateLog( "%#@ %s :: %g %g %g %g -> %g %g %g %g",
                                  object,
                                  mulle_objc_property_get_name( self->_property),
-                                 param.r.v0,
-                                 param.r.v1,
-                                 param.r.v2,
-                                 param.r.v3,
+                                 previous.v0,
+                                 previous.v1,
+                                 previous.v2,
+                                 previous.v3,
                                  value.v0,
                                  value.v1,
                                  value.v2,
                                  value.v3);
    }
 
-   {
-      mulle_metaabi_union_void_return( struct CGFloat4)   param;
-
-      param.p = value;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, value);
 }
 
 
@@ -485,12 +430,7 @@ static void   CABasicAnimationSetInterpolatedFloatArray( CABasicAnimation *self,
       i++;
       j++;
    }
-   {
-      mulle_metaabi_union_void_return( struct mulle__floatarray)   param;
-
-      param.p = value;
-      mulle_objc_object_call_variable( object, self->_property->setter, &param);
-   }
+   mulle_metaabi_call( , object, self->_property->setter, value);
    //TODO: release on close of CABasicAnimation
    _mulle__floatarray_done( &value, allocator);
 }
@@ -1198,9 +1138,12 @@ static void   releaseStartEnd( CABasicAnimation *self)
 
    if( self->_valueType == CAAnimationValueObject)
    {
-      [self->_start.objectValue mulleGainAccessWithUniquingSet:uniquing];
-      [self->_end.objectValue mulleGainAccessWithUniquingSet:uniquing];
-      [self->_previous.objectValue mulleGainAccessWithUniquingSet:uniquing];  // ???
+      if( mulle_pointerset_insert( uniquing, self->_start.objectValue))
+         [self->_start.objectValue mulleGainAccessWithUniquingSet:uniquing];
+      if( mulle_pointerset_insert( uniquing, self->_end.objectValue))
+         [self->_end.objectValue mulleGainAccessWithUniquingSet:uniquing];
+      if( mulle_pointerset_insert( uniquing, self->_previous.objectValue))
+         [self->_previous.objectValue mulleGainAccessWithUniquingSet:uniquing];  // ???
    }
 }
 
@@ -1211,9 +1154,12 @@ static void   releaseStartEnd( CABasicAnimation *self)
 
    if( self->_valueType == CAAnimationValueObject)
    {
-      [self->_previous.objectValue mulleRelinquishAccessWithUniquingSet:uniquing]; // ???
-      [self->_end.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
-      [self->_start.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
+      if( mulle_pointerset_insert( uniquing, self->_previous.objectValue))
+         [self->_previous.objectValue mulleRelinquishAccessWithUniquingSet:uniquing]; // ???
+      if( mulle_pointerset_insert( uniquing, self->_end.objectValue))
+         [self->_end.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
+      if( mulle_pointerset_insert( uniquing, self->_start.objectValue))
+         [self->_start.objectValue mulleRelinquishAccessWithUniquingSet:uniquing];
    }
    [super mulleRelinquishAccessWithUniquingSet:uniquing];
 }

@@ -1,0 +1,6 @@
+CAPathAnimation Test 4: Edge Cases
+==================================
+Test 4a: NULL path... OK (correctly rejected)
+Test 4b: NULL property... OK (correctly rejected)
+Test 4c: Empty path... OK (accepted empty path)
+All edge case tests passed!

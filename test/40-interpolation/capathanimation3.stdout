@@ -1,0 +1,18 @@
+CAPathAnimation Test 3: Additive Animation
+==========================================
+Initial center: (100, 200)
+Path: (0,0) -> (50,0)
+Expected: additive motion from (100,200) to (150,200)
+
+ 0: t=0.000 center=( 100.00, 200.00) expected=( 100.00, 200.00) OK
+ 1: t=0.100 center=( 105.00, 200.00) expected=( 105.00, 200.00) OK
+ 2: t=0.200 center=( 109.99, 200.00) expected=( 110.00, 200.00) OK
+ 3: t=0.300 center=( 114.99, 200.00) expected=( 115.00, 200.00) OK
+ 4: t=0.400 center=( 119.98, 200.00) expected=( 120.00, 200.00) OK
+ 5: t=0.500 center=( 124.98, 200.00) expected=( 125.00, 200.00) OK
+ 6: t=0.600 center=( 129.98, 200.00) expected=( 130.00, 200.00) OK
+ 7: t=0.700 center=( 134.98, 200.00) expected=( 135.00, 200.00) OK
+ 8: t=0.800 center=( 139.99, 200.00) expected=( 140.00, 200.00) OK
+ 9: t=0.900 center=( 144.99, 200.00) expected=( 145.00, 200.00) OK
+10: t=1.000 center=( 150.00, 200.00) expected=( 150.00, 200.00) OK
+Test 3: PASSED

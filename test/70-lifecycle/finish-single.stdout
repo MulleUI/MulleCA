@@ -1,0 +1,5 @@
+t=0.0: 0
+t=0.5: 500
+finish: 1000
+didStop finished
+x=1000
