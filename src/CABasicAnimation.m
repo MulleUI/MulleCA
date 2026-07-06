@@ -1226,7 +1226,7 @@ static void   releaseStartEnd( CABasicAnimation *self)
 }
 
 
-- (char *) UTF8String
+- (char *) nonLockingUTF8String
 {
    char   *s;
 

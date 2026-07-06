@@ -1,6 +1,5 @@
       { @selector( MulleObjCDeps), @selector( MulleUIBase) },      // 3c20656f;MulleObjCDeps;3ebba954;MulleUIBase
       { @selector( CAAnimation), @selector( CAAnimationStorageObject) },      // c85bd814;CAAnimation;51463a1c;CAAnimationStorageObject
-      { @selector( CAAnimation), @selector( CAAnimator) },      // c85bd814;CAAnimation;dfaf788f;CAAnimator
       { @selector( CAAnimation), MULLE_OBJC_NO_CATEGORYID },      // c85bd814;CAAnimation;;
       { @selector( CAAnimationGroup), @selector( CAAnimationOptions) },      // 7a38eb87;CAAnimationGroup;6b89eb95;CAAnimationOptions
       { @selector( CAAnimationGroup), @selector( CABasicAnimationOptions) },      // 7a38eb87;CAAnimationGroup;914dff9e;CABasicAnimationOptions

@@ -6,17 +6,6 @@
 #import "import-private.h"
 
 
-@implementation CAAnimation( CAAnimator)
-
-- (char *) animationID
-{
-   return( NULL);
-}
-
-@end
-
-
-
 // everything is done by CAAnimationStorageObject for us
 @implementation CAAnimator
 
@@ -51,77 +40,9 @@
 // if maxCount is zero, nothing will be written, but the number of
 // animations matching will be returned.
 //
-- (NSUInteger) getAnimations:(CAAnimation **) animations
-                    maxCount:(NSUInteger) maxCount
-                 animationID:(char *) animationID
-             animationObject:(id) animationObject
-{
-   CAAnimation                 *animation;
-   struct CAAnimationStorage   *storage;
-   char                        *s;
-   CAAnimation                 **p, **sentinel;
-   id                          obj;
-
-   storage  = [self animationStorage];
-   p        = animations;
-   sentinel = &p[ maxCount];
-
-   mulle_pointerarray_for( &storage->_animations, animation)
-   {
-      if( animationObject)
-      {
-         obj = [animation animationObject];
-         if( obj != animationObject)
-            continue;
-      }
-
-      // if "NULL" this is CAAnimation leaf
-      s = [animation animationID];
-      if( ! s)
-      {
-         if( animationID)
-            continue;
-      }
-      else
-      {
-         if( ! animationID || strcmp( s, animationID))
-            continue;
-      }
-
-      if( p < sentinel)
-         *p = animation;
-      ++p;
-   }
-   return( p - animations);
-}
-
-
-- (void) finishAnimationsWithAnimationID:(char *) animationID
-                         animationObject:(id) animationObject
-{
-   NSUInteger    n;
-   CAAnimation   **p, **sentinel;
-
-   mulle_alloca_do( finishers, CAAnimation *, 32)
-   {
-      n = [self getAnimations:finishers
-                     maxCount:32
-                  animationID:animationID
-              animationObject:animationObject];
-      if( n >= 32)
-      {
-         mulle_alloca_do_realloc( finishers, n);
-         n = [self getAnimations:finishers
-                        maxCount:n
-                     animationID:animationID
-                 animationObject:animationObject];
-      }
-
-      sentinel = &finishers[ n];
-      for( p = finishers; p < sentinel; p++)
-         [*p finish];
-   }
-}
+// (moved to CAAnimationStorage's mixin implementation, so every
+// CAAnimationStorageObject conformer — not just CAAnimator — gets this
+// for free)
 
 
 - (NSUInteger) numberOfActiveAnimations

@@ -28,21 +28,22 @@ static inline char  *_CAPathAnimationValueTypeUTF8String( CAPathAnimationValueTy
 {
    switch( type)
    {
-   case CAPathAnimationValueRotation:           return( "rotation");
-   case CAPathAnimationValueAngle:              return( "Angle");
-   case CAPathAnimationValueTangentAngle:       return( "TangentAngle");
-   case CAPathAnimationValueXPosition:          return( "XPosition");
-   case CAPathAnimationValueYPosition:          return( "YPosition");
-   case CAPathAnimationValueDistance:           return( "Distance");
-   case CAPathAnimationValuePosition:           return( "Position");
-   case CAPathAnimationValueNormal:             return( "Normal");
-   case CAPathAnimationValueTangent:            return( "Tangent");
-   case CAPathAnimationValuePositionPlusNormal: return( "PositionPlusNormal");
-   case CAPathAnimationValuePositionAsOrigin:   return( "PositionAsOrigin");
-   case CAPathAnimationValuePositionAsSize:     return( "PositionAsSize");
-   case CAPathAnimationValuePose:               return( "Pose");
+   case CAPathAnimationValueRotation           : return( "CAPathAnimationValueRotation");
+   case CAPathAnimationValueAngle              : return( "CAPathAnimationValueAngle");
+   case CAPathAnimationValueTangentAngle       : return( "CAPathAnimationValueTangentAngle");
+   case CAPathAnimationValueXPosition          : return( "CAPathAnimationValueXPosition");
+   case CAPathAnimationValueYPosition          : return( "CAPathAnimationValueYPosition");
+   case CAPathAnimationValueDistance           : return( "CAPathAnimationValueDistance");
+   case CAPathAnimationValuePosition           : return( "CAPathAnimationValuePosition");
+   case CAPathAnimationValueNormal             : return( "CAPathAnimationValueNormal");
+   case CAPathAnimationValueTangent            : return( "CAPathAnimationValueTangent");
+   case CAPathAnimationValuePositionPlusNormal : return( "CAPathAnimationValuePositionPlusNormal");
+   case CAPathAnimationValuePositionAsOrigin   : return( "CAPathAnimationValuePositionAsOrigin");
+   case CAPathAnimationValuePositionAsSize     : return( "CAPathAnimationValuePositionAsSize");
+   case CAPathAnimationValuePose               : return( "CAPathAnimationValuePose");
+   default                                     : return( "???");
    }
-   return( NULL);
+
 }
 
 

@@ -137,6 +137,12 @@ char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options)
 }
 
 
+- (char *) animationID
+{
+   return( NULL);
+}
+
+
 static struct
 {
    NSUInteger   _debuggingFlags;
@@ -821,7 +827,7 @@ static BOOL   performSelectorOnObjects( struct mulle_pointerarray *objects,
 }
 
 
-- (char *) UTF8String
+- (char *) nonLockingUTF8String
 {
    char   *s;
 

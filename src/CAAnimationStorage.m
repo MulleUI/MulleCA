@@ -96,7 +96,12 @@
    return( flag);
 }
 
-
+//
+// QUESTION: should a CALayer only contain animations for itself, intuitively
+//           one would say yes, but on the other hand this makes
+//           CAAnimationGroups and CAAnimationSequences more cumbersome
+//           to construct. Technically its not necessary.
+//
 - (void) addAnimation:(id <CAAnimation>) animation
 {
    struct CAAnimationStorage   *storage;
@@ -211,6 +216,110 @@
       _mulle_pointerarray_init( &storage->_animations, 0, allocator);
    }
 }
+
+
+- (void) finishAnimationsWithAnimationID:(char *) animationID
+{
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
+   char                        *s;
+
+   storage = [self animationStorage];
+
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      s = [animation animationID];
+      if( ! s)
+      {
+         if( animationID)
+            continue;
+      }
+      else
+      {
+         if( ! animationID || strcmp( s, animationID))
+            continue;
+      }
+      [animation finish];
+   }
+}
+
+
+- (void) cancelAnimationsWithAnimationID:(char *) animationID
+{
+   id <CAAnimation>            animation;
+   struct CAAnimationStorage   *storage;
+   char                        *s;
+
+   storage = [self animationStorage];
+
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      s = [animation animationID];
+      if( ! s)
+      {
+         if( animationID)
+            continue;
+      }
+      else
+      {
+         if( ! animationID || strcmp( s, animationID))
+            continue;
+      }
+      [animation cancel];
+   }
+}
+
+
+//
+// if maxCount is zero, nothing will be written, but the number of
+// animations matching will be returned. A NULL animationID only matches
+// animations that themselves have no animationID (NULL); a NULL
+// animationObject matches any animationObject (no filtering on it).
+//
+- (NSUInteger) getAnimations:(CAAnimation **) animations
+                    maxCount:(NSUInteger) maxCount
+                 animationID:(char *) animationID
+             animationObject:(id) animationObject
+{
+   CAAnimation                 *animation;
+   struct CAAnimationStorage   *storage;
+   char                        *s;
+   CAAnimation                 **p, **sentinel;
+   id                          obj;
+
+   storage  = [self animationStorage];
+   p        = animations;
+   sentinel = &p[ maxCount];
+
+   mulle_pointerarray_for( &storage->_animations, animation)
+   {
+      if( animationObject)
+      {
+         obj = [animation animationObject];
+         if( obj != animationObject)
+            continue;
+      }
+
+      s = [animation animationID];
+      if( ! s)
+      {
+         if( animationID)
+            continue;
+      }
+      else
+      {
+         if( ! animationID || strcmp( s, animationID))
+            continue;
+      }
+
+      if( p < sentinel)
+         *p = animation;
+      ++p;
+   }
+   return( p - animations);
+}
+
+
 
 
 - (void) removeAllAnimations

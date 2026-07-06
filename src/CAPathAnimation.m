@@ -134,7 +134,9 @@ CAAnimationValueType CAPathAnimationGetAnimationValueType( CAPathAnimationValueT
 
 - (char *) UTF8String
 {
-   char *s = MulleObjC_asprintf("<%s %p: path=%p valueType=%s %s>",
+   char *s;
+
+   s = MulleObjC_asprintf("<%s %p: path=%p valueType=%s %s>",
                                 MulleObjCInstanceGetClassNameUTF8String(self),
                                 self,
                                 _path,

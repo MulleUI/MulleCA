@@ -83,6 +83,8 @@ enum
 // layers too will provide a lock. If you want to run a layer on its own
 // you need to shareLock it.
 //
+// MEMO: animations will be executed by -[UIWindow animateRenderQueueLayersInFrame:displayBits:]
+//
 @interface CALayer : MulleObject < MulleAutolockingObjectProtocols,
                                    NSCopying,
                                    CAImplicitlyAnimatableObject, 
