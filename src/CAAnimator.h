@@ -42,18 +42,8 @@
 
 - (struct CAAnimationStorage *) animationStorage;
 
-
-//
-// if maxCount is zero, nothing will be written, but the number of
-// animations matching will be returned.
-//
-- (NSUInteger) getAnimations:(CAAnimation **) animations
-                    maxCount:(NSUInteger) maxCount
-                 animationID:(char *) animationID
-             animationObject:(id) animationObject;
-
-- (void) finishAnimationsWithAnimationID:(char *) animationID
-                         animationObject:(id) animationObject;
+// -getAnimations:maxCount:animationID:animationObject: is inherited from
+// the CAAnimationStorageObject mixin.
 
 - (NSUInteger) numberOfActiveAnimations;
 - (NSUInteger) numberOfRunningAnimations;

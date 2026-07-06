@@ -13,6 +13,7 @@ endif()
 set( SOURCES
 src/main-animate-additive.m
 src/main-animate-non-additive.m
+src/main-color-click.m
 src/main-path.m
 src/main-showcase.m
 src/main-tween.m

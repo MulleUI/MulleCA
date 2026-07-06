@@ -47,12 +47,23 @@ struct CAAnimationStorage
 - (void) resetAnimationsForAnimationObject:(id) animationObject;
 - (void) removeAnimationsForAnimationObject:(id) animationObject;
 
+// Finish all animations matching animationID: jump to final value.
+- (void) finishAnimationsWithAnimationID:(char *) animationID;
+
+// Cancel all animations matching animationID: revert to start value.
+- (void) cancelAnimationsWithAnimationID:(char *) animationID;
+
+// if maxCount is zero, nothing will be written, but the number of
+// animations matching will be returned. Either animationID or
+// animationObject (or both) may be NULL/nil to skip that filter.
+- (NSUInteger) getAnimations:(CAAnimation **) animations
+                    maxCount:(NSUInteger) maxCount
+                 animationID:(char *) animationID
+             animationObject:(id) animationObject;
+
 // return YES if animating
 - (BOOL) animateWithAbsoluteTime:(mulle_absolutetime_t) renderTime
                    animationRate:(mulle_relativetime_t) animationRate;
-
-// NYI
-//- (CAAnimation *) animationWithAnimationID:(char *) s;
 
 
 // debugs support

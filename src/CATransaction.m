@@ -156,8 +156,8 @@ mulle_thread_tss_t   CATransactionThreadKey;
 {
    assert( _animationGroup);
    return( mulle_objc_object_call_variable_inline( _animationGroup,
-                                                          (mulle_objc_methodid_t) _cmd,
-                                                          param));
+                                                   (mulle_objc_methodid_t) _cmd,
+                                                   param));
 }
 
 @end

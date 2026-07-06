@@ -296,6 +296,13 @@ struct CAAnimationMutableState
 //
 @property( retain) id    animationObject;
 
+// used to identify a "kind" of animation independent of what object it
+// targets (animationObject), so a later transition can find and -finish
+// only the animations belonging to a prior, same-purpose transition.
+// Base CAAnimation always returns NULL; CAAnimationSequence/Group store
+// and forward an actual value (see -setAnimationID:).
+- (char *) animationID;
+
 // returns CAAnimationReturnState
 - (NSUInteger) animateObject:(id) object
                 absoluteTime:(mulle_absolutetime_t) now
