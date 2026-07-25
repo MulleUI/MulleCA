@@ -239,3 +239,62 @@ on. Place the non-additive (absolute) animation first, additive ones after:
 [group addAnimation:pathAnim];    // writes pose (sets position)
 [group addAnimation:scaleAnim];   // additive on frame (adds size delta)
 ```
+
+## Stop-method semantics (cancel, finish, interrupt)
+
+`demo/src/main-color-click.m` demonstrates all three stop modes side by
+side on in-flight color animations. Choose the mode that matches the
+visual intent:
+
+- **Cancel** — revert to the start value. Call `removeAnimationsForAnimationObject:` then set the start value manually.
+- **Finish** — jump to the end value. Call `removeAnimationsForAnimationObject:` then set the end value manually.
+- **Interrupt** — keep the current interpolated value. Read the layer's current property, remove animations, then restore that value.
+
+```objc
+// Cancel: snap to red (start)
+[animator removeAnimationsForAnimationObject:layer];
+[layer setBackgroundColor:kRedColor];
+
+// Finish: snap to green (end)
+[animator removeAnimationsForAnimationObject:layer];
+[layer setBackgroundColor:kGreenColor];
+
+// Interrupt: keep whatever color the animation left the layer at
+currentColor = [layer backgroundColor];
+[animator removeAnimationsForAnimationObject:layer];
+[layer setBackgroundColor:currentColor];
+```
+
+Note: these are manual patterns. The `CAAnimation` protocol also provides
+`-cancel`, `-finish`, `-interrupt`, and `-reset` directly on the animation
+(`src/CAAnimation.h`) when you have a reference to the animation object
+rather than going through the animator.
+
+## Custom interpolatable values
+
+Implement `CAInterpolatableValue` when you want to animate a custom object
+type. The protocol requires `NSCopying` and `NSObject` conformance plus two
+interpolation methods:
+
+```objc
+// Standard interpolation: self + (end - self) * x
+// Additive: (end - self) * x (the difference only)
+- (id) interpolateTo:(id) end
+              factor:(double) x
+            additive:(BOOL) additive;
+
+// Cumulative additive: self - previousDiff + diff
+- (id) interpolatedValueWithDiff:(id) diff
+                    previousDiff:(id) previous;  // nil on first call
+```
+
+`test/10-first/cabasicanimationleak.m` shows the minimal skeleton with
+CAInterpolatableValue + CAImplicitlyAnimatableObject on the same class, and
+`test/40-interpolation/caanimation1.m` demonstrates calling
+`CAAnimationComputeFrameInfo` directly for frame-by-frame inspection of
+interpolation timing.
+
+For new primitive value types (not covered by the built-in
+`CAAnimationValueType` enum), register a `CABasicAnimationTypeDefinition`
+during `+initialize` with `CABasicAnimationTypeDefinitionRegister()` as
+documented in `src/CABasicAnimation.h`.

@@ -18,10 +18,12 @@ mulle-sde code search CALayer
 ## Local references
 
 - Overview: `README.md`, `asset/dox/TOC.md`
-- Explicit animation core: `src/CAAnimation.h`, `src/CABasicAnimation.h`, `src/CAPathAnimation.h`, `src/CAAnimator.h`
+- Animation protocol and lifecycle: `src/CAAnimation.h`
+- Explicit animation core: `src/CABasicAnimation.h`, `src/CAPathAnimation.h`, `src/CAAnimator.h`
 - Composition and storage: `src/CAAnimationGroup.h`, `src/CAAnimationSequence.h`, `src/CAAnimationStorage.h`
 - Implicit animation and targets: `src/CATransaction.h`, `src/CAImplicitlyAnimatableObject.h`, `src/CALayer.h`
-- Working examples: `demo/src/main-animate-additive.m`, `demo/src/main-animate-non-additive.m`, `demo/src/main-path.m`, `demo/src/main-tween.m`
+- Custom interpolation: `src/CABasicAnimation.h` (`CAInterpolatableValue` protocol)
+- Working examples: `demo/src/main-animate-additive.m`, `demo/src/main-animate-non-additive.m`, `demo/src/main-path.m`, `demo/src/main-color-click.m`, `demo/src/main-tween.m`
 - Small proofs: `test/20-animatable/snapshot.m`, `test/30-transaction/catransaction.m`, `test/40-interpolation/caanimation1.m`, `test/40-interpolation/caanimation-in-depth2.m`
 
 ## Main surfaces
@@ -34,6 +36,8 @@ mulle-sde code search CALayer
 | Run many animations together | `CAAnimationGroup` | Children run in parallel; the group must outlive the longest child. |
 | Chain steps | `CAAnimationSequence` | Sequence timing is implemented by child delays, not by a separate runner. |
 | Animate layer geometry safely | `CALayer` | Use `frame`, `bounds`, `canvas`, and `opacity`; leave `transform`, `clipRect`, and `alpha` alone. |
+| Animate a custom object type | `CAInterpolatableValue` | Implement `-interpolateTo:factor:additive:` and `-interpolatedValueWithDiff:previousDiff:`. The object must also conform to `NSCopying`. |
+| Receive animation lifecycle callbacks | `CAAnimationDelegate` | Set `[animation setDelegate:self]` (delegate is **not** retained). Implement `-animationWillStart:`, `-animationDidStart:`, and `-animationDidStop:finished:`. |
 | Author a custom drawing layer | `CGGraphicsLayer` + `CALayer` rules | Inside `drawInContext:`, call `[super drawInContext:context]`, draw against `[self canvas]`, and keep visual state on `observable` properties. |
 
 ## Local workflow
@@ -42,8 +46,10 @@ mulle-sde code search CALayer
 2. For explicit animation, look up the property, build `CAAnimationOptions` or `CABasicAnimationOptions`, create the animation, and call `[animation setAnimationObject:target]`.
 3. Run it through the right owner: `CAAnimator` for a frame loop, `CAAnimationGroup` from `CATransaction commit`, or an object that implements `CAAnimationStorageObject`.
 4. For `CALayer`, reason in `frame`/`bounds`/`canvas` terms. The animated end value persists on the real layer after the animation stops.
-5. For a custom drawing layer, treat the layer subclass as part of the public authoring surface: expose visual properties as `observable`, draw from `[self canvas]`, and keep the `drawInContext:` contract from `demo/src/main-path.m`.
+5. For custom value types, implement `CAInterpolatableValue` (requires `NSCopying`, `NSObject`). Register built-in-like types with `CABasicAnimationTypeDefinitionRegister` during `+initialize`.
+6. For lifecycle callbacks, set `[animation setDelegate:self]`. The delegate is NOT retained — ensure it outlives the animation. Use `-finish`, `-interrupt`, or `-cancel` to stop mid-flight (`demo/src/main-color-click.m` shows all three stop modes).
+7. For a custom drawing layer, treat the layer subclass as part of the public authoring surface: expose visual properties as `observable`, draw from `[self canvas]`, and keep the `drawInContext:` contract from `demo/src/main-path.m`.
 
 ## Verify/report
 
-When you describe behavior, name the family you relied on (`CABasicAnimation`, `CAPathAnimation`, `CATransaction`, `CAAnimationGroup`, `CALayer`) and cite the exact demo, test, or header path that establishes the rule.
+When you describe behavior, name the family you relied on (`CABasicAnimation`, `CAPathAnimation`, `CATransaction`, `CAAnimationGroup`, `CAAnimationSequence`, `CAAnimationDelegate`, `CAInterpolatableValue`, `CALayer`) and cite the exact demo, test, or header path that establishes the rule.
