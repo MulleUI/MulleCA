@@ -111,8 +111,8 @@ CAImplicitlyAnimatableObjectImplementation;
 // Auto-duration: cycle length = sum of children (computed once at start)
 CAAnimationSequence   *sequence;
 
-sequence = [[[CAAnimationSequence alloc] initWithAnimationOptions:
-   &(struct CAAnimationOptions){ { 0, INFINITY }, 0, INFINITY, 0 }] autorelease];
+sequence = [CAAnimationSequence animationWithAnimationOptions:
+   &(struct CAAnimationOptions){ { 0, INFINITY }, 0, INFINITY, 0 }];
 [sequence addAnimation:first];   // 0.5s
 [sequence addAnimation:second];  // 0.4s
 [sequence addAnimation:third];   // 1.1s
@@ -123,8 +123,8 @@ sequence = [[[CAAnimationSequence alloc] initWithAnimationOptions:
 // Explicit duration: group holds 1.5s after children finish before repeating
 CAAnimationGroup   *group;
 
-group = [[[CAAnimationGroup alloc] initWithAnimationOptions:
-   &(struct CAAnimationOptions){ { 0, 2.5 }, 0, INFINITY, 0 }] autorelease];
+group = [CAAnimationGroup animationWithAnimationOptions:
+   &(struct CAAnimationOptions){ { 0, 2.5 }, 0, INFINITY, 0 }];
 [group addAnimation:child];  // 1.0s — remaining 1.5s is hold time
 ```
 
@@ -221,11 +221,10 @@ opts = CABasicAnimationOptionsMakeCurve(
 opts.base.bits |= CAAnimationAdditive;
 
 // Delta: adds (-8,-8,+16,+16) to current frame at full progress
-anim = [[[CABasicAnimation alloc]
-   initWithProperty:frameProperty
-     startRectValue:CGRectMake( 0, 0, 0, 0)
-       endRectValue:CGRectMake( -8, -8, 16, 16)
-            options:&opts] autorelease];
+anim = [CABasicAnimation animationWithProperty:frameProperty
+                                startRectValue:CGRectMake( 0, 0, 0, 0)
+                                  endRectValue:CGRectMake( -8, -8, 16, 16)
+                                       options:&opts];
 [anim setAnimationObject:layer];
 ```
 

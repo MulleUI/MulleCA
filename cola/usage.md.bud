@@ -1,19 +1,22 @@
 ## Example
 
+This animates an `NSInteger` property `someIntegerValue` from 0 to 1000 over
+one second:
+
 ``` objc
 #import <MulleCA/MulleCA.h>
 
 
 @interface Foo : NSObject
 
-@property NSUInteger   someIntegerValue;
+@property NSInteger   someIntegerValue;
 
 @end
 
 
 @implementation Foo
 
-- (void) setSomeIntegerValue:(NSUInteger) value
+- (void) setSomeIntegerValue:(NSInteger) value
 {
    printf( "%td\n", value);
    _someIntegerValue = value;
@@ -49,9 +52,22 @@ int   main( void)
 
    for( timestamp = 0.0; timestamp <= 1.2; timestamp += 0.2)
       [animator animateWithAbsoluteTime:timestamp
-                          animationRate:0.0];
+                          animationRate:1.0 / 60.0];
    return( 0);
 }
 ```
 
+In a real display loop you call `animateWithAbsoluteTime:animationRate:`
+before drawing, passing the current time and the expected frame rate
+(`1.0/60.0` for 60Hz). The `animationRate` is used for quantizing the
+animation, which ensures an accurate final value is stored in the property;
+passing `0.0` keeps the values continuous.
 
+## Build the demo
+
+The `demo/` folder is a [mulle-sde](//github.com/mulle-sde) project:
+
+``` sh
+cd demo
+mulle-sde craft
+```

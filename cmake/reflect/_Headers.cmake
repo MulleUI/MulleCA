@@ -77,5 +77,6 @@ src/MulleCA.h
 src/MulleEdgeInsets+MulleObjC.h
 src/MulleObjCDeps+MulleCA.h
 src/NSObject+CAAnimation.h
+src/reflect/_MulleCA-versioncheck.h
 )
 
