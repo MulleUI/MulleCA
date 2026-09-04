@@ -1,46 +1,15 @@
 # MulleCA
 
-#### 🍃 Animate properties in real time with mulle-objc
+Part of [MulleUI](https://github.com/MulleUI) — UIKit-shaped modular GUI libraries for mulle-objc.
 
-
-# 🍃 MulleCA
-
-#### 🍃 Animate properties in real time with mulle-objc
+#### 🫧 Animate properties in real time with mulle-objc
 
 MulleCA is used to stuff values into properties over a desired timespan.
 
-
-If you want a `NSInteger` property named "someIntegerValue"
-on your object `foo` to change value from 0 to 1000 over the next second, you
-set up a `CABasicAnimation`:
-
-``` objc
-   // get property "someIntegerValue" from 'foo'
-   property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
-   // options: NULL yields convenient  default values `delay=0; duration=1;`)
-   animation = [[[CABasicAnimation alloc] initWithProperty:property
-                                         startIntegerValue:0
-                                           endIntegerValue:1000
-                                                   options:NULL] autorelease];
-   [animation setAnimationObject:foo];
-```
-
-and run it with an animator:
-
-``` objc
-   animator = [CAAnimator object];
-   [animator addAnimation:animation];
-   hz       = 60.0;
-
-   while( [animator animateWithAbsoluteTime:time( NULL)
-                              animationRate:1.0 / hz])
-   {
-       struct timespec   delay = { 0, (1000 * 1000 * 1000) / hz };
-       nanosleep( &delay, NULL);
-   }
-   return( 0);
-```
-
+You animate a property by setting up a `CABasicAnimation` for it and adding it
+to a `CAAnimator`, which you then step with a clock each frame. The [example
+below](#example) shows a complete animation of an `NSInteger` property named
+`someIntegerValue`.
 
 
 
@@ -51,6 +20,86 @@ and run it with an animator:
 
 
 
+## Documentation & Guides
+
+* [API Summary](asset/dox/api/toc)
+* [Coder Guide](asset/howto/coder/mulle-ca)
+* [Debugger Guide](asset/howto/debugger/mulle-ca)
+* [Verifier Guide](asset/howto/verifier/mulle-ca)
+
+## Example
+
+This animates an `NSInteger` property `someIntegerValue` from 0 to 1000 over
+one second:
+
+``` objc
+#import <MulleCA/MulleCA.h>
+
+
+@interface Foo : NSObject
+
+@property NSInteger   someIntegerValue;
+
+@end
+
+
+@implementation Foo
+
+- (void) setSomeIntegerValue:(NSInteger) value
+{
+   printf( "%td\n", value);
+   _someIntegerValue = value;
+}
+
+@end
+
+
+int   main( void)
+{
+   CAAnimator                       *animator;
+   CABasicAnimation                 *animation;
+   Foo                              *foo;
+   double                           timestamp;
+   struct _mulle_objc_property      *property;
+
+   // create object, get property, create an animation for this property
+
+   foo      = [Foo object];
+   property = MulleObjCInstanceSearchProperty( foo, @selector( someIntegerValue));
+
+   animation = [[[CABasicAnimation alloc] initWithProperty:property
+                                         startIntegerValue:0
+                                           endIntegerValue:1000
+                                                   options:NULL] autorelease];
+   [animation setAnimationObject:foo];
+
+   /*
+    * animator now runs animation with our fake timestamps
+    */
+   animator = [CAAnimator object];
+   [animator addAnimation:animation];
+
+   for( timestamp = 0.0; timestamp <= 1.2; timestamp += 0.2)
+      [animator animateWithAbsoluteTime:timestamp
+                          animationRate:1.0 / 60.0];
+   return( 0);
+}
+```
+
+In a real display loop you call `animateWithAbsoluteTime:animationRate:`
+before drawing, passing the current time and the expected frame rate
+(`1.0/60.0` for 60Hz). The `animationRate` is used for quantizing the
+animation, which ensures an accurate final value is stored in the property;
+passing `0.0` keeps the values continuous.
+
+## Build the demo
+
+The `demo/` folder is a [mulle-sde](//github.com/mulle-sde) project:
+
+``` sh
+cd demo
+mulle-sde craft
+```
 
 
 ### You are here

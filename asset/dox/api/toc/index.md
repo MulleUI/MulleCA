@@ -433,7 +433,7 @@ MulleCA is a real-time property animation library for mulle-objc that enables sm
 
 #### `@interface NSObject(CAAnimation_Forward)`
 - **Purpose:** Category for creating custom animations for value objects
-- **Method:** `+createAnimationFrom:to:property:options:` - Class method for custom animation creation (alternative to `CAInterpolatableValue` protocol)
+- **Method:** `+animationFrom:to:property:options:` - Class method for custom animation creation (alternative to `CAInterpolatableValue` protocol)
 
 #### `struct CAPropertyAnimationContext`
 - **Purpose:** Context structure passed to custom property animators
