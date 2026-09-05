@@ -221,6 +221,7 @@ static inline void
 }
 
 
+MULLE_CA_GLOBAL
 char  *CAAnimationOptionsUTF8String( struct CAAnimationOptions *options);
 
 
@@ -466,6 +467,7 @@ struct CAAnimationMutableState
 @end
 
 
+MULLE_CA_GLOBAL
 void   CAAnimationStart( CAAnimation *self,
                          mulle_absolutetime_t now,
                          mulle_relativetime_t animationRate);
@@ -474,12 +476,14 @@ void   CAAnimationStart( CAAnimation *self,
 // this function just does "math" and no callbacks, which makes it a little
 // easier to debug
 //
+MULLE_CA_GLOBAL
 struct CAAnimationFrameInfo
    CAAnimationComputeFrameInfo( CAAnimation *self,
                                 mulle_absolutetime_t now,
                                 mulle_relativetime_t animationRate);
 
 
+MULLE_CA_GLOBAL
 BOOL   CAAnimationDidAnimate( CAAnimation *self,
                               mulle_relativetime_t now,
                               struct CAAnimationFrameInfo info);
