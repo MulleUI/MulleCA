@@ -362,6 +362,7 @@ static inline union CAAnimationValue
 }
 
 
+MULLE_CA_GLOBAL
 char  *CAAnimationValueUTF8String( union CAAnimationValue value,
                                    CAAnimationValueType type);
 
@@ -381,6 +382,7 @@ static inline struct CAAnimationValueRange
 }
 
 
+MULLE_CA_GLOBAL
 char  *CAAnimationValueRangeUTF8String( struct CAAnimationValueRange *range,
                                         CAAnimationValueType type);
 
@@ -592,6 +594,7 @@ static inline struct CABasicAnimationOptions
       .tween = (vtween)                                                                            \
    })                                                                                  
 
+MULLE_CA_GLOBAL
 char  *CABasicAnimationOptionsUTF8String( struct CABasicAnimationOptions *options);
 
 
@@ -816,14 +819,17 @@ static inline char  *CAAnimationValueTypeUTF8String( CAAnimationValueType type)
 @end
 
 
+MULLE_CA_GLOBAL
 void   CABasicAnimationSetInterpolatedFloatAdditive( CABasicAnimation *self,
                                                      id object,
                                                      double x);
 
+MULLE_CA_GLOBAL
 void   CABasicAnimationSetInterpolatedFloat2Additive( CABasicAnimation *self,
                                                       id object,
                                                       double x);
 
+MULLE_CA_GLOBAL
 void   CABasicAnimationSetInterpolatedFloat4Additive( CABasicAnimation *self,
                                                       id object,
                                                       double x);

@@ -193,7 +193,8 @@ typedef NS_ENUM( NSUInteger, CATransactionState)
 //
 // on a per-thread basis
 //
-MULLE_CA_GLOBAL_VAR extern mulle_thread_tss_t   CATransactionThreadKey;
+MULLE_CA_GLOBAL
+mulle_thread_tss_t   CATransactionThreadKey;
 
 static inline id   CATransactionGetCurrentTransaction( void)
 {
