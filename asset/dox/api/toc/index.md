@@ -491,7 +491,7 @@ MulleCA is a real-time property animation library for mulle-objc that enables sm
 ### 3.13. `MulleCA.h`
 
 - **Purpose:** Umbrella header for the entire MulleCA library
-- **Defines:** `MULLE_CA_VERSION` macro (`((0 << 20) | (0 << 8) | 1)`)
+- **Defines:** `MULLE_CA_VERSION` macro (`((0UL << 20) | (1 << 8) | 0)`)
 - **Includes:** Export and provide headers, optional version check
 
 ## 4. Performance Characteristics

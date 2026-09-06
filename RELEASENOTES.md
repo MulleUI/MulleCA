@@ -1,10 +1,10 @@
-### 0.1.0
+## 0.1.0
 
-* Factory-style `animationWithAnimationOptions:` methods on CAAnimationGroup, CAAnimationSequence and CABasicAnimation
-* `createAnimationFrom:` renamed to `animationFrom:` (**BREAKING**)
+
+
+
+
+* new `animationWithAnimationOptions:` factory methods on CAAnimationGroup, CAAnimationSequence and CABasicAnimation replace alloc/init/autorelease setup
+* `NSObject+CAAnimation` now uses `animationFrom:` in place of `createAnimationFrom:` to build animations between objects (**BREAKING**: renamed method)
 * README rewritten with a self-contained example and demo build instructions
-* License headers added to all src files
-
-### 0.0.1
-
-Various small improvements
+* license headers added to all src files
