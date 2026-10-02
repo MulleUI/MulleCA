@@ -3,20 +3,20 @@
  *   `mulle-sde reflect` and any edits will be lost.
  *   Suppress generation of this file with:
  *
- *      mulle-sde environment set MULLE_MATCH_TO_C_OBJC_HEADERS_FILE DISABLE
+ *      mulle-sde environment --global set MULLE_MATCH_TO_C_OBJC_HEADERS_FILE DISABLE
  *
  *   To not let mulle-match-to-c generate any header files:
  *
- *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
+ *      mulle-sde environment --global set MULLE_MATCH_TO_C_RUN DISABLE
  */
 #ifndef _mulle_c_a__export_h__
 #define _mulle_c_a__export_h__
 
 
+#import "CAAnimation.h"
 #import "CAAnimationGroup.h"
 #import "CAAnimationSequence.h"
 #import "CAAnimationStorage.h"
-#import "CAAnimation.h"
 #import "CAAnimator.h"
 #import "CABasicAnimation.h"
 #import "CAImplicitlyAnimatableObject.h"

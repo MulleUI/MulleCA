@@ -34,7 +34,7 @@
 //
 #import "import.h"
 
-#define MULLE_CA_VERSION   ((0UL << 20) | (1 << 8) | 0)
+#define MULLE_CA_VERSION   ((0UL << 20) | (1 << 8) | 1)
 
 #import "_MulleCA-export.h"
 #include "_MulleCA-provide.h"
