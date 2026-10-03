@@ -214,6 +214,18 @@ static void   animate_float_property( struct _mulle_objc_property *property,
    if( startValue == endValue)
       return;
 
+   //
+   // INFINITY is used as a sentinel by several properties (e.g. CATextLayer's
+   // fontPixelSize and textLineHeight both mean "derive from the canvas").
+   // Interpolating from or to such a value is meaningless and produces huge
+   // intermediate values, which downstream consumers cannot handle (a huge
+   // font size overflows the nanovg glyph atlas and aborts). Leave sentinels
+   // alone and only animate real values.
+   //
+   if( isinf( startValue) || isinf( endValue) ||
+       isnan( startValue) || isnan( endValue))
+      return;
+
    setter    = mulle_objc_property_get_setter( property);
    animation = [[[CABasicAnimation alloc] initWithProperty:property
                                            startFloatValue:startValue
