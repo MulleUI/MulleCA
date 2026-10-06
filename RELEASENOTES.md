@@ -1,3 +1,10 @@
+### 0.1.1
+
+
+* float properties whose start or end value is `INFINITY` or `NaN` are no longer interpolated, but left unchanged
+* avoids huge intermediate values that downstream consumers cannot handle (a derived font size otherwise overflows the nanovg glyph atlas and aborts)
+* `CATextLayer`'s `fontPixelSize` and `textLineHeight` can now keep their "derive from the canvas" sentinel instead of being animated
+
 ## 0.1.0
 
 

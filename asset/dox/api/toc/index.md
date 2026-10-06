@@ -430,6 +430,7 @@ MulleCA is a real-time property animation library for mulle-objc that enables sm
 #### `@interface NSObject(CAAnimation)`
 - **Purpose:** Category providing default implicit animation generation for object properties
 - **Method:** `-generateAnimationsForPropertiesWithSnapshot:animationGroup:` - Default implementation for implicit animation generation
+- **Sentinel Values:** Float properties whose start or end value is `INFINITY` or `NaN` are skipped rather than interpolated (e.g. `CATextLayer`'s `fontPixelSize` and `textLineHeight` use infinity to mean "derive from the canvas")
 
 #### `@interface NSObject(CAAnimation_Forward)`
 - **Purpose:** Category for creating custom animations for value objects
@@ -491,7 +492,7 @@ MulleCA is a real-time property animation library for mulle-objc that enables sm
 ### 3.13. `MulleCA.h`
 
 - **Purpose:** Umbrella header for the entire MulleCA library
-- **Defines:** `MULLE_CA_VERSION` macro (`((0UL << 20) | (1 << 8) | 0)`)
+- **Defines:** `MULLE_CA_VERSION` macro (`((0UL << 20) | (1 << 8) | 1)`)
 - **Includes:** Export and provide headers, optional version check
 
 ## 4. Performance Characteristics
