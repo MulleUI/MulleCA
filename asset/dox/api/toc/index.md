@@ -3,7 +3,7 @@
 
 ## 1. Introduction & Purpose
 
-MulleCA is a real-time property animation library for mulle-objc that enables smooth interpolation of object property values over time. It provides a comprehensive animation system for animating NSInteger, CGFloat, CGFloat2, CGFloat4, CGPoint, CGRect, CGSize, NSRange, BOOL, float arrays, and custom interpolatable objects. The library supports both explicit animations (via `CABasicAnimation` and `CAPathAnimation`) and implicit animations (via `CATransaction`), along with sequential animation choreography via `CAAnimationSequence` and parallel grouping via `CAAnimationGroup`. Features include time delays, durations, repeat counts, auto-reverse, additive blending, cumulative effects, `animationRate` quantization, and customizable timing curves with 30+ easing presets. MulleCA differs from Apple's CoreAnimation by directly modifying object properties rather than operating on a presentation tree, making animated values persistent. It is a foundational component of the MulleUI framework, depending on `MulleUIBase` and `mulle-objc-list` (build-time).
+MulleCA is a real-time property animation library for mulle-objc that enables smooth interpolation of object property values over time. It provides a comprehensive animation system for animating NSInteger, CGFloat, CGFloat2, CGFloat4, CGPoint, CGRect, CGSize, NSRange, BOOL, float arrays, and custom interpolatable objects. The library supports both explicit animations (via `CABasicAnimation` and `CAPathAnimation`) and implicit animations (via `CATransaction`), along with sequential animation choreography via `CAAnimationSequence` and parallel grouping via `CAAnimationGroup`. Features include time delays, durations, repeat counts, auto-reverse, additive blending, cumulative effects, `animationRate` quantization, and customizable timing curves with 30+ easing presets. MulleCA differs from Apple's CoreAnimation by directly modifying object properties rather than operating on a presentation tree, making animated values persistent. It is a foundational component of the MulleUI framework, depending on `MulleUIBase` and `mulle-objc-tools` (build-time).
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -818,4 +818,4 @@ int   main( void)
 MulleCA directly depends on the following mulle-sde libraries:
 
 - **MulleUIBase** - Base UI types including MulleEdgeInsets, MulleCornerInsets, MulleObject, MulleAutolockingObjectProtocols, MullePropertyObserving, MulleObjCForwarding, CGPath, CGPoint, CGRect, CGSize, CGAffineTransform, CACubic, CATweenFunction, CGFloat2, CGFloat4, and mulle-gfx transitively
-- **mulle-objc-list** - Objective-C runtime information tool (build-time only: no-all-load, no-bequeath, no-cmake-inherit, no-header, no-link, no-singlephase)
+- **mulle-objc-tools** - Objective-C runtime information tool (build-time only: no-all-load, no-bequeath, no-cmake-inherit, no-header, no-link, no-singlephase)
